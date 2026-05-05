@@ -742,7 +742,7 @@ function BimonthlyContChart({ bmRows, fields, rangeYears, chartStyle = 'line', h
 }
 
 // ── BimonthlyCard ─────────────────────────────────────────────────────────────
-function BimonthlyCard({ cardId, title, sub, data, dataset, fields, accent, height = 340, footerNote, continuousOnly = false, base100Fields = null }) {
+function BimonthlyCard({ cardId, title, sub, data, dataset, fields, accent, height = 340, footerNote, footerNoteBase100, continuousOnly = false, base100Fields = null }) {
   const initialMode = (continuousOnly || base100Fields) ? 'continuous' : 'seasonal';
   const [mode, setMode]             = React.useState(initialMode);
   const [range, setRange]           = React.useState('5');
@@ -953,6 +953,11 @@ function BimonthlyCard({ cardId, title, sub, data, dataset, fields, accent, heig
       {footerNote && (
         <div style={{padding:'6px 0 4px', fontSize:11, color:'var(--fg-dim)', lineHeight:1.6}}>
           {footerNote}
+        </div>
+      )}
+      {footerNoteBase100 && mode === 'base100' && (
+        <div style={{padding:'2px 0 4px', fontSize:11, color:'var(--fg-dim)', lineHeight:1.6}}>
+          {footerNoteBase100}
         </div>
       )}
     </section>

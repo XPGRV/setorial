@@ -124,6 +124,12 @@ const PoultryIpcaTab = ({ data, accent }) => {
         fields={PROCESSADOS_PX_FIELDS}
         base100Fields={PROCESSADOS_PX_BASE100_FIELDS}
         footerNote={growthFooterNote}
+        footerNoteBase100={
+          <span>
+            <strong style={{color:'var(--fg)'}}>OBS:</strong>{' '}
+            Em Base 100, cada série parte de uma base independente — não é possível comparar o <em>nível</em> de preço entre BRF, Seara e Industry Avg. diretamente no gráfico. Use esta visão para analisar a <em>evolução</em> de cada empresa contra ela mesma ao longo do tempo.
+          </span>
+        }
       />
 
       <window.BimonthlyCard

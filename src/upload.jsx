@@ -161,9 +161,11 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
     result.abates = trimEmpty(abates);
   }
 
-  // ── Boi Gordo diário (aba BBG_Dados col F = BRL/@, do BeefBR.xlsm) ──────────
+  // ── Dados diários do BeefBR (aba BBG_Dados do BeefBR.xlsm) ──────────────────
+  // col D (3) = data · col E (4) = Preço Carne MI (BRL/kg) · col F (5) = Preço Boi (BRL/@)
   if (parseBR && findSheet('BBG_Dados')) {
     const bgRaw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('BBG_Dados')], { header: 1, raw: true });
+    const carne_mi_daily = [];
     const boi_gordo_daily = [];
     let bgDate = null;
     for (let i = 3; i < bgRaw.length; i++) {
@@ -175,11 +177,15 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
       } else if (bgDate) {
         bgDate = new Date(bgDate.getTime() + 86400000);
       } else continue;
-      const value = parseNum(r[5]); // col F — Preço do Boi BRL/@
-      if (value == null) continue;
+      const hasAny = r[4] != null || r[5] != null;
+      if (!hasAny) continue;
       const year = bgDate.getUTCFullYear(), month = bgDate.getUTCMonth() + 1, day = bgDate.getUTCDate();
-      boi_gordo_daily.push({ year, month, day, value });
+      const carneMI  = parseNum(r[4]); // col E — Preço Carne MI BRL/kg
+      const boiGordo = parseNum(r[5]); // col F — Preço Boi BRL/@
+      if (carneMI  != null) carne_mi_daily.push({ year, month, day, value: carneMI });
+      if (boiGordo != null) boi_gordo_daily.push({ year, month, day, value: boiGordo });
     }
+    if (carne_mi_daily.length)  result.carne_mi_daily  = carne_mi_daily;
     if (boi_gordo_daily.length) result.boi_gordo_daily = boi_gordo_daily;
   }
 
@@ -670,6 +676,7 @@ const UploadWidget = ({ onLoad, lastUpdate, currentSource }) => {
       if (parsed.beef)           parts.push(`${parsed.beef.length}L BeefBR`);
       if (parsed.secex)          parts.push(`${parsed.secex.length} SECEX`);
       if (parsed.abates)         parts.push(`${parsed.abates.length} Abates`);
+      if (parsed.carne_mi_daily)  parts.push(`${parsed.carne_mi_daily.length} Carne MI diário`);
       if (parsed.boi_gordo_daily) parts.push(`${parsed.boi_gordo_daily.length} Boi Gordo diário`);
       if (parsed.edgebeef_daily) parts.push(`${parsed.edgebeef_daily.length} Edgebeef diário`);
       if (parsed.beef_us)        parts.push(`${parsed.beef_us.length}L BeefUS`);

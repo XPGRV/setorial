@@ -318,26 +318,26 @@ function TopBar({ meta, onUpload, activeDataset }) {
 
 // ---------------- Preços Tab ----------------
 function PrecosTab({ data, accent }) {
-  const computedBeef = useMemo(() => data.beef.map(r => ({
-    ...r,
-    carcass_mi_usd: (r.beef_carcass_brl_kg != null && r.usdbrl) ? r.beef_carcass_brl_kg / r.usdbrl : null,
-  })), [data]);
-  const computedData = useMemo(() => ({ ...data, beef: computedBeef }), [data, computedBeef]);
-
   return (
     <main className="main">
-      <div className="grid-precos">
-        <PriceCard cardId="card-carne-mi" title="Preço Carne · Mercado Interno" sub="Bloomberg · BAMTCACA Index"
-          accent={accent} data={computedData} dataset="beef"
-          field="beef_carcass_brl_kg" usdField="carcass_mi_usd"
-          unit="R$/kg" usdUnit="US$/kg" hasUSD decimals={2}/>
-        <PriceCard cardId="card-carne-me" title="Preço Carne · Mercado Externo" sub="SECEX · Preço Carne Exportação"
-          accent={accent} data={data} dataset="beef"
-          field="beef_me_brl_kg" usdField="beef_me_usd_kg"
-          unit="R$/kg" usdUnit="US$/kg" hasUSD decimals={2}/>
-      </div>
+      <DailySeasonalCard
+        data={data} accent={accent}
+        dailyKey="carne_mi_daily" cardId="card-carne-mi"
+        title="Preço Carne · Mercado Interno" sub="Bloomberg · BAMTCACA Index"
+        unit="R$/kg" decimals={2}
+      />
 
-      <BoiGordoBRCard data={data} accent={accent}/>
+      <PriceCard cardId="card-carne-me" title="Preço Carne · Mercado Externo" sub="SECEX · Preço Carne Exportação"
+        accent={accent} data={data} dataset="beef"
+        field="beef_me_brl_kg" usdField="beef_me_usd_kg"
+        unit="R$/kg" usdUnit="US$/kg" hasUSD decimals={2}/>
+
+      <DailySeasonalCard
+        data={data} accent={accent}
+        dailyKey="boi_gordo_daily" cardId="card-cattle"
+        title="Preço Boi Gordo" sub="Bloomberg · BACAINDX Index"
+        unit="BRL/@" decimals={2}
+      />
 
       <div className="section-header"><h2>Spreads</h2></div>
 
@@ -405,44 +405,44 @@ function AbatesTab({ data, accent }) {
   );
 }
 
-// ---------------- BoiGordoBRCard ─────────────────────────────────────────────
-// Gráfico diário sazonal do Preço do Boi Gordo (BRL/@), espelho do EdgebeeefCard.
+// ---------------- DailySeasonalCard ──────────────────────────────────────────
+// Gráfico diário sazonal genérico — espelho do EdgebeeefCard.
 // Usa EdgebeeefChart + EdgebeeefControls expostos em beef-us-tab.jsx.
-function BoiGordoBRCard({ data, accent }) {
-  const MONTH_DOY_BR = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+const _MONTH_DOY = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+
+function DailySeasonalCard({ data, accent, dailyKey, cardId, title, sub, unit, decimals = 2 }) {
+  const rows = data[dailyKey] || [];
   const events = window.EVENTS || [];
 
   const byYear = useMemo(() => {
     const out = {};
-    for (const r of (data.boi_gordo_daily || [])) {
+    for (const r of rows) {
       if (!out[r.year]) out[r.year] = [];
-      out[r.year].push({ doy: MONTH_DOY_BR[r.month - 1] + r.day, value: r.value });
+      out[r.year].push({ doy: _MONTH_DOY[r.month - 1] + r.day, value: r.value });
     }
     for (const yr of Object.keys(out)) out[yr].sort((a, b) => a.doy - b.doy);
     return out;
-  }, [data]);
+  }, [rows]);
 
   const allYears = useMemo(() => Object.keys(byYear).map(Number).sort((a, b) => a - b), [byYear]);
 
   const latestRaw = useMemo(() => {
-    const rows = (data.boi_gordo_daily || []).slice().sort((a, b) =>
+    if (!rows.length) return null;
+    return [...rows].sort((a, b) =>
       a.year !== b.year ? a.year - b.year : a.month !== b.month ? a.month - b.month : a.day - b.day
-    );
-    return rows[rows.length - 1] || null;
-  }, [data]);
+    ).at(-1);
+  }, [rows]);
 
   const yoyRaw = useMemo(() => {
     if (!latestRaw) return null;
-    const candidates = (data.boi_gordo_daily || []).filter(r =>
-      r.year === latestRaw.year - 1 && r.month === latestRaw.month
-    );
+    const candidates = rows.filter(r => r.year === latestRaw.year - 1 && r.month === latestRaw.month);
     let best = null, bestD = Infinity;
     for (const r of candidates) {
       const d = Math.abs(r.day - latestRaw.day);
       if (d < bestD) { bestD = d; best = r; }
     }
     return best;
-  }, [data, latestRaw]);
+  }, [rows, latestRaw]);
 
   const yoy = latestRaw && yoyRaw
     ? (latestRaw.value - yoyRaw.value) / Math.abs(yoyRaw.value)
@@ -463,13 +463,13 @@ function BoiGordoBRCard({ data, accent }) {
 
   useEffect(() => { setPinnedYear(null); }, [selectedYears.join(',')]);
 
-  if (!data.boi_gordo_daily || !data.boi_gordo_daily.length) {
+  if (!rows.length) {
     return (
-      <section className="card" data-card-id="card-cattle">
+      <section className="card card-full" data-card-id={cardId}>
         <div className="card-head">
           <div>
-            <div className="card-eyebrow">Bloomberg · BACAINDX Index</div>
-            <h3 className="card-title">Preço Boi Gordo</h3>
+            <div className="card-eyebrow">{sub}</div>
+            <h3 className="card-title">{title}</h3>
             <div style={{fontSize:13, color:'var(--fg-dim)', marginTop:8}}>
               Faça upload da planilha BeefBR.xlsm para visualizar os dados diários.
             </div>
@@ -480,15 +480,15 @@ function BoiGordoBRCard({ data, accent }) {
   }
 
   return (
-    <section className="card card-full" data-card-id="card-cattle">
+    <section className="card card-full" data-card-id={cardId}>
       <div className="card-head">
         <div>
-          <div className="card-eyebrow">Bloomberg · BACAINDX Index</div>
-          <h3 className="card-title">Preço Boi Gordo</h3>
+          <div className="card-eyebrow">{sub}</div>
+          <h3 className="card-title">{title}</h3>
           <div className="card-price">
             {latestRaw && (<>
-              <span className="card-value">{latestRaw.value.toFixed(2)}</span>
-              <span className="card-unit">BRL/@</span>
+              <span className="card-value">{latestRaw.value.toFixed(decimals)}</span>
+              <span className="card-unit">{unit}</span>
               <span className={`card-delta ${yoy == null ? '' : yoy >= 0 ? 'is-up' : 'is-down'}`}>
                 {fmtPct(yoy)}<span className="card-delta-label"> YoY</span>
               </span>
@@ -514,8 +514,9 @@ function BoiGordoBRCard({ data, accent }) {
         showStats={showStats} showEvents={showEvents}
         events={events}
         accent={accent}
-        unit="BRL/@"
-        chartId="br-boi-gordo"
+        unit={unit}
+        decimals={decimals}
+        chartId={cardId}
       />
     </section>
   );

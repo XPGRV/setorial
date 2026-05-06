@@ -57,7 +57,7 @@ const EdgebeeefChart = ({
     }
     if (!isFinite(lo)) { lo = -100; hi = 100; }
     const range = hi - lo;
-    const step = range > 800 ? 200 : range > 400 ? 100 : range > 200 ? 50 : 25;
+    const step = range > 800 ? 200 : range > 400 ? 100 : range > 150 ? 50 : range > 60 ? 25 : range > 30 ? 10 : range > 15 ? 5 : range > 6 ? 2 : range > 3 ? 1 : 0.5;
     return {
       vMin: Math.floor((lo - range * 0.05) / step) * step,
       vMax: Math.ceil((hi  + range * 0.15) / step) * step,

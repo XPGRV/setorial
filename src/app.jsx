@@ -322,9 +322,10 @@ function PrecosTab({ data, accent }) {
     <main className="main">
       <DailySeasonalCard
         data={data} accent={accent}
-        dailyKey="carne_mi_daily" cardId="card-carne-mi"
+        dailyKey="carne_mi_daily" usdDailyKey="carne_mi_usd_daily"
+        cardId="card-carne-mi"
         title="Preço Carne · Mercado Interno" sub="Bloomberg · BAMTCACA Index"
-        unit="R$/kg" decimals={2}
+        unit="R$/kg" usdUnit="US$/kg" decimals={2}
       />
 
       <PriceCard cardId="card-carne-me" title="Preço Carne · Mercado Externo" sub="SECEX · Preço Carne Exportação"
@@ -410,8 +411,13 @@ function AbatesTab({ data, accent }) {
 // Usa EdgebeeefChart + EdgebeeefControls expostos em beef-us-tab.jsx.
 const _MONTH_DOY = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
 
-function DailySeasonalCard({ data, accent, dailyKey, cardId, title, sub, unit, decimals = 2 }) {
-  const rows = data[dailyKey] || [];
+function DailySeasonalCard({ data, accent, dailyKey, usdDailyKey, cardId, title, sub, unit, usdUnit, decimals = 2 }) {
+  const hasUSD = !!usdDailyKey;
+  const [currency, setCurrency] = useState('brl');
+  const activeKey  = hasUSD && currency === 'usd' ? usdDailyKey : dailyKey;
+  const activeUnit = hasUSD && currency === 'usd' ? (usdUnit || 'US$/kg') : unit;
+
+  const rows = data[activeKey] || [];
   const events = window.EVENTS || [];
 
   const byYear = useMemo(() => {
@@ -463,7 +469,8 @@ function DailySeasonalCard({ data, accent, dailyKey, cardId, title, sub, unit, d
 
   useEffect(() => { setPinnedYear(null); }, [selectedYears.join(',')]);
 
-  if (!rows.length) {
+  const baseRows = data[dailyKey] || [];
+  if (!baseRows.length) {
     return (
       <section className="card card-full" data-card-id={cardId}>
         <div className="card-head">
@@ -488,7 +495,7 @@ function DailySeasonalCard({ data, accent, dailyKey, cardId, title, sub, unit, d
           <div className="card-price">
             {latestRaw && (<>
               <span className="card-value">{latestRaw.value.toFixed(decimals)}</span>
-              <span className="card-unit">{unit}</span>
+              <span className="card-unit">{activeUnit}</span>
               <span className={`card-delta ${yoy == null ? '' : yoy >= 0 ? 'is-up' : 'is-down'}`}>
                 {fmtPct(yoy)}<span className="card-delta-label"> YoY</span>
               </span>
@@ -498,13 +505,21 @@ function DailySeasonalCard({ data, accent, dailyKey, cardId, title, sub, unit, d
             </>)}
           </div>
         </div>
-        <window.EdgebeeefControls
-          years={allYears}
-          selectedYears={selectedYears} setSelectedYears={setSelectedYears}
-          showStats={showStats} setShowStats={setShowStats}
-          showEvents={showEvents} setShowEvents={setShowEvents}
-          chartStyle={chartStyle} setChartStyle={setChartStyle}
-        />
+        <div style={{display:'flex', flexDirection:'column', alignItems:'flex-end', gap:8}}>
+          <window.EdgebeeefControls
+            years={allYears}
+            selectedYears={selectedYears} setSelectedYears={setSelectedYears}
+            showStats={showStats} setShowStats={setShowStats}
+            showEvents={showEvents} setShowEvents={setShowEvents}
+            chartStyle={chartStyle} setChartStyle={setChartStyle}
+          />
+          {hasUSD && (
+            <div className="currency-toggle">
+              <button className={`cur-btn ${currency==='brl'?'is-on':''}`} onClick={() => setCurrency('brl')}>R$</button>
+              <button className={`cur-btn ${currency==='usd'?'is-on':''}`} onClick={() => setCurrency('usd')}>US$</button>
+            </div>
+          )}
+        </div>
       </div>
       <window.EdgebeeefChart
         byYear={byYear} allYears={allYears}
@@ -514,9 +529,9 @@ function DailySeasonalCard({ data, accent, dailyKey, cardId, title, sub, unit, d
         showStats={showStats} showEvents={showEvents}
         events={events}
         accent={accent}
-        unit={unit}
+        unit={activeUnit}
         decimals={decimals}
-        chartId={cardId}
+        chartId={`${cardId}-${currency}`}
       />
     </section>
   );

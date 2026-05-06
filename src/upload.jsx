@@ -162,11 +162,12 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
   }
 
   // ── Dados diários do BeefBR (aba BBG_Dados do BeefBR.xlsm) ──────────────────
-  // col D (3) = data · col E (4) = Preço Carne MI (BRL/kg) · col F (5) = Preço Boi (BRL/@)
+  // col D (3) = data · col E (4) = Carne MI BRL/kg · col F (5) = Boi Gordo BRL/@ · col I (8) = Carne MI USD/kg
   if (parseBR && findSheet('BBG_Dados')) {
     const bgRaw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('BBG_Dados')], { header: 1, raw: true });
-    const carne_mi_daily = [];
-    const boi_gordo_daily = [];
+    const carne_mi_daily     = [];
+    const carne_mi_usd_daily = [];
+    const boi_gordo_daily    = [];
     let bgDate = null;
     for (let i = 3; i < bgRaw.length; i++) {
       const r = bgRaw[i];
@@ -177,16 +178,19 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
       } else if (bgDate) {
         bgDate = new Date(bgDate.getTime() + 86400000);
       } else continue;
-      const hasAny = r[4] != null || r[5] != null;
+      const hasAny = r[4] != null || r[5] != null || r[8] != null;
       if (!hasAny) continue;
       const year = bgDate.getUTCFullYear(), month = bgDate.getUTCMonth() + 1, day = bgDate.getUTCDate();
-      const carneMI  = parseNum(r[4]); // col E — Preço Carne MI BRL/kg
-      const boiGordo = parseNum(r[5]); // col F — Preço Boi BRL/@
-      if (carneMI  != null) carne_mi_daily.push({ year, month, day, value: carneMI });
-      if (boiGordo != null) boi_gordo_daily.push({ year, month, day, value: boiGordo });
+      const carneMI    = parseNum(r[4]); // col E — Carne MI BRL/kg
+      const boiGordo   = parseNum(r[5]); // col F — Boi Gordo BRL/@
+      const carneMIUSD = parseNum(r[8]); // col I — Carne MI USD/kg
+      if (carneMI    != null) carne_mi_daily.push({ year, month, day, value: carneMI });
+      if (boiGordo   != null) boi_gordo_daily.push({ year, month, day, value: boiGordo });
+      if (carneMIUSD != null) carne_mi_usd_daily.push({ year, month, day, value: carneMIUSD });
     }
-    if (carne_mi_daily.length)  result.carne_mi_daily  = carne_mi_daily;
-    if (boi_gordo_daily.length) result.boi_gordo_daily = boi_gordo_daily;
+    if (carne_mi_daily.length)     result.carne_mi_daily     = carne_mi_daily;
+    if (carne_mi_usd_daily.length) result.carne_mi_usd_daily = carne_mi_usd_daily;
+    if (boi_gordo_daily.length)    result.boi_gordo_daily    = boi_gordo_daily;
   }
 
   // ── BeefUS (abas: BBG_Dados, BeefUS) ────────────────────────────────────────

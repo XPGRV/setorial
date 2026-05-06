@@ -1392,19 +1392,6 @@ function BroilerProductionSection({ data }) {
   }
   return (
     <main className="main">
-      <window.PriceCard
-        cardId="us-plantel-matrizes"
-        title="Plantel de Matrizes"
-        sub="USDA · Broiler Breeders · FrangoUS col Z"
-        accent={chartAccent}
-        data={data}
-        dataset="frango_us_monthly"
-        field="plantel_matrizes"
-        unit="000 cab"
-        decimals={0}
-        fullWidth
-        events={EVENTS_FRANGO_US}
-      />
       <window.ProductionCard
         data={data}
         accent={chartAccent}
@@ -1424,6 +1411,19 @@ function BroilerProductionSection({ data }) {
         title="Revisão de Forecast · Anual"
         cardId="us-broiler-annual"
         pairIdx={pairIdx}
+      />
+      <window.PriceCard
+        cardId="us-plantel-matrizes"
+        title="Plantel de Matrizes"
+        sub="USDA · Broiler Breeders"
+        accent={chartAccent}
+        data={data}
+        dataset="frango_us_monthly"
+        field="plantel_matrizes"
+        unit="000 cab"
+        decimals={0}
+        fullWidth
+        events={EVENTS_FRANGO_US}
       />
     </main>
   );

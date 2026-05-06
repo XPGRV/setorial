@@ -30,6 +30,7 @@ function buildDailyStats(byYear, histYears) {
 const EdgebeeefChart = ({
   byYear, allYears, selectedYears, pinnedYear, setPinnedYear,
   chartStyle, showStats, showEvents, events, accent, chartId = 'edgebeef',
+  unit = 'USD/cwt', decimals = 1,
 }) => {
   const W = 1000, H = 380;
   const padL = 64, padR = 24, padT = 20, padB = 32;
@@ -324,13 +325,13 @@ const EdgebeeefChart = ({
               {rows.map(({yr, pt}) => (
                 <div key={yr} className="hover-row">
                   <span className="hover-year" style={{color: yearColor(yr)}}>{yr}</span>
-                  <span className="hover-val">{pt.value.toFixed(1)}<span className="hover-unit"> USD/cwt</span></span>
+                  <span className="hover-val">{pt.value.toFixed(decimals)}<span className="hover-unit"> {unit}</span></span>
                 </div>
               ))}
               {showStats && statEntry && (
                 <div className="hover-row hover-stat">
                   <span className="hover-year">média {statEntry.n}a</span>
-                  <span className="hover-val">{statEntry.mean.toFixed(1)}</span>
+                  <span className="hover-val">{statEntry.mean.toFixed(decimals)}</span>
                 </div>
               )}
             </div>
@@ -818,4 +819,4 @@ function BeefUSTab({ data, accent }) {
   );
 }
 
-Object.assign(window, { BeefUSTab });
+Object.assign(window, { BeefUSTab, EdgebeeefChart, EdgebeeefControls, buildDailyStats });

@@ -161,6 +161,28 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
     result.abates = trimEmpty(abates);
   }
 
+  // ── Boi Gordo diário (aba BBG_Dados col F = BRL/@, do BeefBR.xlsm) ──────────
+  if (parseBR && findSheet('BBG_Dados')) {
+    const bgRaw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('BBG_Dados')], { header: 1, raw: true });
+    const boi_gordo_daily = [];
+    let bgDate = null;
+    for (let i = 3; i < bgRaw.length; i++) {
+      const r = bgRaw[i];
+      if (!r) continue;
+      const pd = parseDate(r[3]);
+      if (pd) {
+        bgDate = new Date(Date.UTC(pd.year, pd.month - 1, pd.day));
+      } else if (bgDate) {
+        bgDate = new Date(bgDate.getTime() + 86400000);
+      } else continue;
+      const value = parseNum(r[5]); // col F — Preço do Boi BRL/@
+      if (value == null) continue;
+      const year = bgDate.getUTCFullYear(), month = bgDate.getUTCMonth() + 1, day = bgDate.getUTCDate();
+      boi_gordo_daily.push({ year, month, day, value });
+    }
+    if (boi_gordo_daily.length) result.boi_gordo_daily = boi_gordo_daily;
+  }
+
   // ── BeefUS (abas: BBG_Dados, BeefUS) ────────────────────────────────────────
   // Agregados mensais do BBG_Dados (col E=edgebeef, col F=câmbio): usados no BeefUS
   const bbgEdgebeefByMonth = {};
@@ -648,6 +670,7 @@ const UploadWidget = ({ onLoad, lastUpdate, currentSource }) => {
       if (parsed.beef)           parts.push(`${parsed.beef.length}L BeefBR`);
       if (parsed.secex)          parts.push(`${parsed.secex.length} SECEX`);
       if (parsed.abates)         parts.push(`${parsed.abates.length} Abates`);
+      if (parsed.boi_gordo_daily) parts.push(`${parsed.boi_gordo_daily.length} Boi Gordo diário`);
       if (parsed.edgebeef_daily) parts.push(`${parsed.edgebeef_daily.length} Edgebeef diário`);
       if (parsed.beef_us)        parts.push(`${parsed.beef_us.length}L BeefUS`);
       if (parsed.production)     parts.push(`${parsed.production.snapshots.length} snapshots Produção`);

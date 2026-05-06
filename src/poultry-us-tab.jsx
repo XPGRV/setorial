@@ -1373,15 +1373,52 @@ function NationalCompositeSection({ data, accent }) {
   );
 }
 
+// ── Broiler Production Section ────────────────────────────────────────────────
+function BroilerProductionSection({ data, accent }) {
+  const [pairIdx, setPairIdx] = React.useState(0);
+  if (!data.broiler_production?.snapshots?.length) {
+    return (
+      <main className="main" style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,minHeight:'60vh',color:'var(--fg-dim)'}}>
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M12 16V4M8 8l4-4 4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/>
+        </svg>
+        <div style={{fontSize:16,fontWeight:500,color:'var(--fg)'}}>Sem dados de produção Broiler</div>
+        <div style={{fontSize:13,textAlign:'center',maxWidth:320}}>
+          Faça upload da planilha FrangoUS.xlsm para visualizar as revisões de forecast.
+        </div>
+      </main>
+    );
+  }
+  return (
+    <main className="main">
+      <window.ProductionCard
+        data={data}
+        accent={accent}
+        productionKey="broiler_production"
+        summariesFile="ldp_pdf_summaries_broiler.txt"
+        eyebrow="USDA · Produção Broiler trimestral · 000 lb"
+        title="Revisão de Forecast"
+        cardId="us-broiler-production"
+        pairIdx={pairIdx}
+        onPairChange={setPairIdx}
+      />
+      <window.AnnualProductionCard
+        data={data}
+        accent={accent}
+        productionKey="broiler_production"
+        eyebrow="USDA · Produção Broiler anual · 000 lb"
+        title="Revisão de Forecast · Anual"
+        cardId="us-broiler-annual"
+        pairIdx={pairIdx}
+      />
+    </main>
+  );
+}
+
 // ── Tab principal ─────────────────────────────────────────────────────────────
 const PoultryUSTab = ({ data, accent, tab }) => {
   if (tab === 'producao') {
-    return (
-      <main className="main" style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,minHeight:'60vh',color:'var(--fg-dim)'}}>
-        <div style={{fontSize:16,fontWeight:500,color:'var(--fg)'}}>Em breve</div>
-        <div style={{fontSize:13,textAlign:'center',maxWidth:320}}>Esta seção ainda não tem conteúdo.</div>
-      </main>
-    );
+    return <BroilerProductionSection data={data} accent={accent} />;
   }
 
   if (!data.frango_us_daily || !data.frango_us_daily.length) {

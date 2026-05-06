@@ -411,6 +411,105 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
     }
   }
 
+  // ── Broiler Production (aba: Forecast da FrangoUS.xlsm) ──────────────────────
+  if (parsePoultryUS && findSheet('Forecast')) {
+    const ws   = wb.Sheets[findSheet('Forecast')];
+    const raw  = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: null });
+
+    const ALL_MO = {
+      jan:1, fev:2, feb:2, mar:3, abr:4, apr:4, mai:5, may:5, jun:6,
+      jul:7, ago:8, aug:8, set:9, sep:9, out:10, oct:10, nov:11, dez:12, dec:12,
+    };
+
+    const hdrRow = raw[0] || [];
+    const snapshotCols = [];
+    for (let c = 2; c < hdrRow.length; c++) {
+      const h = String(hdrRow[c] || '').trim();
+      const token = h.split(/\s+/).pop() || '';
+      const m = token.match(/^([a-z]{3})-(\d{2,4})$/i);
+      if (m) {
+        const mo = ALL_MO[m[1].toLowerCase()];
+        let yr = parseInt(m[2]);
+        if (yr < 100) yr += 2000;
+        if (mo && yr) snapshotCols.push({ col: c, label: token.toLowerCase(), year: yr, month: mo });
+      }
+    }
+
+    if (snapshotCols.length >= 1) {
+      const isForecastCell = (ri, ci) => {
+        try {
+          const cell = ws[XLSX.utils.encode_cell({ r: ri, c: ci })];
+          if (!cell?.s) return null;
+          const fc = cell.s.font?.color || {};
+          const rgb = (fc.rgb || '').toUpperCase().replace(/^FF/, '');
+          if (rgb) {
+            if (['ED7D31','E36C09','FFC000','F79646','E26B0A'].some(c => rgb.startsWith(c))) return true;
+            if (['00B050','70AD47','92D050'].some(c => rgb.startsWith(c))) return false;
+          }
+          if (fc.theme !== undefined) {
+            if (fc.theme === 5) return true;
+            if (fc.theme === 9) return false;
+          }
+        } catch (_) {}
+        return null;
+      };
+
+      const parseQLabel = s => {
+        let m;
+        if ((m = s.match(/^([1-4])[QT](\d{2})$/i)))    return { q: +m[1], y: 2000 + +m[2] };
+        if ((m = s.match(/^[QT]([1-4])\s*(\d{2})$/i))) return { q: +m[1], y: 2000 + +m[2] };
+        if ((m = s.match(/^([1-4])[QT](\d{4})$/i)))    return { q: +m[1], y: +m[2] };
+        if ((m = s.match(/^[QT]([1-4])\s*(\d{4})$/i))) return { q: +m[1], y: +m[2] };
+        if ((m = s.match(/^([a-z]{3})[-/]?(\d{2,4})$/i))) {
+          const Q = {jan:1,feb:1,mar:1,apr:2,may:2,jun:2,jul:3,aug:3,sep:3,oct:4,nov:4,dec:4,
+                     fev:1,abr:2,mai:2,ago:3,set:3,out:4,dez:4};
+          const q = Q[m[1].toLowerCase()];
+          let yr = parseInt(m[2]);
+          if (yr < 100) yr += 2000;
+          if (q) return { q, y: yr };
+        }
+        return null;
+      };
+
+      const bySnapshot = {};
+
+      for (let ri = 2; ri < raw.length; ri++) {
+        const row = raw[ri];
+        if (!row) continue;
+
+        let qm = null;
+        let qLabel = '';
+        for (let c = 0; c <= 2; c++) {
+          qLabel = String(row[c] || '').trim();
+          qm = parseQLabel(qLabel);
+          if (qm) break;
+        }
+
+        if (!qm) continue;
+        const quarter = qm.q;
+        const year    = qm.y;
+
+        for (const snap of snapshotCols) {
+          const v = parseNum(row[snap.col]);
+          if (v == null) continue;
+          const qEndMonth  = quarter * 3;
+          const colorFC    = isForecastCell(ri, snap.col);
+          const isForecast = colorFC !== null
+            ? colorFC
+            : (year > snap.year || (year === snap.year && qEndMonth + 3 >= snap.month));
+          if (!bySnapshot[snap.label]) bySnapshot[snap.label] = [];
+          bySnapshot[snap.label].push({ year, quarter, value: v, isForecast });
+        }
+      }
+
+      const snapshots = snapshotCols
+        .map(s => s.label)
+        .filter(label => bySnapshot[label] && bySnapshot[label].length > 0);
+
+      result.broiler_production = { snapshots, bySnapshot };
+    }
+  }
+
   // ── FrangoUS (BBG_Dados da FrangoUS.xlsm) ────────────────────────────────────
   // cols: D=3(data), E=4(CHICNEBB bb), F=5(CHICNETN tn), G=6(CHICNELQ lq), H=7(CHICNEWI wi)
   // Proxy XPG = (bb*41% + tn*0% + lq*48% + wi*11%) / 100 * 2.20462  → USD/Kg
@@ -721,7 +820,8 @@ const UploadWidget = ({ onLoad, lastUpdate, currentSource }) => {
       if (parsed.boi_gordo_daily) parts.push(`${parsed.boi_gordo_daily.length} Boi Gordo diário`);
       if (parsed.edgebeef_daily) parts.push(`${parsed.edgebeef_daily.length} Edgebeef diário`);
       if (parsed.beef_us)        parts.push(`${parsed.beef_us.length}L BeefUS`);
-      if (parsed.production)     parts.push(`${parsed.production.snapshots.length} snapshots Produção`);
+      if (parsed.production)          parts.push(`${parsed.production.snapshots.length} snapshots Produção`);
+      if (parsed.broiler_production)  parts.push(`${parsed.broiler_production.snapshots.length} snapshots Broiler`);
       if (parsed.frango_us_daily)   parts.push(`${parsed.frango_us_daily.length} FrangoUS diário`);
       if (parsed.frango_us_monthly) parts.push(`${parsed.frango_us_monthly.length}L FrangoUS USDA`);
       if (parsed.frango)                parts.push(`${parsed.frango.length}L FrangoBR`);

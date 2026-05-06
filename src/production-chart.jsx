@@ -755,19 +755,26 @@ function parseLDPSummaries(text) {
 }
 
 // ── ProductionCard ────────────────────────────────────────────────────────────
-function ProductionCard({ data, accent, events = [], pairIdx: pairIdxProp, onPairChange }) {
+function ProductionCard({
+  data, accent, events = [], pairIdx: pairIdxProp, onPairChange,
+  productionKey = 'production',
+  summariesFile = 'ldp_pdf_summaries.txt',
+  eyebrow: eyebrowProp,
+  title: titleProp,
+  cardId = 'us-production',
+}) {
   const { useState, useMemo, useEffect } = React;
 
   const [summaries, setSummaries] = useState({});
   useEffect(() => {
-    fetch('ldp_pdf_summaries.txt')
+    fetch(summariesFile)
       .then(r => r.ok ? r.text() : '')
       .then(text => { if (text) setSummaries(parseLDPSummaries(text)); })
       .catch(() => {});
-  }, []);
+  }, [summariesFile]);
 
   // Extract early — hooks must all fire before any conditional return
-  const production  = data?.production;
+  const production  = data?.[productionKey];
   const snapshots   = production?.snapshots  || [];
   const bySnapshot  = production?.bySnapshot || {};
 
@@ -850,11 +857,11 @@ function ProductionCard({ data, accent, events = [], pairIdx: pairIdxProp, onPai
   const fmtSnap = s => { if (!s) return ''; const [mo, yr] = s.split('-'); return (PT_MON_ABBR[mo]||mo)+'-'+yr; };
 
   return (
-    <section className="card card-full" data-card-id="us-production">
+    <section className="card card-full" data-card-id={cardId}>
       <div className="card-head">
         <div>
-          <div className="card-eyebrow">USDA · Produção bovina trimestral · 000 lb</div>
-          <h3 className="card-title">Revisão de Forecast</h3>
+          <div className="card-eyebrow">{eyebrowProp || 'USDA · Produção bovina trimestral · 000 lb'}</div>
+          <h3 className="card-title">{titleProp || 'Revisão de Forecast'}</h3>
           <div className="card-sub">
             {pair ? `${fmtSnap(pair.b)} vs ${fmtSnap(pair.a)}` : ''}
             {' · '}contínuo = realizado · tracejado = projeção
@@ -1182,10 +1189,16 @@ function AnnualProductionChart({ annualB, annualA, compYears, allYears, showFore
 }
 
 // ── AnnualProductionCard ──────────────────────────────────────────────────────
-function AnnualProductionCard({ data, accent, pairIdx: pairIdxProp }) {
+function AnnualProductionCard({
+  data, accent, pairIdx: pairIdxProp,
+  productionKey = 'production',
+  eyebrow: eyebrowProp,
+  title: titleProp,
+  cardId = 'us-annual',
+}) {
   const { useState, useMemo, useEffect, useRef } = React;
 
-  const production  = data?.production;
+  const production  = data?.[productionKey];
   const snapshots   = production?.snapshots  || [];
   const bySnapshot  = production?.bySnapshot || {};
 
@@ -1248,11 +1261,11 @@ function AnnualProductionCard({ data, accent, pairIdx: pairIdxProp }) {
   }
 
   return (
-    <section className="card card-full" data-card-id="us-annual">
+    <section className="card card-full" data-card-id={cardId}>
       <div className="card-head">
         <div>
-          <div className="card-eyebrow">USDA · Produção bovina anual · 000 lb</div>
-          <h3 className="card-title">Revisão de Forecast · Anual</h3>
+          <div className="card-eyebrow">{eyebrowProp || 'USDA · Produção bovina anual · 000 lb'}</div>
+          <h3 className="card-title">{titleProp || 'Revisão de Forecast · Anual'}</h3>
           <div className="card-sub">
             {pair ? `${fmtSnap(pair.b)} vs ${fmtSnap(pair.a)}` : ''}
           </div>

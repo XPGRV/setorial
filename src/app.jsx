@@ -482,7 +482,7 @@ function DailySeasonalCard({ data, accent, dailyKey, usdDailyKey, cardId, title,
             <div className="card-eyebrow">{sub}</div>
             <h3 className="card-title">{title}</h3>
             <div style={{fontSize:13, color:'var(--fg-dim)', marginTop:8}}>
-              Faça upload da planilha BeefBR.xlsm para visualizar os dados diários.
+              Faça upload da planilha para visualizar os dados diários.
             </div>
           </div>
         </div>
@@ -498,7 +498,7 @@ function DailySeasonalCard({ data, accent, dailyKey, usdDailyKey, cardId, title,
           <h3 className="card-title">{title}</h3>
           <div className="card-price">
             {latestRaw && (<>
-              <span className="card-value">{latestRaw.value.toFixed(decimals)}</span>
+              <span className="card-value">{window.fmt(latestRaw.value, {decimals})}</span>
               <span className="card-unit">{activeUnit}</span>
               <span className={`card-delta ${yoy == null ? '' : yoy >= 0 ? 'is-up' : 'is-down'}`}>
                 {fmtPct(yoy)}<span className="card-delta-label"> YoY</span>

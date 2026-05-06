@@ -154,53 +154,49 @@ const PoultryBRTab = ({ data, accent, tab }) => {
 
   return (
     <main className="main">
-      <div className="grid-precos">
-        <window.PriceCard
-          cardId="card-frango-mi"
-          title="Preço Frango · Mercado Interno"
-          sub="Bloomberg · BACHSP Index"
-          accent={accent} data={data} dataset="frango"
-          field="frango_mi_brl_kg" unit="R$/kg" decimals={2}
-          events={FRANGO_EVENTS}
-        />
-        <window.PriceCard
-          cardId="card-frango-me"
-          title="Preço Frango · Mercado Externo"
-          sub="SECEX · Preço Frango Exportação"
-          accent={accent} data={data} dataset="frango"
-          field="frango_me_brl_kg" unit="R$/kg" decimals={2}
-          events={FRANGO_EVENTS}
-        />
-        <window.PriceCard
-          cardId="card-feed-grain"
-          title="Feed Grain"
-          sub="Cálculo próprio · 66% Corn - BAINCORN Index + 33% Soybean - BASMSBPA Index"
-          accent={accent} data={data} dataset="frango"
-          field="feed_grain_brl_kg" unit="R$/kg" decimals={2}
-          events={FRANGO_EVENTS}
-        />
-      </div>
+      <DailySeasonalCard
+        data={data} accent={accent}
+        dailyKey="frango_mi_daily"
+        cardId="card-frango-mi"
+        title="Preço Frango · Mercado Interno"
+        sub="Bloomberg · BACHSP Index"
+        unit="R$/kg" decimals={2}
+      />
+      <window.PriceCard
+        cardId="card-frango-me"
+        title="Preço Frango · Mercado Externo"
+        sub="SECEX · Preço Frango Exportação"
+        accent={accent} data={data} dataset="frango"
+        field="frango_me_brl_kg" unit="R$/kg" decimals={2}
+        events={FRANGO_EVENTS} fullWidth
+      />
+      <DailySeasonalCard
+        data={data} accent={accent}
+        dailyKey="feed_grain_daily"
+        cardId="card-feed-grain"
+        title="Feed Grain"
+        sub="Cálculo próprio · 66% Corn - BAINCORN Index + 33% Soybean - BASMSBPA Index"
+        unit="R$/kg" decimals={2}
+      />
 
       <div className="section-header"><h2>Spreads</h2></div>
 
-      <div className="grid-spreads">
-        <window.PriceCard
-          cardId="card-spread-mi-frango"
-          title="Spread MI"
-          sub="Cálculo próprio · Preço Frango MI - Feed Grain"
-          accent={accent} data={data} dataset="frango"
-          field="spread_mi" unit="R$/kg" decimals={2}
-          events={FRANGO_EVENTS}
-        />
-        <window.PriceCard
-          cardId="card-spread-me-frango"
-          title="Spread ME"
-          sub="Cálculo próprio · Preço Frango ME - Feed Grain"
-          accent={accent} data={data} dataset="frango"
-          field="spread_me" unit="R$/kg" decimals={2}
-          events={FRANGO_EVENTS}
-        />
-      </div>
+      <DailySeasonalCard
+        data={data} accent={accent}
+        dailyKey="frango_spread_mi_daily"
+        cardId="card-spread-mi-frango"
+        title="Spread MI"
+        sub="Cálculo próprio · Preço Frango MI - Feed Grain"
+        unit="R$/kg" decimals={2}
+      />
+      <window.PriceCard
+        cardId="card-spread-me-frango"
+        title="Spread ME"
+        sub="Cálculo próprio · Preço Frango ME - Feed Grain"
+        accent={accent} data={data} dataset="frango"
+        field="spread_me" unit="R$/kg" decimals={2}
+        events={FRANGO_EVENTS} fullWidth
+      />
     </main>
   );
 };

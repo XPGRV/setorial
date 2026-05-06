@@ -1439,19 +1439,6 @@ function BroilerProductionSection({ data }) {
         events={EVENTS_FRANGO_US}
       />
       <window.PriceCard
-        cardId="us-pintos-eclodiram"
-        title="Pintos que Eclodiram"
-        sub="USDA · Broiler-Type Chicks Hatched"
-        accent={chartAccent}
-        data={data}
-        dataset="frango_us_monthly"
-        field="pintos_eclodiram"
-        unit="000"
-        decimals={0}
-        fullWidth
-        events={EVENTS_FRANGO_US}
-      />
-      <window.PriceCard
         cardId="us-ovos-incubados"
         title="Ovos Incubados"
         sub="Bloomberg · EGGSESUS Index · Broiler Eggs Set In Incubators"
@@ -1459,6 +1446,19 @@ function BroilerProductionSection({ data }) {
         data={data}
         dataset="frango_us_monthly"
         field="ovos_incubados"
+        unit="000"
+        decimals={0}
+        fullWidth
+        events={EVENTS_FRANGO_US}
+      />
+      <window.PriceCard
+        cardId="us-pintos-eclodiram"
+        title="Pintos que Eclodiram"
+        sub="USDA · Broiler-Type Chicks Hatched"
+        accent={chartAccent}
+        data={data}
+        dataset="frango_us_monthly"
+        field="pintos_eclodiram"
         unit="000"
         decimals={0}
         fullWidth

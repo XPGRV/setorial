@@ -168,6 +168,7 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
     const carne_mi_daily     = [];
     const carne_mi_usd_daily = [];
     const boi_gordo_daily    = [];
+    const spread_mi_daily    = [];
     let bgDate = null;
     for (let i = 3; i < bgRaw.length; i++) {
       const r = bgRaw[i];
@@ -178,19 +179,22 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
       } else if (bgDate) {
         bgDate = new Date(bgDate.getTime() + 86400000);
       } else continue;
-      const hasAny = r[4] != null || r[5] != null || r[8] != null;
+      const hasAny = r[4] != null || r[5] != null || r[8] != null || r[9] != null;
       if (!hasAny) continue;
       const year = bgDate.getUTCFullYear(), month = bgDate.getUTCMonth() + 1, day = bgDate.getUTCDate();
       const carneMI    = parseNum(r[4]); // col E — Carne MI BRL/kg
       const boiGordo   = parseNum(r[5]); // col F — Boi Gordo BRL/@
       const carneMIUSD = parseNum(r[8]); // col I — Carne MI USD/kg
+      const spreadMI   = parseNum(r[9]); // col J — Spread MI BRL/kg
       if (carneMI    != null) carne_mi_daily.push({ year, month, day, value: carneMI });
       if (boiGordo   != null) boi_gordo_daily.push({ year, month, day, value: boiGordo });
       if (carneMIUSD != null) carne_mi_usd_daily.push({ year, month, day, value: carneMIUSD });
+      if (spreadMI   != null) spread_mi_daily.push({ year, month, day, value: spreadMI });
     }
     if (carne_mi_daily.length)     result.carne_mi_daily     = carne_mi_daily;
     if (carne_mi_usd_daily.length) result.carne_mi_usd_daily = carne_mi_usd_daily;
     if (boi_gordo_daily.length)    result.boi_gordo_daily    = boi_gordo_daily;
+    if (spread_mi_daily.length)    result.spread_mi_daily    = spread_mi_daily;
   }
 
   // ── BeefUS (abas: BBG_Dados, BeefUS) ────────────────────────────────────────
@@ -680,7 +684,8 @@ const UploadWidget = ({ onLoad, lastUpdate, currentSource }) => {
       if (parsed.beef)           parts.push(`${parsed.beef.length}L BeefBR`);
       if (parsed.secex)          parts.push(`${parsed.secex.length} SECEX`);
       if (parsed.abates)         parts.push(`${parsed.abates.length} Abates`);
-      if (parsed.carne_mi_daily)  parts.push(`${parsed.carne_mi_daily.length} Carne MI diário`);
+      if (parsed.carne_mi_daily)   parts.push(`${parsed.carne_mi_daily.length} Carne MI diário`);
+      if (parsed.spread_mi_daily)  parts.push(`${parsed.spread_mi_daily.length} Spread MI diário`);
       if (parsed.boi_gordo_daily) parts.push(`${parsed.boi_gordo_daily.length} Boi Gordo diário`);
       if (parsed.edgebeef_daily) parts.push(`${parsed.edgebeef_daily.length} Edgebeef diário`);
       if (parsed.beef_us)        parts.push(`${parsed.beef_us.length}L BeefUS`);

@@ -342,10 +342,14 @@ function PrecosTab({ data, accent }) {
 
       <div className="section-header"><h2>Spreads</h2></div>
 
+      <DailySeasonalCard
+        data={data} accent={accent}
+        dailyKey="spread_mi_daily" cardId="card-spread-mi"
+        title="Spread MI" sub="Cálculo próprio · Preço Carne MI − Preço Boi"
+        unit="R$/kg" decimals={2}
+      />
+
       <div className="grid-spreads">
-        <PriceCard cardId="card-spread-mi" title="Spread MI" sub="Cálculo próprio · Preço Carne MI − Preço Boi"
-          accent={accent} data={data} dataset="beef"
-          field="spread_mi" unit="R$/kg" decimals={2}/>
         <PriceCard cardId="card-spread-me" title="Spread ME" sub="Cálculo próprio · Preço Carne ME − Preço Boi"
           accent={accent} data={data} dataset="beef"
           field="spread_me" unit="R$/kg" decimals={2}/>

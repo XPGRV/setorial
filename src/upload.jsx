@@ -402,6 +402,21 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
         }
       }
 
+      // Propagate historical values forward: newer snapshots may have formula cells
+      // (=adjacent column) whose cache SheetJS can't read, resulting in missing history.
+      // Any year/quarter present in snapshot[i-1] but absent in snapshot[i] is copied forward.
+      for (let si = 1; si < snapshotCols.length; si++) {
+        const curr = snapshotCols[si].label;
+        const prev = snapshotCols[si - 1].label;
+        if (!bySnapshot[curr] || !bySnapshot[prev]) continue;
+        const have = new Set(bySnapshot[curr].map(d => `${d.year}-${d.quarter}`));
+        for (const entry of bySnapshot[prev]) {
+          if (!have.has(`${entry.year}-${entry.quarter}`)) {
+            bySnapshot[curr].push({ year: entry.year, quarter: entry.quarter, value: entry.value, isForecast: entry.isForecast });
+          }
+        }
+      }
+
       // Only keep snapshots that actually have data
       const snapshots = snapshotCols
         .map(s => s.label)
@@ -499,6 +514,19 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
             : (year > snap.year || (year === snap.year && qEndMonth + 3 >= snap.month));
           if (!bySnapshot[snap.label]) bySnapshot[snap.label] = [];
           bySnapshot[snap.label].push({ year, quarter, value: v, isForecast });
+        }
+      }
+
+      // Same forward propagation for formula cells with empty cache
+      for (let si = 1; si < snapshotCols.length; si++) {
+        const curr = snapshotCols[si].label;
+        const prev = snapshotCols[si - 1].label;
+        if (!bySnapshot[curr] || !bySnapshot[prev]) continue;
+        const have = new Set(bySnapshot[curr].map(d => `${d.year}-${d.quarter}`));
+        for (const entry of bySnapshot[prev]) {
+          if (!have.has(`${entry.year}-${entry.quarter}`)) {
+            bySnapshot[curr].push({ year: entry.year, quarter: entry.quarter, value: entry.value, isForecast: entry.isForecast });
+          }
         }
       }
 

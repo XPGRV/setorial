@@ -97,22 +97,12 @@
       100% { left: 110%; }
     }
   </style>
-
-  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js"
-    integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L"
-    crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"
-    integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm"
-    crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
-    integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y"
-    crossorigin="anonymous"></script>
 </head>
 
 <body>
   <div id="loading-screen">
     <div class="ld-logobox">
-      <img src="src/xp-asset-logo.svg" alt="XP Asset Management" />
+      <img src="./xp-asset-logo.svg" alt="XP Asset Management" />
     </div>
     <div class="ld-text">
       <div class="ld-title">Setorial</div>
@@ -129,107 +119,8 @@
     document.documentElement.dataset.density = 'comfortable';
     document.documentElement.style.setProperty('--accent', 'oklch(0.82 0.18 155)');
   </script>
-  <script src="src/reactive.js?v=20"></script>
-  <script type="text/babel" src="src/data-utils.jsx?v=20"></script>
-  <script type="text/babel" src="src/upload.jsx?v=20"></script>
-  <script type="text/babel" src="src/seasonal-chart.jsx?v=20"></script>
-  <script type="text/babel" src="src/ciclo-boi.jsx?v=20"></script>
-  <script type="text/babel" src="src/beef-us-tab.jsx?v=20"></script>
-  <script type="text/babel" src="src/production-chart.jsx?v=20"></script>
-  <script type="text/babel" src="src/bimonthly-chart.jsx?v=20"></script>
-  <script type="text/babel" src="src/continuous-chart.jsx?v=20"></script>
-  <script type="text/babel" src="src/poultry-br-tab.jsx?v=20"></script>
-  <script type="text/babel" src="src/poultry-us-tab.jsx?v=20"></script>
-  <script type="text/babel" src="src/app.jsx?v=20"></script>
 
-  <script type="text/babel">
-    (async () => {
-      const DATA_VERSION = '5';
-
-      // ── Supabase Storage ─────────────────────────────────────────────────────────
-      // A URL pública permite leitura sem autenticação; a key é a anon (segura no client).
-      const SB_URL = 'https://wmxjdveucxbousoquwmc.supabase.co';
-      const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndteGpkdmV1Y3hib3Vzb3F1d21jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NDAwMDMsImV4cCI6MjA5MjUxNjAwM30.tCSFE_aRcjrVRziuyqINPuxBYFEbG8AQjTdX2vHiwfw';
-      window.__SB_URL = SB_URL;
-      window.__SB_KEY = SB_KEY;
-
-      let data = null, meta = null;
-
-      // 1. Supabase — sempre a versão mais recente do último upload
-      try {
-        const resp = await fetch(
-          `${SB_URL}/storage/v1/object/public/dashboard/data.json?t=${Date.now()}`,
-          { cache: 'no-store' }
-        );
-        if (resp.ok) {
-          const json = await resp.json();
-          if (json && json.data) { data = json.data; meta = json.meta || null; }
-        }
-      } catch { }
-
-      // 2. localStorage — cache local do browser
-      if (!data) {
-        try {
-          const cached = localStorage.getItem('dashboard_data');
-          const cachedMeta = localStorage.getItem('dashboard_meta');
-          const cachedVersion = localStorage.getItem('dashboard_version');
-          if (cached && cachedVersion === DATA_VERSION) {
-            data = JSON.parse(cached);
-            meta = cachedMeta ? JSON.parse(cachedMeta) : null;
-          } else {
-            localStorage.removeItem('dashboard_data');
-            localStorage.removeItem('dashboard_meta');
-            localStorage.removeItem('dashboard_version');
-          }
-        } catch { }
-      }
-
-      // 3. Fallback — data.json embutido no repositório (opcional)
-      if (!data) {
-        try {
-          const resp = await fetch('public/data.json');
-          if (resp.ok) {
-            const json = await resp.json();
-            if (json) { data = json; meta = { source: 'planilha inicial', updated: null }; }
-          }
-        } catch { }
-      }
-
-      // Normaliza pct_femeas: dados antigos foram salvos como 3925 em vez de 39.25
-      // pct_femeas válido é sempre < 100; se > 100, divide por 100 para corrigir
-      if (data) {
-        const fixPct = rows => rows?.map(r =>
-          r.pct_femeas != null && r.pct_femeas > 100
-            ? { ...r, pct_femeas: Math.round(r.pct_femeas * 10) / 1000 }
-            : r
-        );
-        if (data.beef) data.beef = fixPct(data.beef);
-        if (data.beef_us) data.beef_us = fixPct(data.beef_us);
-      }
-
-      // Migra meta antigo (plano) para novo formato { br, us }
-      if (meta && !meta.br && !meta.us && meta.updated) meta = { br: meta };
-
-      // Expõe globals para upload.jsx
-      window.__dashboardData = data;
-      window.__dashboardMeta = meta || {};
-
-      const root = ReactDOM.createRoot(document.getElementById('root'));
-      root.render(<window.App initialData={data} initialMeta={meta} />);
-
-      // Aguarda o browser pintar o React (2 RAFs) + margem para as animações
-      // CSS dos cards (rx-fade-up backwards) saírem do opacity:0 inicial.
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        setTimeout(() => {
-          const ls = document.getElementById('loading-screen');
-          if (ls) {
-            ls.classList.add('is-hidden');
-            ls.addEventListener('transitionend', () => ls.remove(), { once: true });
-          }
-        }, 120);
-      }));
-    })();
-  </script>
+  <script type="module" src="/src/main.jsx"></script>
 </body>
 
 </html>

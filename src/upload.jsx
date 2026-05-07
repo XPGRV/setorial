@@ -1,3 +1,5 @@
+import React from 'react'
+
 // Parse a workbook (ArrayBuffer) into the {beef, secex, abates} shape
 // Assumes SheetJS (XLSX) is loaded globally
 

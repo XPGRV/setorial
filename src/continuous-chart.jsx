@@ -1,3 +1,5 @@
+import React from 'react'
+
 // ContinuousChart — série contínua (não sazonal) com controles simplificados
 
 const MONTHS_PT_ABR = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];

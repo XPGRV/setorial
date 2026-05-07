@@ -1,3 +1,5 @@
+import React from 'react'
+
 // Production USDA — quarterly forecast comparison chart
 
 const QUARTERS = ['Q1', 'Q2', 'Q3', 'Q4'];

@@ -1,3 +1,5 @@
+import React from 'react'
+
 // Main app — 2 tabs (Preços/Spreads, Abates)
 const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
@@ -217,7 +219,7 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset }) {
     <aside className="sidebar">
       <div className="sidebar-brand">
         <div className="sidebar-brand-logobox" style={isPoultry ? {background:'oklch(0.83 0.20 88)'} : {}}>
-          <img src="src/xp-asset-logo.svg" alt="XP Asset Management" className="sidebar-brand-logo"
+          <img src="./xp-asset-logo.svg" alt="XP Asset Management" className="sidebar-brand-logo"
             style={isPoultry ? {filter:'brightness(0)'} : {}}/>
         </div>
         <div className="sidebar-brand-text">

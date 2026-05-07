@@ -1,3 +1,5 @@
+import React from 'react'
+
 // Poultry BR Tab — FrangoBR sheet data
 const FRANGO_EVENTS = [
   { year: 2015, month: 10, label: 'Embargo russo à carne de frango brasileira' },

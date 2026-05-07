@@ -1,3 +1,5 @@
+import React from 'react'
+
 // Seasonal chart — futuristic dark style: one current year line, others faded, area fill under current
 
 const SeasonalChart = ({

@@ -1,3 +1,5 @@
+import React from 'react'
+
 // BimonthlyCard — Sazonal (empresa + anos) e Contínuo (3 linhas simultâneas)
 
 const BM_LABELS = ['Jan/Fev','Mar/Abr','Mai/Jun','Jul/Ago','Set/Out','Nov/Dez'];

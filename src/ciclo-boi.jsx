@@ -1,3 +1,5 @@
+import React from 'react'
+
 // Ciclo do Boi — série temporal contínua: %Fêmeas no abate + MM12
 
 const CicloDoBoi = ({ data, accent, events = [], showEvents = true }) => {

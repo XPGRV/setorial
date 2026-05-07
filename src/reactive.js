@@ -1,3 +1,5 @@
+import React from 'react'
+
 // =========================================================================
 // REACTIVE — small runtime that adds: ripple coordinates, ticker bar,
 // flash on value change, live dot, count-up entry, crosshair on charts,

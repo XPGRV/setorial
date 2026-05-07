@@ -1438,31 +1438,38 @@ function BroilerProductionSection({ data }) {
         fullWidth
         events={EVENTS_FRANGO_US}
       />
-      <window.PriceCard
+      <FrangoUSSimpleCard
+        data={data}
+        seriesKey="ovos_incubados"
         cardId="us-ovos-incubados"
         title="Ovos Incubados"
-        sub="Bloomberg · EGGSESUS Index · Broiler Eggs Set In Incubators"
-        accent={chartAccent}
-        data={data}
-        dataset="frango_us_monthly"
-        field="ovos_incubados"
+        eyebrow="Bloomberg · BBG_Dados · Broiler Eggs Set In Incubators"
         unit="000"
-        decimals={0}
-        fullWidth
         events={EVENTS_FRANGO_US}
+        accent={chartAccent}
+        defaultYears={10}
       />
-      <window.PriceCard
+      <FrangoUSSimpleCard
+        data={data}
+        seriesKey="hatchability"
+        cardId="us-hatchability"
+        title="Hatchability"
+        eyebrow="Bloomberg · BBG_Dados · Taxa de Eclosão"
+        unit="%"
+        events={EVENTS_FRANGO_US}
+        accent={chartAccent}
+        defaultYears={10}
+      />
+      <FrangoUSSimpleCard
+        data={data}
+        seriesKey="pintos_eclodiram"
         cardId="us-pintos-eclodiram"
         title="Pintos que Eclodiram"
-        sub="USDA · Broiler-Type Chicks Hatched"
-        accent={chartAccent}
-        data={data}
-        dataset="frango_us_monthly"
-        field="pintos_eclodiram"
+        eyebrow="Bloomberg · BBG_Dados · Broiler-Type Chicks Hatched"
         unit="000"
-        decimals={0}
-        fullWidth
         events={EVENTS_FRANGO_US}
+        accent={chartAccent}
+        defaultYears={10}
       />
     </main>
   );

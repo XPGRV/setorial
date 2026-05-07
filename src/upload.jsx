@@ -562,7 +562,10 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
       const ratio = parseNum(r[11]); // col L — Poultry/Beef ratio
       const n     = parseNum(r[13]); // Corn USDc/bu
       const p     = parseNum(r[15]); // Soy  USDc/bu
-      if (bb == null && tn == null && lq == null && wi == null && ratio == null && n == null && p == null) continue;
+      const ovos  = parseNum(r[19]); // col T — Ovos Incubados (Bloomberg)
+      const hatch = parseNum(r[20]); // col U — Hatchability (Bloomberg)
+      const pinto = parseNum(r[21]); // col V — Pintos que Eclodiram (Bloomberg)
+      if (bb == null && tn == null && lq == null && wi == null && ratio == null && n == null && p == null && ovos == null && hatch == null && pinto == null) continue;
       const year = curDate.getUTCFullYear(), month = curDate.getUTCMonth()+1, day = curDate.getUTCDate();
       const proxy = (bb != null && lq != null && wi != null)
         ? +((bb * 0.41 + lq * 0.48 + wi * 0.11) / 100 * 2.20462).toFixed(4)
@@ -585,6 +588,9 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
         feed_grain,
         spread,
         poultry_beef_ratio: ratio,
+        ovos_incubados: ovos,
+        hatchability: hatch,
+        pintos_eclodiram: pinto,
       });
     }
     result.frango_us_daily = frango_us_daily;

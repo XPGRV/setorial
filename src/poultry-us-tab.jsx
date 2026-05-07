@@ -18,6 +18,7 @@ const EVENTS_FRANGO_US = [
   { year: 2018, month: 7,  label: 'Guerra comercial EUA-China — tarifas retaliatórias de 15%+ sobre frango' },
   { year: 2019, month: 6,  label: 'Gripe suína africana (ASF) na China — rebanho suíno -40%; demanda global de proteínas sobe' },
   { year: 2020, month: 4,  label: 'COVID-19 — fechamento de plantas processadoras; -15% capacidade de abate' },
+  { year: 2021, month: 2,  label: 'Winter Storm Uri — queda de energia no Sul dos EUA; mortalidade em granjas e plantas de abate paralisadas' },
   { year: 2022, month: 2,  label: 'HPAI H5N1 reemergência — 168M aves afetadas; maior surto histórico' },
   { year: 2023, month: 8,  label: 'Tyson fecha 4 plantas de frango nos EUA — 3.000+ demissões' },
   { year: 2024, month: 3,  label: 'HPAI confirmada em bovinos leiteiros (spillover para mamíferos)' },

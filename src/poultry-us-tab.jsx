@@ -1424,6 +1424,7 @@ function BroilerProductionSection({ data }) {
         cardId="us-broiler-production"
         pairIdx={pairIdx}
         onPairChange={setPairIdx}
+        events={EVENTS_FRANGO_US}
       />
       <window.AnnualProductionCard
         data={data}

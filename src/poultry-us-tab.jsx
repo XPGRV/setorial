@@ -1471,6 +1471,61 @@ function BroilerProductionSection({ data }) {
         accent={chartAccent}
         defaultYears={10}
       />
+      <FrangoUSSimpleCard
+        data={data}
+        seriesKey="chicks_placed"
+        cardId="us-chicks-placed"
+        title="Chicks Placed"
+        eyebrow="Bloomberg · BBG_Dados · Broiler Chicks Placed"
+        unit="000"
+        events={EVENTS_FRANGO_US}
+        accent={chartAccent}
+        defaultYears={10}
+      />
+      <FrangoUSSimpleCard
+        data={data}
+        seriesKey="mortality"
+        cardId="us-mortality"
+        title="Mortality"
+        eyebrow="Bloomberg · BBG_Dados · Taxa de Mortalidade"
+        unit="%"
+        events={EVENTS_FRANGO_US}
+        accent={chartAccent}
+        defaultYears={10}
+      />
+      <FrangoUSSimpleCard
+        data={data}
+        seriesKey="abates_frango"
+        cardId="us-abates-frango"
+        title="Abates de Frango"
+        eyebrow="Bloomberg · BBG_Dados · Broiler Slaughter"
+        unit="000"
+        events={EVENTS_FRANGO_US}
+        accent={chartAccent}
+        defaultYears={10}
+      />
+      <FrangoUSSimpleCard
+        data={data}
+        seriesKey="peso_medio"
+        cardId="us-peso-medio"
+        title="Peso Médio"
+        eyebrow="Bloomberg · BBG_Dados · Average Live Weight"
+        unit="lb"
+        events={EVENTS_FRANGO_US}
+        accent={chartAccent}
+        defaultYears={10}
+      />
+      <FrangoUSSimpleCard
+        data={data}
+        seriesKey="producao"
+        cardId="us-producao"
+        title="Produção"
+        eyebrow="Bloomberg · BBG_Dados · Broiler Production"
+        unit="000 lb"
+        events={EVENTS_FRANGO_US}
+        accent={chartAccent}
+        defaultYears={10}
+      />
     </main>
   );
 }

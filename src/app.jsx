@@ -984,7 +984,8 @@ function TickerBar({ data, activeDataset }) {
     <div className="rx-ticker" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <div className="rx-ticker-track" ref={trackRef} style={{animation: 'none'}}>
         {tape.map((it, i) => {
-          const fmt = it.unit === 'cab' ? Math.round(it.value).toLocaleString('pt-BR') :
+          const fmt = (it.unit === 'cab' || it.unit === '000' || it.unit === 'Ton')
+                      ? Math.round(it.value).toLocaleString('pt-BR') :
                       it.unit === '%' ? it.value.toFixed(1) :
                       it.value.toFixed(2).replace('.', ',');
           const dir = it.delta == null ? '' : it.delta >= 0 ? 'is-up' : 'is-down';

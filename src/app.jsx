@@ -997,4 +997,4 @@ function TickerBar({ data, activeDataset }) {
   );
 }
 
-Object.assign(window, { App, PriceCard });
+Object.assign(window, { App, PriceCard, DailySeasonalCard });

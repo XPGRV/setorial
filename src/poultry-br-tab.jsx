@@ -156,7 +156,7 @@ const PoultryBRTab = ({ data, accent, tab }) => {
 
   return (
     <main className="main">
-      <DailySeasonalCard
+      <window.DailySeasonalCard
         data={data} accent={accent}
         dailyKey="frango_mi_daily"
         cardId="card-frango-mi"
@@ -172,7 +172,7 @@ const PoultryBRTab = ({ data, accent, tab }) => {
         field="frango_me_brl_kg" unit="R$/kg" decimals={2}
         events={FRANGO_EVENTS} fullWidth
       />
-      <DailySeasonalCard
+      <window.DailySeasonalCard
         data={data} accent={accent}
         dailyKey="feed_grain_daily"
         cardId="card-feed-grain"
@@ -183,7 +183,7 @@ const PoultryBRTab = ({ data, accent, tab }) => {
 
       <div className="section-header"><h2>Spreads</h2></div>
 
-      <DailySeasonalCard
+      <window.DailySeasonalCard
         data={data} accent={accent}
         dailyKey="frango_spread_mi_daily"
         cardId="card-spread-mi-frango"

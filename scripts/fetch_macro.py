@@ -1,20 +1,19 @@
 """
 Fetches macroeconomic series and writes public/macro-data.json.
 
-IPCA   - BCB SGS 433   (variação mensal %, fonte: IBGE via BCB)
-SELIC  - BCB SGS 4189  (acumulada no mês, anualizada base 252, % a.a.)
-IGP-M  - BCB SGS 189   (variação mensal %, fonte: FGV via BCB)
+IPCA   - BCB SGS 433   (variação mensal %, fonte IBGE via BCB)
+SELIC  - BCB SGS 432   (meta para taxa Selic — série diária, chunked)
+IGP-M  - BCB SGS 189   (variação mensal %, fonte FGV via BCB)
 TJLP   - BCB SGS 4175  (taxa % a.m., fim de período)
-PTAX   - BCB SGS 1     (R$/USD, fim de período — limitado a 2010+)
+PTAX   - BCB SGS 1     (R$/USD, fim de período — série diária, chunked)
 CPI-US - BLS CUUR0000SA0 (All items, not seasonally adjusted)
 """
 
-import json, os, sys, urllib.request, urllib.error
-from collections import defaultdict
+import json, os, sys, urllib.request
 from datetime import datetime, timezone
 
 OUT_PATH = os.path.join(os.path.dirname(__file__), '..', 'public', 'macro-data.json')
-TIMEOUT  = 90  # seconds — séries diárias do BCB podem ser grandes
+TIMEOUT  = 60   # por chunk — chunks menores evitam timeout
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────
@@ -34,8 +33,7 @@ def to_monthly_last(rows):
             valor = row.get('valor', '').strip()
             if not valor or valor in ('null', 'None'):
                 continue
-            val = float(valor.replace(',', '.'))
-            monthly[(int(y), int(m))] = val
+            monthly[(int(y), int(m))] = float(valor.replace(',', '.'))
         except Exception:
             continue
     return [{'year': y, 'month': m, 'value': v}
@@ -43,9 +41,10 @@ def to_monthly_last(rows):
 
 
 def fetch_bcb(code, label, start='01/01/2000'):
+    """Single-request fetch — adequado para séries mensais/esparsas."""
     url = (f'https://api.bcb.gov.br/dados/serie/bcdata.sgs.{code}/dados'
            f'?formato=json&dataInicial={start}')
-    print(f'  BCB SGS {code} ({label})...', end=' ', flush=True)
+    print(f'  BCB {code} ({label})...', end=' ', flush=True)
     try:
         data = get_json(url)
         if not isinstance(data, list):
@@ -58,10 +57,29 @@ def fetch_bcb(code, label, start='01/01/2000'):
         return []
 
 
+def fetch_bcb_chunked(code, label, start_year=2000, chunk=5):
+    """Chunked fetch para séries diárias grandes (evita timeout)."""
+    print(f'  BCB {code} ({label}) chunked...', end=' ', flush=True)
+    all_rows = []
+    end_year = datetime.now().year
+    for y in range(start_year, end_year + 1, chunk):
+        y_end = min(y + chunk - 1, end_year)
+        url = (f'https://api.bcb.gov.br/dados/serie/bcdata.sgs.{code}/dados'
+               f'?formato=json&dataInicial=01/01/{y}&dataFinal=31/12/{y_end}')
+        try:
+            data = get_json(url)
+            if isinstance(data, list):
+                all_rows.extend(data)
+        except Exception as e:
+            print(f'[{y}-{y_end}: {e}]', end=' ')
+    print(f'{len(all_rows)} pontos')
+    return all_rows
+
+
 # ── BLS CPI-US ───────────────────────────────────────────────────────────────
 
 def fetch_cpi_us():
-    series_id   = 'CUUR0000SA0'
+    series_id    = 'CUUR0000SA0'
     current_year = datetime.now().year
     all_rows     = {}
 
@@ -77,9 +95,7 @@ def fetch_cpi_us():
                     period = pt.get('period', '')
                     if not period.startswith('M') or period == 'M13':
                         continue
-                    y = int(pt['year'])
-                    m = int(period[1:])
-                    all_rows[(y, m)] = float(pt['value'])
+                    all_rows[(int(pt['year']), int(period[1:]))] = float(pt['value'])
         except Exception as e:
             print(f'[{start}-{end}: {e}]', end=' ')
 
@@ -94,16 +110,11 @@ def fetch_cpi_us():
 def main():
     print('Buscando dados macro...')
 
-    # Séries mensais — rápidas
-    ipca_raw  = fetch_bcb(433,  'IPCA mensal %')
-    selic_raw = fetch_bcb(4189, 'SELIC acum. mês anualiz.')
-    igpm_raw  = fetch_bcb(189,  'IGP-M mensal %')
-    tjlp_raw  = fetch_bcb(4175, 'TJLP')
-
-    # Séries diárias — limitadas a 2010+ para evitar timeout
-    ptax_raw  = fetch_bcb(1, 'PTAX R$/USD', start='01/01/2010')
-
-    # BLS (batches de 3 anos)
+    ipca_raw  = fetch_bcb(433,  'IPCA mensal %')                  # mensal — request único
+    igpm_raw  = fetch_bcb(189,  'IGP-M mensal %')                  # mensal — request único
+    tjlp_raw  = fetch_bcb(4175, 'TJLP')                            # mensal — request único
+    selic_raw = fetch_bcb_chunked(432,  'SELIC target', 2000, 5)  # diária — chunked
+    ptax_raw  = fetch_bcb_chunked(1,    'PTAX R$/USD',  2000, 5)  # diária — chunked
     cpi_raw   = fetch_cpi_us()
 
     result = {
@@ -126,8 +137,7 @@ def main():
         json.dump(result, f, ensure_ascii=False, separators=(',', ':'))
     print(f'Salvo → {OUT_PATH}')
 
-    total = sum(counts.values())
-    if total == 0:
+    if sum(counts.values()) == 0:
         print('ERRO: nenhuma série retornou dados.', file=sys.stderr)
         sys.exit(1)
 

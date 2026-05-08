@@ -104,10 +104,14 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
   const fmt = v => v == null ? '—' : Number(v).toFixed(decimals).replace('.', ',');
   const clipId = `cc-clip-${field}`;
   const gradId = `cc-grad-${field}`;
+  const dataKey = valid.length > 0
+    ? `${valid[0].year}-${valid[0].month}-${valid.length}`
+    : 'empty';
 
   return (
     <div style={{position:'relative', animation:'rx-fade-in 0.5s ease-out'}}>
-      <svg ref={svgRef} width="100%" height={H} style={{display:'block', overflow:'visible'}}
+      <svg key={dataKey} ref={svgRef} className="chart-svg" width="100%" height={H}
+        style={{display:'block', overflow:'visible'}}
         onMouseMove={onMouseMove} onMouseLeave={() => setHovered(null)}>
         <defs>
           <clipPath id={clipId}>

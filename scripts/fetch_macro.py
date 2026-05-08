@@ -1,16 +1,17 @@
 """
 Fetches macroeconomic series and writes public/macro-data.json.
 
-IPCA   - BCB SGS 433   (variação mensal %, fonte IBGE via BCB)
-SELIC  - BCB SGS 432   (meta para taxa Selic — série diária, chunked)
-IGP-M  - BCB SGS 189   (variação mensal %, fonte FGV via BCB)
-TJLP   - BCB SGS 4175  (taxa % a.m., fim de período)
-PTAX   - BCB SGS 1     (R$/USD, fim de período — série diária, chunked)
-CPI-US - BLS CUUR0000SA0 (All items, not seasonally adjusted)
+IPCA        - BCB SGS 433   (variação mensal %, fonte IBGE via BCB)
+SELIC       - BCB SGS 432   (meta para taxa Selic — série diária, chunked)
+IGP-M       - BCB SGS 189   (variação mensal %, fonte FGV via BCB)
+TJLP        - BCB SGS 4175  (taxa % a.m., fim de período)
+PTAX        - BCB SGS 1     (R$/USD, fim de período — série diária, chunked)
+PTAX diária - BCB SGS 1     (últimos 2 anos, dados diários)
+CPI-US      - BLS CUUR0000SA0 (All items, not seasonally adjusted)
 """
 
 import json, os, sys, urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 OUT_PATH = os.path.join(os.path.dirname(__file__), '..', 'public', 'macro-data.json')
 TIMEOUT  = 60   # por chunk — chunks menores evitam timeout
@@ -38,6 +39,22 @@ def to_monthly_last(rows):
             continue
     return [{'year': y, 'month': m, 'value': v}
             for (y, m), v in sorted(monthly.items())]
+
+
+def to_daily(rows):
+    """BCB rows → daily values [{year, month, day, value}]."""
+    result = []
+    for row in rows:
+        try:
+            d, m, y = row['data'].split('/')
+            valor = row.get('valor', '').strip()
+            if not valor or valor in ('null', 'None'):
+                continue
+            result.append({'year': int(y), 'month': int(m), 'day': int(d),
+                           'value': float(valor.replace(',', '.'))})
+        except Exception:
+            continue
+    return result
 
 
 def fetch_bcb(code, label, start='01/01/1990'):
@@ -117,15 +134,19 @@ def main():
     ptax_raw  = fetch_bcb_chunked(1,    'PTAX R$/USD',  1990, 5)  # diária — chunked desde 1990
     cpi_raw   = fetch_cpi_us()
 
+    cutoff_2y = (datetime.now() - timedelta(days=730)).strftime('%d/%m/%Y')
+    ptax_daily_raw = fetch_bcb(1, 'PTAX diária 2a', start=cutoff_2y)  # últimos 2 anos
+
     result = {
         'updated': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
         'series': {
-            'ipca':   to_monthly_last(ipca_raw),
-            'selic':  to_monthly_last(selic_raw),
-            'igpm':   to_monthly_last(igpm_raw),
-            'tjlp':   to_monthly_last(tjlp_raw),
-            'ptax':   to_monthly_last(ptax_raw),
-            'cpi_us': cpi_raw,
+            'ipca':       to_monthly_last(ipca_raw),
+            'selic':      to_monthly_last(selic_raw),
+            'igpm':       to_monthly_last(igpm_raw),
+            'tjlp':       to_monthly_last(tjlp_raw),
+            'ptax':       to_monthly_last(ptax_raw),
+            'ptax_daily': to_daily(ptax_daily_raw),
+            'cpi_us':     cpi_raw,
         },
     }
 

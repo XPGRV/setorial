@@ -10,7 +10,7 @@ PTAX diária - BCB SGS 1     (últimos 2 anos, dados diários)
 CPI-US      - BLS CUUR0000SA0 (All items, not seasonally adjusted)
 """
 
-import json, os, sys, urllib.request
+import json, os, sys, time, urllib.request
 from datetime import datetime, timedelta, timezone
 
 OUT_PATH = os.path.join(os.path.dirname(__file__), '..', 'public', 'macro-data.json')
@@ -107,6 +107,12 @@ def fetch_cpi_us():
                f'?startyear={start}&endyear={end}')
         try:
             resp = get_json(url)
+            status = resp.get('status', '')
+            if status != 'REQUEST_SUCCEEDED':
+                msgs = resp.get('message', [])
+                print(f'[{start}-{end}: BLS status={status} {msgs}]', end=' ')
+                time.sleep(3)
+                continue
             for s in resp.get('Results', {}).get('series', []):
                 for pt in s.get('data', []):
                     period = pt.get('period', '')
@@ -115,6 +121,7 @@ def fetch_cpi_us():
                     all_rows[(int(pt['year']), int(period[1:]))] = float(pt['value'])
         except Exception as e:
             print(f'[{start}-{end}: {e}]', end=' ')
+        time.sleep(1)  # evita rate-limit entre chunks
 
     rows = [{'year': y, 'month': m, 'value': v}
             for (y, m), v in sorted(all_rows.items())]

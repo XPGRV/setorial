@@ -318,10 +318,12 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
 
       <div className="sidebar-spacer"/>
 
-      <div className="sidebar-section">
-        <div className="sidebar-section-label">Base de Dados</div>
-        <window.SidebarUpload onLoad={onUpload}/>
-      </div>
+      {!isMacro && (
+        <div className="sidebar-section">
+          <div className="sidebar-section-label">Base de Dados</div>
+          <window.SidebarUpload onLoad={onUpload}/>
+        </div>
+      )}
     </aside>
   );
 }
@@ -344,7 +346,9 @@ function TopBar({ meta, onUpload, activeDataset }) {
         </h1>
       </div>
       <div className="topbar-spacer"/>
-      <window.UploadWidget onLoad={onUpload} lastUpdate={currentMeta?.updated} currentSource={currentMeta?.source}/>
+      {activeDataset !== 'macro' && (
+        <window.UploadWidget onLoad={onUpload} lastUpdate={currentMeta?.updated} currentSource={currentMeta?.source}/>
+      )}
     </header>
   );
 }

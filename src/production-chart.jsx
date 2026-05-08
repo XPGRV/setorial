@@ -726,6 +726,19 @@ const MONTH_EN_PT = {
   september:'set', october:'out', november:'nov', december:'dez',
 };
 
+// Normaliza abreviatura EN → PT para o lookup de summaries.
+// Ex: "apr-26" → "abr-26", "dec-25" → "dez-25".
+// Meses idênticos nos dois idiomas (jan, mar, jun, jul, nov) passam sem alteração.
+const EN_ABBR_TO_PT = { feb:'fev', apr:'abr', may:'mai', aug:'ago', sep:'set', oct:'out', dec:'dez' };
+function normalizeSummaryKey(key) {
+  if (!key) return key;
+  const dash = key.lastIndexOf('-');
+  if (dash < 0) return key;
+  const mo = key.slice(0, dash).toLowerCase();
+  const yr = key.slice(dash + 1);
+  return `${EN_ABBR_TO_PT[mo] || mo}-${yr}`;
+}
+
 function parseLDPSummaries(text) {
   const map = {};
   const lines = text.split(/\r?\n/);
@@ -891,17 +904,17 @@ function ProductionCard({
         events={events}
         showEvents={showEvents}
       />
-      {showForecast && pair?.b && summaries[pair.b] && (
+      {showForecast && pair?.b && summaries[normalizeSummaryKey(pair.b)] && (
         <div className="forecast-summary">
           <div className="forecast-summary-label">
             Motivo da revisão · {fmtSnap(pair.b)}
-            {summaries[pair.b].pdf && (
-              <a href={summaries[pair.b].pdf} target="_blank" rel="noreferrer" className="forecast-summary-link">
+            {summaries[normalizeSummaryKey(pair.b)].pdf && (
+              <a href={summaries[normalizeSummaryKey(pair.b)].pdf} target="_blank" rel="noreferrer" className="forecast-summary-link">
                 Ver relatório ↗
               </a>
             )}
           </div>
-          <p className="forecast-summary-text">{summaries[pair.b].text}</p>
+          <p className="forecast-summary-text">{summaries[normalizeSummaryKey(pair.b)].text}</p>
         </div>
       )}
     </section>

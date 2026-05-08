@@ -233,7 +233,7 @@ function MacroCard({ meta, rows }) {
 
   // Série acumulada 12m calculada sobre todo o histórico (para não perder dados nas bordas após filtro)
   const accRows = useMemo(() => {
-    if (!isIpca) return rows;
+    if (!isIpca && !isIgpm) return rows;
     return rows.map((row, i) => {
       const slice = rows.slice(Math.max(0, i - 11), i + 1);
       const value = slice.length === 12
@@ -241,12 +241,12 @@ function MacroCard({ meta, rows }) {
         : null;
       return { ...row, value };
     });
-  }, [rows, isIpca]);
+  }, [rows, isIpca, isIgpm]);
 
-  const sourceRows = isIpca && viewMode === 'acum' ? accRows : rows;
+  const sourceRows = (isIpca || isIgpm) && viewMode === 'acum' ? accRows : rows;
   const filtered   = useMemo(() => filterRows(sourceRows, range), [sourceRows, range]);
 
-  const displayUnit = isIpca && viewMode === 'acum' ? '% a.a.' : meta.unit;
+  const displayUnit = (isIpca || isIgpm) && viewMode === 'acum' ? '% a.a.' : meta.unit;
 
   const latest = sourceRows[sourceRows.length - 1];
   const prev   = sourceRows[sourceRows.length - 2];
@@ -293,7 +293,7 @@ function MacroCard({ meta, rows }) {
               </div>
             </div>
             <div className="card-ctrl-row">
-              {isIpca && (
+              {(isIpca || isIgpm) && (
                 <div className="seg">
                   <button className={`seg-btn ${viewMode==='mom'  ? 'is-on' : ''}`} onClick={() => setViewMode('mom')}>%MoM</button>
                   <button className={`seg-btn ${viewMode==='acum' ? 'is-on' : ''}`} onClick={() => setViewMode('acum')}>Acumulado</button>

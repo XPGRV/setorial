@@ -46,13 +46,21 @@ function App({ data: propData, initialData, initialMeta }) {
       const t = e.detail?.target || '';
       const precosCards  = ['card-cattle','card-carne-mi','card-carne-me','card-spread-mi','card-spread-me'];
       const abatesCards  = ['card-abates','card-femeas','card-ciclo'];
-      const poultryCards = ['card-frango-mi','card-frango-me','card-feed-grain','card-spread-mi-frango','card-spread-me-frango','card-abates-frango','card-chick-placed','card-ipca-processados'];
+      const poultryCards    = ['card-frango-mi','card-frango-me','card-feed-grain','card-spread-mi-frango','card-spread-me-frango','card-abates-frango','card-chick-placed','card-ipca-processados'];
+      const poultryUSPrecos = ['us-frango-price','us-feed-grain','us-spread','us-poultry-beef','us-national-composite','us-usda-price','us-usda-feed','us-usda-spread'];
+      const poultryUSProd   = ['us-broiler-production','us-broiler-annual','us-chicks-placed','us-abates-frango','us-producao','us-plantel-matrizes','us-produtividade-matrizes','us-ovos-incubados','us-hatchability','us-pintos-eclodiram','us-mortality','us-peso-medio'];
       if (poultryCards.includes(t)) {
         setActiveDataset('poultry_br');
         const newTab = ['card-abates-frango','card-chick-placed'].includes(t) ? 'abates'
                      : t === 'card-ipca-processados' ? 'ipca'
                      : 'precos';
         setTab(newTab);
+      } else if (poultryUSPrecos.includes(t)) {
+        setActiveDataset('poultry_us');
+        setTab('precos');
+      } else if (poultryUSProd.includes(t)) {
+        setActiveDataset('poultry_us');
+        setTab('producao');
       } else {
         if (activeDataset !== 'beef_br') setActiveDataset('beef_br');
         if (precosCards.includes(t)) setTab('precos');
@@ -859,9 +867,9 @@ function TickerBar({ data, activeDataset }) {
           ['BBG·FEED',     'feed_grain',            'USD/kg',  'us-feed-grain'],
           ['BBG·SPREAD',   'spread',                'USD/kg',  'us-spread'],
           ['BBG·PTY/BEEF', 'poultry_beef_ratio',    'x',       'us-poultry-beef'],
-          ['USDA·PRICE',   'usda_wholesale_price',  'USD/lb',  'us-usda-price',  'frango_us_monthly'],
-          ['USDA·FEED',    'usda_feed_cost',        'USD/lb',  'us-usda-feed',   'frango_us_monthly'],
-          ['USDA·SPREAD',  'usda_spread',           'USD/lb',  'us-usda-spread', 'frango_us_monthly'],
+          ['CHICKS·PL',    'chicks_placed',         '000',     'us-chicks-placed'],
+          ['SLAUGHTER',    'abates_frango',         '000',     'us-abates-frango'],
+          ['PRODUÇÃO',     'producao',              'Ton',     'us-producao'],
         ]
       : activeDataset === 'poultry_br'
       ? [
@@ -963,7 +971,10 @@ function TickerBar({ data, activeDataset }) {
       ], { duration: 1400, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)', fill: 'none' });
     } else {
       window.dispatchEvent(new CustomEvent('rx-goto-card', { detail: { target } }));
-      setTimeout(() => onItemClick(target), 80);
+      setTimeout(() => {
+        const el2 = document.getElementById(target);
+        if (el2) el2.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
     }
   };
 

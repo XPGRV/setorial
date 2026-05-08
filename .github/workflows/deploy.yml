@@ -3,6 +3,10 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: '0 11 * * 1-5'  # dias úteis, 11h UTC (8h BRT)
+    - cron: '0 21 * * 1-5'  # dias úteis, 21h UTC (18h BRT)
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -21,11 +25,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Buscar dados macro
+        run: python scripts/fetch_macro.py
+        continue-on-error: true
+
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+
       - run: npm install
       - run: npm run build
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

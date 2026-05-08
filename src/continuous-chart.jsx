@@ -291,7 +291,8 @@ function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit
   );
 }
 
-window.ContinuousCard = ContinuousCard;
+window.ContinuousCard  = ContinuousCard;
+window.ContinuousChart = ContinuousChart;
 
 // ── MultiContinuousChart ──────────────────────────────────────────────────────
 function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 360, chartId = 'mc', chartStyle = 'line', pinnedSeries, setPinnedSeries }) {

@@ -823,33 +823,72 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
   }
 
   // ── SELIC Snapshots (Planilha - Selic.xlsm · aba BBG_Dados) ──────────────────
-  // Snapshot Abr/26: values col F (5), dates col D (3)
-  // Snapshot Mai/26: values col J (9), dates col H (7) — fallback to col D if H empty
+  // Estrutura: cols A-D = histórico diário/mensal. A partir da col F, blocos de snapshot:
+  //   row 1 = nome do snapshot (ex: "abr/26"), row 2 = "CDI" na coluna de valor
+  //   data = CDI col - 2, dados a partir da linha 5 (index 4)
+  // Histórico: col C (idx 2) = mês, col D (idx 3) = Selic % mensal
   if (parseSelic && findSheet('BBG_Dados')) {
     const bgRaw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('BBG_Dados')], { header: 1, raw: true });
-    const SELIC_SNAPS = [
-      { label: 'abr-26', year: 2026, month: 4, dateCol: 3, valueCol: 5 },
-      { label: 'mai-26', year: 2026, month: 5, dateCol: 3, valueCol: 9 },
-    ];
+    const MO_ABR = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+
+    // Auto-detecção dos blocos de snapshot via headers
+    const row0 = bgRaw[0] || [];
+    const row1 = bgRaw[1] || [];
+    const snapshotDefs = [];
+    for (let c = 0; c < row0.length; c++) {
+      const tag = parseMonthTag(String(row0[c] || '').trim());
+      if (!tag) continue;
+      // Procura "CDI" nas próximas 5 colunas (row 2)
+      let cdiCol = -1;
+      for (let dc = 0; dc <= 5; dc++) {
+        if (String(row1[c + dc] || '').trim().toLowerCase() === 'cdi') { cdiCol = c + dc; break; }
+      }
+      if (cdiCol < 0) continue;
+      const label = `${MO_ABR[tag.month - 1]}-${String(tag.year).slice(2)}`;
+      snapshotDefs.push({ label, year: tag.year, month: tag.month, fDateCol: cdiCol - 2, fValueCol: cdiCol });
+    }
+
+    // Histórico mensal: col C (idx 2) = datas, col D (idx 3) = Selic %
+    const histMap = {};
+    for (let i = 4; i < bgRaw.length; i++) {
+      const r = bgRaw[i];
+      if (!r) continue;
+      const pd = parseDate(r[2]);
+      if (!pd) continue;
+      const val = parseNum(r[3]);
+      if (val == null) continue;
+      histMap[`${pd.year}-${pd.month}`] = { year: pd.year, month: pd.month, value: val };
+    }
+
     const bySnapshot = {};
     const snapshots  = [];
-    for (const snap of SELIC_SNAPS) {
+    for (const snap of snapshotDefs) {
+      const snapOrd = snap.year * 12 + snap.month;
+      const cutOrd  = snapOrd - 6;
       const entries = [];
-      for (let i = 1; i < bgRaw.length; i++) {
-        const r  = bgRaw[i];
+
+      // 6 meses de histórico antes do snapshot (linha sólida)
+      for (const e of Object.values(histMap)) {
+        const ord = e.year * 12 + e.month;
+        if (ord >= cutOrd && ord <= snapOrd)
+          entries.push({ year: e.year, month: e.month, value: e.value, isForecast: false });
+      }
+
+      // Forecast: CDI da snapshot, linhas 5+ (idx 4+), datas após o mês da snapshot (pontilhado)
+      for (let i = 4; i < bgRaw.length; i++) {
+        const r = bgRaw[i];
         if (!r) continue;
-        const pd = parseDate(r[snap.dateCol]);
+        const pd = parseDate(r[snap.fDateCol]);
         if (!pd) continue;
-        const value = parseNum(r[snap.valueCol]);
-        if (value == null) continue;
-        const isForecast = pd.year * 12 + pd.month > snap.year * 12 + snap.month;
-        entries.push({ year: pd.year, month: pd.month, value, isForecast });
+        const val = parseNum(r[snap.fValueCol]);
+        if (val == null) continue;
+        const ord = pd.year * 12 + pd.month;
+        if (ord <= snapOrd) continue; // mês da snapshot já coberto pelo histórico
+        entries.push({ year: pd.year, month: pd.month, value: val, isForecast: true });
       }
-      if (entries.length > 0) {
-        entries.sort((a, b) => (a.year * 12 + a.month) - (b.year * 12 + b.month));
-        bySnapshot[snap.label] = entries;
-        snapshots.push(snap.label);
-      }
+
+      entries.sort((a, b) => (a.year * 12 + a.month) - (b.year * 12 + b.month));
+      if (entries.length > 0) { bySnapshot[snap.label] = entries; snapshots.push(snap.label); }
     }
     if (snapshots.length > 0) result.selic_snapshots = { snapshots, bySnapshot };
   }

@@ -1494,7 +1494,7 @@ function BroilerProductionSection({ data }) {
         title="Hatchability"
         eyebrow="FrangoUS · Col AF · Broiler Eggs Hatched Ratio"
         unit="%"
-        decimals={1}
+        decimals={2}
         events={EVENTS_FRANGO_US}
         accent={chartAccent}
         defaultYears={5}
@@ -1520,8 +1520,7 @@ function BroilerProductionSection({ data }) {
         title="Mortality"
         eyebrow="FrangoUS · Col AM · Chicks Placed - Slaughter"
         unit="%"
-        decimals={1}
-        scale={100}
+        decimals={2}
         events={EVENTS_FRANGO_US}
         accent={chartAccent}
         defaultYears={5}
@@ -1559,7 +1558,7 @@ function BroilerProductionSection({ data }) {
         cardId="us-producao"
         title="Produção de Frango"
         eyebrow="FrangoUS · Col AR · Broiler Production"
-        unit="Ton"
+        unit="000 Ton"
         decimals={0}
         events={EVENTS_FRANGO_US}
         accent={chartAccent}

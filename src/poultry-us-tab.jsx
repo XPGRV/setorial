@@ -1461,7 +1461,7 @@ function BroilerProductionSection({ data }) {
         data={data}
         dataset="frango_us_monthly"
         field="plantel_matrizes"
-        unit="000 cab"
+        unit="000 heads"
         decimals={0}
         fullWidth
         events={EVENTS_FRANGO_US}
@@ -1516,7 +1516,7 @@ function BroilerProductionSection({ data }) {
         cardId="us-chicks-placed"
         title="Chicks Placed"
         eyebrow="BLOOMBERG · EGGSCPUS Index · Broiler Chicks Placed"
-        unit="000 Chicks"
+        unit="000 heads"
         decimals={0}
         events={EVENTS_FRANGO_US}
         accent={chartAccent}

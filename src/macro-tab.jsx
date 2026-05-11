@@ -154,7 +154,7 @@ function SelicSnapshotChart({ series, height = 320 }) {
           <g key={i}>
             <line x1={padL} x2={W - padR} y1={yOf(v)} y2={yOf(v)}
               className="grid-line" style={{opacity: i === 0 ? 0 : 0.6}}/>
-            <text x={padL - 6} y={yOf(v)} textAnchor="end" dominantBaseline="middle" fontSize={10} fill="var(--fg-dim)">
+            <text x={padL - 6} y={yOf(v)} textAnchor="end" dominantBaseline="middle" fontSize={12} fill="var(--fg-dim)">
               {fmt(v)}
             </text>
           </g>
@@ -167,7 +167,7 @@ function SelicSnapshotChart({ series, height = 320 }) {
         {xTicks.map((t, i) => (
           <g key={i}>
             <line x1={t.x} x2={t.x} y1={padT + chartH} y2={padT + chartH + 4} stroke="var(--fg-dim)" strokeWidth={0.5}/>
-            <text x={t.x} y={padT + chartH + 14} textAnchor="middle" fontSize={10} fill="var(--fg-dim)">{t.label}</text>
+            <text x={t.x} y={padT + chartH + 14} textAnchor="middle" fontSize={12} fill="var(--fg-dim)">{t.label}</text>
           </g>
         ))}
 
@@ -236,7 +236,7 @@ function SelicSnapshotChart({ series, height = 320 }) {
                     <circle cx={cx} cy={cy} r={3} fill={s.color} opacity={0.9}/>
                     <text x={lx} y={above ? cy - 7 : cy + 13}
                       textAnchor={anchor}
-                      style={{fontFamily:'var(--font-mono)', fontSize:9.5, fill: s.color, fontWeight:500}}>
+                      style={{fontFamily:'var(--font-mono)', fontSize:11, fill: s.color, fontWeight:500}}>
                       {fmt(r.value)}
                     </text>
                   </g>
@@ -266,7 +266,7 @@ function SelicSnapshotChart({ series, height = 320 }) {
       </svg>
 
       {/* Legend */}
-      <div style={{display:'flex', gap:16, flexWrap:'wrap', padding:'6px 0 0', fontSize:11, color:'var(--fg-dim)', alignItems:'center'}}>
+      <div style={{display:'flex', gap:16, flexWrap:'wrap', padding:'6px 0 0', fontSize:12, color:'var(--fg-dim)', alignItems:'center'}}>
         {series.map((s, i) => (
           <span key={i}
             style={{

@@ -827,15 +827,9 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
   // Snapshot Mai/26: values col J (9), dates col H (7) — fallback to col D if H empty
   if (parseSelic && findSheet('BBG_Dados')) {
     const bgRaw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('BBG_Dados')], { header: 1, raw: true });
-    // Debug: log primeiras 5 linhas para inspecionar estrutura
-    console.log('[SELIC] primeiras 5 linhas do BBG_Dados:',
-      bgRaw.slice(0, 5).map(r => r ? {
-        D: r[3], E: r[4], F: r[5], G: r[6], H: r[7], I: r[8], J: r[9]
-      } : null)
-    );
     const SELIC_SNAPS = [
       { label: 'abr-26', year: 2026, month: 4, dateCol: 3, valueCol: 5 },
-      { label: 'mai-26', year: 2026, month: 5, dateCol: 7, valueCol: 9 },
+      { label: 'mai-26', year: 2026, month: 5, dateCol: 3, valueCol: 9 },
     ];
     const bySnapshot = {};
     const snapshots  = [];
@@ -851,7 +845,6 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
         const isForecast = pd.year * 12 + pd.month > snap.year * 12 + snap.month;
         entries.push({ year: pd.year, month: pd.month, value, isForecast });
       }
-      console.log(`[SELIC] ${snap.label}: ${entries.length} entradas`);
       if (entries.length > 0) {
         entries.sort((a, b) => (a.year * 12 + a.month) - (b.year * 12 + b.month));
         bySnapshot[snap.label] = entries;

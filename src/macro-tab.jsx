@@ -110,14 +110,14 @@ function SelicSnapshotChart({ series, height = 320 }) {
     return { solidPath: toPath(solidRows), dotPath: toPath(dotFull), valid, solidRows, dotRows };
   });
 
-  // X-axis: every month for short spans, else every 2 months
-  const tickStep = span <= 18 ? 1 : span <= 36 ? 2 : 3;
-  const xTicks = allOrds
-    .filter(ord => (ord - firstOrd) % tickStep === 0)
-    .map(ord => {
-      const { mo, yr } = ordToMoYr(ord);
-      return { x: xOfOrd(ord), label: `${MONTHS_ABR[mo - 1]}/${String(yr).slice(2)}` };
-    });
+  // X-axis: generate every month in range regardless of data gaps
+  const tickStep = span <= 36 ? 1 : span <= 60 ? 2 : 3;
+  const xTicks = [];
+  for (let ord = firstOrd; ord <= lastOrd; ord++) {
+    if ((ord - firstOrd) % tickStep !== 0) continue;
+    const { mo, yr } = ordToMoYr(ord);
+    xTicks.push({ x: xOfOrd(ord), label: `${MONTHS_ABR[mo - 1]}/${String(yr).slice(2)}` });
+  }
 
   const onMouseMove = e => {
     if (!svgRef.current) return;
@@ -269,7 +269,13 @@ function SelicSnapshotChart({ series, height = 320 }) {
       <div style={{display:'flex', gap:16, flexWrap:'wrap', padding:'6px 0 0', fontSize:11, color:'var(--fg-dim)', alignItems:'center'}}>
         {series.map((s, i) => (
           <span key={i}
-            style={{display:'flex', alignItems:'center', gap:5, cursor:'pointer', opacity: pinnedSnap && s.label !== pinnedSnap ? 0.35 : 1, transition:'opacity 0.2s'}}
+            style={{
+              display:'flex', alignItems:'center', gap:5, cursor:'pointer',
+              opacity: pinnedSnap && s.label !== pinnedSnap ? 0.35 : 1,
+              transition:'opacity 0.2s, box-shadow 0.15s',
+              padding:'2px 6px', borderRadius:4,
+              boxShadow: pinnedSnap === s.label ? `0 0 0 1px ${s.color}` : 'none',
+            }}
             onClick={() => setPinnedSnap(p => p === s.label ? null : s.label)}>
             <svg width="20" height="10">
               <line x1="0" y1="3" x2="20" y2="3" stroke={s.color} strokeWidth="2.5"/>
@@ -414,7 +420,7 @@ function SelicSnapshotCard({ selicSnapshots }) {
           </div>
         </div>
       </div>
-      <SelicSnapshotChart series={series} height={320} />
+      <SelicSnapshotChart series={series} height={480} />
     </section>
   );
 }

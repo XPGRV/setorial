@@ -41,13 +41,20 @@ function ordToMoYr(ord) {
   return { mo, yr };
 }
 
-// ── SelicSnapshotChart (multi-series) ────────────────────────────────────────
+// ── SelicSnapshotChart ────────────────────────────────────────────────────────
 
-function SelicSnapshotChart({ series, height = 240 }) {
+function SelicSnapshotChart({ series, height = 320 }) {
   const svgRef = useRef(null);
   const [svgW, setSvgW] = useState(760);
   const [hovOrd, setHovOrd] = useState(null);
   const [hovMouse, setHovMouse] = useState({ x: 0, y: 0 });
+  const [pinnedSnap, setPinnedSnap] = useState(null);
+  const { shouldRender: showLabels, isLeaving: labelsLeaving } = window.useFadeOut(!!pinnedSnap, 150);
+  const lastPinnedRef = useRef(pinnedSnap);
+  if (pinnedSnap) lastPinnedRef.current = pinnedSnap;
+
+  // Reset pin when series change
+  useEffect(() => { setPinnedSnap(null); }, [series.map(s => s.label).join(',')]);
 
   useLayoutEffect(() => {
     if (!svgRef.current) return;
@@ -62,7 +69,7 @@ function SelicSnapshotChart({ series, height = 240 }) {
   }, []);
 
   const W = svgW, H = height;
-  const padL = 52, padR = 48, padT = 14, padB = 40;
+  const padL = 52, padR = 16, padT = 20, padB = 36;
   const chartW = W - padL - padR;
   const chartH = H - padT - padB;
 
@@ -94,16 +101,17 @@ function SelicSnapshotChart({ series, height = 240 }) {
   const toPath = pts => pts.length < 2 ? '' :
     `M${pts.map(r => `${xOf(r).toFixed(1)},${yOf(r.value).toFixed(1)}`).join('L')}`;
 
-  const seriesPaths = useMemo(() => series.map(s => {
+  const seriesBuilt = series.map(s => {
     const valid     = s.rows.filter(r => r.value != null);
     const solidRows = valid.filter(r => !r.isForecast);
     const dotRows   = valid.filter(r => r.isForecast);
     const lastSolid = solidRows[solidRows.length - 1];
     const dotFull   = lastSolid ? [lastSolid, ...dotRows] : dotRows;
-    return { solidPath: toPath(solidRows), dotPath: toPath(dotFull), valid };
-  }), [series, svgW, yMin, yMax]);
+    return { solidPath: toPath(solidRows), dotPath: toPath(dotFull), valid, solidRows, dotRows };
+  });
 
-  const tickStep = span <= 12 ? 1 : span <= 24 ? 3 : span <= 48 ? 6 : 12;
+  // X-axis: every month for short spans, else every 2 months
+  const tickStep = span <= 18 ? 1 : span <= 36 ? 2 : 3;
   const xTicks = allOrds
     .filter(ord => (ord - firstOrd) % tickStep === 0)
     .map(ord => {
@@ -113,9 +121,9 @@ function SelicSnapshotChart({ series, height = 240 }) {
 
   const onMouseMove = e => {
     if (!svgRef.current) return;
-    const rect    = svgRef.current.getBoundingClientRect();
-    const px      = (e.clientX - rect.left - padL) / chartW;
-    const target  = firstOrd + px * span;
+    const rect   = svgRef.current.getBoundingClientRect();
+    const px     = (e.clientX - rect.left - padL) / chartW;
+    const target = firstOrd + px * span;
     const closest = allOrds.reduce((best, ord) =>
       Math.abs(ord - target) < Math.abs(best - target) ? ord : best, allOrds[0]);
     setHovOrd(closest);
@@ -125,6 +133,15 @@ function SelicSnapshotChart({ series, height = 240 }) {
   const fmt = v => v == null ? '—' : v.toFixed(2).replace('.', ',');
 
   const hovX = hovOrd != null ? xOfOrd(hovOrd) : null;
+
+  const seriesOpacity = s => {
+    if (!pinnedSnap) return 1;
+    return s.label === pinnedSnap ? 1 : 0.1;
+  };
+  const seriesWidth = s => {
+    if (!pinnedSnap) return 2.2;
+    return s.label === pinnedSnap ? 2.5 : 1;
+  };
 
   return (
     <div style={{position:'relative', animation:'rx-fade-in 0.5s ease-out'}}>
@@ -137,7 +154,7 @@ function SelicSnapshotChart({ series, height = 240 }) {
           <g key={i}>
             <line x1={padL} x2={W - padR} y1={yOf(v)} y2={yOf(v)}
               className="grid-line" style={{opacity: i === 0 ? 0 : 0.6}}/>
-            <text x={W - padR + 8} y={yOf(v)} textAnchor="start" fontSize={10} fill="var(--fg-dim)">
+            <text x={padL - 6} y={yOf(v)} textAnchor="end" dominantBaseline="middle" fontSize={10} fill="var(--fg-dim)">
               {fmt(v)}
             </text>
           </g>
@@ -161,34 +178,87 @@ function SelicSnapshotChart({ series, height = 240 }) {
           if (sx < padL || sx > W - padR) return null;
           return (
             <line key={i} x1={sx} x2={sx} y1={padT} y2={padT + chartH}
-              stroke={s.color} strokeWidth={1} strokeDasharray="3 3" strokeOpacity={0.4}/>
+              stroke={s.color} strokeWidth={1} strokeDasharray="3 3"
+              strokeOpacity={pinnedSnap && s.label !== pinnedSnap ? 0.1 : 0.4}/>
           );
         })}
 
         {/* Series paths */}
-        {seriesPaths.map((sp, i) => (
-          <g key={i}>
-            {sp.solidPath && (
-              <path d={sp.solidPath} fill="none" stroke={series[i].color} strokeWidth={2.5} strokeLinejoin="round"/>
-            )}
-            {sp.dotPath && (
-              <path d={sp.dotPath} fill="none" stroke={series[i].color} strokeWidth={2} strokeLinejoin="round"
-                strokeDasharray="6 4" strokeOpacity={0.75}/>
-            )}
-          </g>
-        ))}
+        {seriesBuilt.map((sp, i) => {
+          const s   = series[i];
+          const op  = seriesOpacity(s);
+          const sw  = seriesWidth(s);
+          return (
+            <g key={i} style={{opacity: op, transition:'opacity 0.2s'}}>
+              {sp.solidPath && (
+                <path d={sp.solidPath} fill="none" stroke={s.color} strokeWidth={sw} strokeLinejoin="round"/>
+              )}
+              {sp.dotPath && (
+                <path d={sp.dotPath} fill="none" stroke={s.color} strokeWidth={sw * 0.85} strokeLinejoin="round"
+                  strokeDasharray="6 4" strokeOpacity={0.8}/>
+              )}
+            </g>
+          );
+        })}
+
+        {/* Hit areas (wider transparent paths for click) */}
+        {seriesBuilt.map((sp, i) => {
+          const s = series[i];
+          const combinedPath = [sp.solidPath, sp.dotPath].filter(Boolean).join(' ');
+          if (!combinedPath) return null;
+          return (
+            <path key={i} d={combinedPath} fill="none" stroke="transparent" strokeWidth={14}
+              style={{cursor: 'pointer'}}
+              onClick={() => setPinnedSnap(p => p === s.label ? null : s.label)}/>
+          );
+        })}
+
+        {/* Data labels for pinned series */}
+        {showLabels && (() => {
+          const snap = lastPinnedRef.current;
+          if (!snap) return null;
+          const si = series.findIndex(s => s.label === snap);
+          if (si < 0) return null;
+          const s  = series[si];
+          const sp = seriesBuilt[si];
+          return (
+            <g style={{animation: labelsLeaving ? 'rx-fade-in 0.15s ease-out reverse forwards' : 'rx-fade-in 0.15s ease-out'}}>
+              {sp.valid.map((r, j) => {
+                const cx     = xOf(r);
+                const cy     = yOf(r.value);
+                const above  = cy - padT > 18;
+                const nearR  = cx > W - padR - 28;
+                const nearL  = cx < padL + 28;
+                const anchor = nearR ? 'end' : nearL ? 'start' : 'middle';
+                const lx     = nearR ? W - padR - 2 : nearL ? padL + 2 : cx;
+                return (
+                  <g key={j}>
+                    <circle cx={cx} cy={cy} r={3} fill={s.color} opacity={0.9}/>
+                    <text x={lx} y={above ? cy - 7 : cy + 13}
+                      textAnchor={anchor}
+                      style={{fontFamily:'var(--font-mono)', fontSize:9.5, fill: s.color, fontWeight:500}}>
+                      {fmt(r.value)}
+                    </text>
+                  </g>
+                );
+              })}
+            </g>
+          );
+        })()}
 
         {/* Hover crosshair + dots */}
         {hovOrd != null && hovX != null && (
           <g>
             <line x1={hovX} x2={hovX} y1={padT} y2={padT + chartH}
-              stroke="var(--fg)" strokeOpacity={0.2} strokeWidth={1}/>
+              stroke="var(--fg)" strokeOpacity={0.15} strokeWidth={1}/>
             {series.map((s, i) => {
               const pt = s.rows.find(r => r.year * 12 + r.month === hovOrd && r.value != null);
               if (!pt) return null;
+              const op = pinnedSnap && s.label !== pinnedSnap ? 0.15 : 1;
               return (
                 <circle key={i} cx={hovX} cy={yOf(pt.value)} r={4}
-                  fill="var(--bg-panel)" stroke={s.color} strokeWidth={2} className="rx-no-anim"/>
+                  fill="var(--bg-panel)" stroke={s.color} strokeWidth={2}
+                  className="rx-no-anim" style={{opacity: op}}/>
               );
             })}
           </g>
@@ -196,23 +266,27 @@ function SelicSnapshotChart({ series, height = 240 }) {
       </svg>
 
       {/* Legend */}
-      <div style={{display:'flex', gap:16, flexWrap:'wrap', padding:'6px 0 0', fontSize:11, color:'var(--fg-dim)'}}>
+      <div style={{display:'flex', gap:16, flexWrap:'wrap', padding:'6px 0 0', fontSize:11, color:'var(--fg-dim)', alignItems:'center'}}>
         {series.map((s, i) => (
-          <span key={i} style={{display:'flex', alignItems:'center', gap:5}}>
+          <span key={i}
+            style={{display:'flex', alignItems:'center', gap:5, cursor:'pointer', opacity: pinnedSnap && s.label !== pinnedSnap ? 0.35 : 1, transition:'opacity 0.2s'}}
+            onClick={() => setPinnedSnap(p => p === s.label ? null : s.label)}>
             <svg width="20" height="10">
-              <line x1="0" y1="4" x2="20" y2="4" stroke={s.color} strokeWidth="2.5"/>
-              <line x1="0" y1="8" x2="20" y2="8" stroke={s.color} strokeWidth="2" strokeDasharray="5 3" strokeOpacity="0.75"/>
+              <line x1="0" y1="3" x2="20" y2="3" stroke={s.color} strokeWidth="2.5"/>
+              <line x1="0" y1="8" x2="20" y2="8" stroke={s.color} strokeWidth="2" strokeDasharray="5 3" strokeOpacity="0.8"/>
             </svg>
             {parseSnapLabel(s.label).display}
           </span>
         ))}
-        <span style={{display:'flex', alignItems:'center', gap:5, marginLeft:'auto'}}>
-          <svg width="16" height="4"><line x1="0" y1="2" x2="16" y2="2" stroke="var(--fg-dim)" strokeWidth="2"/></svg>
-          Realizado
-        </span>
-        <span style={{display:'flex', alignItems:'center', gap:5}}>
-          <svg width="16" height="4"><line x1="0" y1="2" x2="16" y2="2" stroke="var(--fg-dim)" strokeWidth="2" strokeDasharray="5 3" strokeOpacity="0.75"/></svg>
-          Projetado
+        <span style={{marginLeft:'auto', display:'flex', gap:12}}>
+          <span style={{display:'flex', alignItems:'center', gap:4}}>
+            <svg width="16" height="3"><line x1="0" y1="1.5" x2="16" y2="1.5" stroke="var(--fg-dim)" strokeWidth="2"/></svg>
+            Realizado
+          </span>
+          <span style={{display:'flex', alignItems:'center', gap:4}}>
+            <svg width="16" height="3"><line x1="0" y1="1.5" x2="16" y2="1.5" stroke="var(--fg-dim)" strokeWidth="2" strokeDasharray="4 3" strokeOpacity="0.8"/></svg>
+            Projetado
+          </span>
         </span>
       </div>
 
@@ -236,10 +310,10 @@ function SelicSnapshotChart({ series, height = 240 }) {
             <div className="hover-rows">
               {tooltipRows.map((tr, i) => (
                 <div key={i} className="hover-row">
-                  <span style={{fontSize:10, color:'var(--fg-dim)', minWidth:40}}>{tr.label}</span>
+                  <span style={{fontSize:10, color:'var(--fg-dim)', minWidth:44}}>{tr.label}</span>
                   <span className="hover-val" style={{color: tr.color}}>
                     {tr.point ? fmt(tr.point.value) : '—'}
-                    {tr.point && <span className="hover-unit"> % a.a.</span>}
+                    {tr.point && <span className="hover-unit"> %</span>}
                   </span>
                   {tr.point?.isForecast && <span style={{fontSize:9, color:'var(--fg-dim)', marginLeft:4}}>proj.</span>}
                 </div>
@@ -271,12 +345,11 @@ function SelicSnapshotCard({ selicSnapshots }) {
 
   const toggleSnap = s => setSelectedSnaps(prev =>
     prev.includes(s)
-      ? prev.length > 1 ? prev.filter(x => x !== s) : prev  // manter ao menos 1
+      ? prev.length > 1 ? prev.filter(x => x !== s) : prev
       : [...prev, s]
   );
 
   const series = useMemo(() => {
-    // Corte global = mês mais antigo entre todos os snapshots selecionados (6m antes do mais antigo)
     const globalCutOrd = Math.min(...selectedSnaps.map(s => {
       const meta = parseSnapLabel(s);
       return meta.year * 12 + meta.month - 6;
@@ -289,21 +362,21 @@ function SelicSnapshotCard({ selicSnapshots }) {
     });
   }, [selectedSnaps, bySnapshot]);
 
-  const latestSnap   = snapshots[snapshots.length - 1];
-  const latestMeta   = parseSnapLabel(latestSnap);
-  const latestRows   = bySnapshot[latestSnap] || [];
-  const latestPoint  = [...latestRows].filter(r => !r.isForecast).at(-1);
+  const latestSnap  = snapshots[snapshots.length - 1];
+  const latestMeta  = parseSnapLabel(latestSnap);
+  const latestRows  = bySnapshot[latestSnap] || [];
+  const latestPoint = [...latestRows].filter(r => !r.isForecast).at(-1);
 
-  const btnLabel = selectedSnaps.length === snapshots.length
-    ? 'Todos ▾'
-    : selectedSnaps.map(s => parseSnapLabel(s).display).join(', ') + ' ▾';
+  const btnLabel = selectedSnaps.length === 1
+    ? `${parseSnapLabel(selectedSnaps[0]).display} ▾`
+    : `Snapshots ▾`;
 
   return (
     <section className="card card-full">
       <div className="card-head">
         <div>
           <div className="card-eyebrow">BCB · Revisões de Mercado · Bloomberg</div>
-          <h3 className="card-title">SELIC</h3>
+          <h3 className="card-title">CDI</h3>
           {latestPoint && (
             <div className="card-price">
               <span className="card-value">{latestPoint.value.toFixed(2).replace('.', ',')}</span>
@@ -318,8 +391,7 @@ function SelicSnapshotCard({ selicSnapshots }) {
               <div className="year-drop-wrap" ref={dropRef}>
                 <button
                   className={`year-seg-btn ${dropOpen ? 'is-active' : ''}`}
-                  onClick={() => setDropOpen(o => !o)}
-                >
+                  onClick={() => setDropOpen(o => !o)}>
                   {btnLabel}
                 </button>
                 {dropOpen && (
@@ -342,7 +414,7 @@ function SelicSnapshotCard({ selicSnapshots }) {
           </div>
         </div>
       </div>
-      <SelicSnapshotChart series={series} height={240} />
+      <SelicSnapshotChart series={series} height={320} />
     </section>
   );
 }
@@ -378,7 +450,7 @@ function MacroTab({ data: propData, accent }) {
         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity:0.35 }}>
           <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
         </svg>
-        <div style={{ fontSize:14, color:'var(--fg)', opacity:0.6 }}>Nenhum dado SELIC</div>
+        <div style={{ fontSize:14, color:'var(--fg)', opacity:0.6 }}>Nenhum dado CDI</div>
         <div style={{ fontSize:12, color:'var(--fg-mute)', maxWidth:320, lineHeight:1.5 }}>
           Faça upload da <strong>Planilha - Selic.xlsm</strong> para visualizar as revisões de mercado.
         </div>

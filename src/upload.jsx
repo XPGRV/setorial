@@ -611,7 +611,9 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
   // ── FrangoUS mensal — dados USDA (aba FrangoUS) ──────────────────────────────
   // col Q (16) = Feed Costs per Lb · col R (17) = Composite Wholesale Price · col S (18) = Spread · col T (19) = Broiler Composite · col U (20) = National Composite
   if (parsePoultryUS && findSheet('FrangoUS')) {
-    const usdaRaw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('FrangoUS')], { header: 1, raw: false });
+    const usdaSheet = wb.Sheets[findSheet('FrangoUS')];
+    const usdaRaw   = XLSX.utils.sheet_to_json(usdaSheet, { header: 1, raw: false });
+    const usdaRawV  = XLSX.utils.sheet_to_json(usdaSheet, { header: 1, raw: true, defval: null });
     let dataStart = 4;
     for (let i = 2; i < Math.min(10, usdaRaw.length); i++) {
       if (usdaRaw[i] && usdaRaw[i][1] && parseMonthTag(usdaRaw[i][1])) { dataStart = i; break; }
@@ -651,7 +653,7 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
         plantel_matrizes:        plantelMap[`${md.year}-${md.month}`]      ?? null,
         produtividade_matrizes:  produtividadeMap[`${md.year}-${md.month}`] ?? null,
         ovos_incubados:          parseNum(r[30]),  // col AE
-        hatchability:            parseNum(r[31]),  // col AF
+        hatchability:            typeof usdaRawV[i]?.[31] === 'number' ? usdaRawV[i][31] : parseNum(r[31]),  // col AF — raw para preservar decimais
         chicks_placed:           parseNum(r[36]),  // col AK
         mortality:               parseNum(r[38]),  // col AM
         abates_frango:           parseNum(r[39]),  // col AN

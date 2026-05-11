@@ -12,7 +12,7 @@ const SERIES_META = [
   { id: 'tjlp',   label: 'TJLP',   eyebrow: 'BCB SGS 4175',                  unit: '% a.a.', decimals: 2 },
 ];
 
-const PTAX_META = { id: 'ptax', label: 'PTAX', eyebrow: 'BCB SGS 1 · Fim de Mês', unit: 'R$/USD', decimals: 2 };
+const PTAX_META = { id: 'ptax', label: 'PTAX', eyebrow: 'BCB SGS 1 · Média Mensal · desde Jul/1994', unit: 'R$/USD', decimals: 2 };
 
 const RANGE_OPTS = [
   { label: 'LTM',   years: 1    },
@@ -253,8 +253,8 @@ function MacroCard({ meta, rows }) {
   const delta  = val != null && prev?.value != null ? val - prev.value : null;
   const isUp   = delta != null ? delta >= 0 : null;
 
-  const fmtN = (v, d) => v != null ? v.toFixed(d) : '—';
-  const fmtD = (v, d) => v != null ? (v >= 0 ? '+' : '') + v.toFixed(d) : null;
+  const fmtN = (v, d) => v != null ? v.toFixed(d).replace('.', ',') : '—';
+  const fmtD = (v, d) => v != null ? (v >= 0 ? '+' : '') + v.toFixed(d).replace('.', ',') : null;
   const dateLabel = latest
     ? `${MONTHS_ABR[latest.month - 1]}/${String(latest.year).slice(2)}`
     : '—';
@@ -351,8 +351,8 @@ function PtaxCard({ rows, dailyRows }) {
   const val       = latest?.value ?? null;
   const delta     = val != null && prev?.value != null ? val - prev.value : null;
   const isUp      = delta != null ? delta >= 0 : null;
-  const fmtN      = (v, d) => v != null ? v.toFixed(d) : '—';
-  const fmtD      = (v, d) => v != null ? (v >= 0 ? '+' : '') + v.toFixed(d) : null;
+  const fmtN      = (v, d) => v != null ? v.toFixed(d).replace('.', ',') : '—';
+  const fmtD      = (v, d) => v != null ? (v >= 0 ? '+' : '') + v.toFixed(d).replace('.', ',') : null;
   const dateLabel = latest
     ? `${MONTHS_ABR[latest.month - 1]}/${String(latest.year).slice(2)}`
     : '—';

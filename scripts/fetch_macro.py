@@ -40,6 +40,28 @@ def to_monthly_last(rows):
             for (y, m), v in sorted(monthly.items())]
 
 
+def to_monthly_mean(rows, min_year=None, min_month=None):
+    """Daily BCB rows → mean value of each calendar month. Optionally filters by start date."""
+    monthly = {}
+    for row in rows:
+        try:
+            d, m, y = row['data'].split('/')
+            valor = row.get('valor', '').strip()
+            if not valor or valor in ('null', 'None'):
+                continue
+            key = (int(y), int(m))
+            monthly.setdefault(key, []).append(float(valor.replace(',', '.')))
+        except Exception:
+            continue
+    result = []
+    for (y, m), vals in sorted(monthly.items()):
+        if min_year is not None and min_month is not None:
+            if (y, m) < (min_year, min_month):
+                continue
+        result.append({'year': y, 'month': m, 'value': round(sum(vals) / len(vals), 4)})
+    return result
+
+
 def to_daily(rows):
     """BCB rows → daily values [{year, month, day, value}]."""
     result = []
@@ -101,7 +123,7 @@ def main():
     igpm_raw  = fetch_bcb(189,  'IGP-M mensal %')                  # mensal — request único
     tjlp_raw  = fetch_bcb(4175, 'TJLP')                            # mensal — request único
     selic_raw = fetch_bcb_chunked(432,  'SELIC target', 1994, 5)  # diária — chunked desde 1994
-    ptax_raw  = fetch_bcb_chunked(1,    'PTAX R$/USD',  1990, 5)  # diária — chunked desde 1990
+    ptax_raw  = fetch_bcb_chunked(1,    'PTAX R$/USD',  1994, 5)  # diária — chunked desde Jul/1994
 
     cutoff_2y = (datetime.now() - timedelta(days=730)).strftime('%d/%m/%Y')
     ptax_daily_raw = fetch_bcb(1, 'PTAX diária 2a', start=cutoff_2y)  # últimos 2 anos
@@ -113,7 +135,7 @@ def main():
             'selic':      to_monthly_last(selic_raw),
             'igpm':       to_monthly_last(igpm_raw),
             'tjlp':       to_monthly_last(tjlp_raw),
-            'ptax':       to_monthly_last(ptax_raw),
+            'ptax':       to_monthly_mean(ptax_raw, min_year=1994, min_month=7),
             'ptax_daily': to_daily(ptax_daily_raw),
         },
     }

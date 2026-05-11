@@ -1489,18 +1489,6 @@ function BroilerProductionSection({ data }) {
       />
       <FrangoUSSimpleCard
         data={data}
-        seriesKey="pintos_eclodiram"
-        cardId="us-pintos-eclodiram"
-        title="Pintos que Eclodiram"
-        eyebrow="Bloomberg · Cálculo Próprio · Eggs Sets * Hatchability"
-        unit="000 Chicks"
-        decimals={0}
-        events={EVENTS_FRANGO_US}
-        accent={chartAccent}
-        defaultYears={5}
-      />
-      <FrangoUSSimpleCard
-        data={data}
         seriesKey="chicks_placed"
         cardId="us-chicks-placed"
         title="Chicks Placed"

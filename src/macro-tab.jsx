@@ -441,16 +441,6 @@ function MacroTab() {
   const [error,     setError]     = useState(null);
 
   useEffect(() => {
-    const root = document.documentElement;
-    const prev = root.style.getPropertyValue('--accent');
-    root.style.setProperty('--accent', CHART_GREEN);
-    return () => {
-      if (prev) root.style.setProperty('--accent', prev);
-      else root.style.removeProperty('--accent');
-    };
-  }, []);
-
-  useEffect(() => {
     fetch('./macro-data.json')
       .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(d => { setMacroData(d); setLoading(false); })

@@ -97,7 +97,7 @@ function App({ data: propData, initialData, initialMeta }) {
     : activeDataset === 'poultry_us'
     ? 'oklch(0.76 0.20 45)'
     : activeDataset === 'macro'
-    ? 'oklch(0.74 0.16 290)'
+    ? 'oklch(0.70 0.19 160)'
     : tweaks.accent || PALETTES[tweaks.palette].accent;
 
   // uiAccent — CSS var, sidebar highlights, logo box
@@ -108,7 +108,7 @@ function App({ data: propData, initialData, initialMeta }) {
     : activeDataset === 'poultry_us'
     ? 'oklch(0.76 0.20 45)'
     : activeDataset === 'macro'
-    ? 'oklch(0.74 0.16 290)'
+    ? 'oklch(0.70 0.19 160)'
     : accent;
 
   const typeStack = TYPE_STACKS[tweaks.typography];
@@ -124,7 +124,7 @@ function App({ data: propData, initialData, initialMeta }) {
       : activeDataset === 'poultry_us'
       ? 'oklch(0.76 0.20 45)'
       : activeDataset === 'macro'
-      ? 'oklch(0.74 0.16 290)'
+      ? 'oklch(0.70 0.19 160)'
       : themeAccent;
     document.documentElement.style.setProperty('--accent', finalAccent);
     document.documentElement.style.setProperty('--font-sans', typeStack.sans);

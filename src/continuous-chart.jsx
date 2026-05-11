@@ -4,6 +4,20 @@ import React from 'react'
 
 const MONTHS_PT_ABR = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
+// Catmull-Rom → cubic bezier. pts: [{x,y}]. Returns SVG path string (line only).
+function smoothPath(pts) {
+  if (pts.length < 2) return pts.length === 1 ? `M${pts[0].x},${pts[0].y}` : '';
+  let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)], p1 = pts[i];
+    const p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
+    const cp1x = p1.x + (p2.x - p0.x) / 6, cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6, cp2y = p2.y - (p3.y - p1.y) / 6;
+    d += `C${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+  }
+  return d;
+}
+
 function filterByRangeYears(rows, field, rangeYears) {
   const valid = rows.filter(r => r[field] != null);
   if (!valid.length || rangeYears === 'all') return valid;
@@ -88,17 +102,17 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
   segments.push(seg);
 
   const linePath = segments
-    .map(s => 'M' + s.map(r => `${xOf(r).toFixed(1)},${yOf(r[field]).toFixed(1)}`).join('L'))
+    .map(s => smoothPath(s.map(r => ({ x: xOf(r), y: yOf(r[field]) }))))
     .join('');
 
   const zeroY       = yOf(0);
   const zeroInChart = zeroY >= padT && zeroY <= padT + chartH;
   const baseY       = (zeroBaseline && zeroInChart) ? zeroY : padT + chartH;
   const areaPath    = segments.map(s => {
-    const pts = s.map(r => `${xOf(r).toFixed(1)},${yOf(r[field]).toFixed(1)}`);
+    const pts = s.map(r => ({ x: xOf(r), y: yOf(r[field]) }));
     const x0  = xOf(s[0]).toFixed(1);
     const xN  = xOf(s[s.length - 1]).toFixed(1);
-    return `M${pts.join('L')}L${xN},${baseY.toFixed(1)}L${x0},${baseY.toFixed(1)}Z`;
+    return smoothPath(pts) + `L${xN},${baseY.toFixed(1)}L${x0},${baseY.toFixed(1)}Z`;
   }).join(' ');
 
   // Hover
@@ -399,24 +413,22 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
   }
 
   const buildPath = key => {
-    let path = '', inPath = false;
+    const segs = [];
+    let seg = [];
     for (const r of valid) {
       const v = r[key];
-      if (v != null) {
-        const pt = `${xOf(r).toFixed(1)},${yOf(v).toFixed(1)}`;
-        path += inPath ? `L${pt}` : `M${pt}`; inPath = true;
-      } else { inPath = false; }
+      if (v != null) { seg.push({ x: xOf(r), y: yOf(v) }); }
+      else if (seg.length) { segs.push(seg); seg = []; }
     }
-    return path;
+    if (seg.length) segs.push(seg);
+    return segs.map(smoothPath).join('');
   };
 
   const buildAreaPath = key => {
-    const pts = valid.filter(r => r[key] != null);
+    const pts = valid.filter(r => r[key] != null).map(r => ({ x: xOf(r), y: yOf(r[key]) }));
     if (!pts.length) return '';
-    const line = pts.map(r => `${xOf(r).toFixed(1)},${yOf(r[key]).toFixed(1)}`).join('L');
-    const x0 = xOf(pts[0]).toFixed(1), x1 = xOf(pts[pts.length - 1]).toFixed(1);
     const base = (padT + chartH).toFixed(1);
-    return `M${line}L${x1},${base}L${x0},${base}Z`;
+    return smoothPath(pts) + `L${pts[pts.length - 1].x.toFixed(1)},${base}L${pts[0].x.toFixed(1)},${base}Z`;
   };
 
   const onMouseMove = e => {

@@ -5,6 +5,19 @@ const { useState, useEffect, useMemo, useRef, useLayoutEffect } = React;
 const MONTHS_ABR  = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const CHART_GREEN = 'oklch(0.82 0.18 155)';
 
+function niceYTicks(dataMin, dataMax, count = 5) {
+  const range = dataMax - dataMin || 1;
+  const rough = range / (count - 1);
+  const mag   = Math.pow(10, Math.floor(Math.log10(rough)));
+  const norm  = rough / mag;
+  const step  = norm < 1.5 ? mag : norm < 3.5 ? 2 * mag : norm < 7.5 ? 5 * mag : 10 * mag;
+  const lo    = Math.floor(dataMin / step) * step;
+  const hi    = Math.ceil(dataMax / step) * step;
+  const ticks = [];
+  for (let v = lo; v <= hi + step * 1e-9; v = Math.round((v + step) * 1e10) / 1e10) ticks.push(v);
+  return { ticks, lo, hi };
+}
+
 
 const SERIES_META = [
   { id: 'ipca',   label: 'IPCA',   eyebrow: 'BCB SGS 433 · Variação Mensal', unit: '%',      decimals: 2 },
@@ -83,12 +96,8 @@ function PtaxDailyChart({ rows, accent, unit, decimals, height = 220, chartStyle
   const vals = valid.map(r => r.value);
   const minV = Math.min(...vals);
   const maxV = Math.max(...vals);
-  const span = maxV - minV || 1;
-  const yMin = minV - span * 0.04;
-  const yMax = maxV + span * 0.04;
+  const { ticks: yTicks, lo: yMin, hi: yMax } = niceYTicks(minV, maxV);
   const yOf  = v => padT + chartH - ((v - yMin) / (yMax - yMin)) * chartH;
-
-  const yTicks = Array.from({length: 5}, (_, i) => yMin + (yMax - yMin) * (i / 4));
 
   const spanDays = spanMs / 86400000;
   const xTicks = [];

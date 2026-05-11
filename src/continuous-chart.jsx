@@ -4,6 +4,19 @@ import React from 'react'
 
 const MONTHS_PT_ABR = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
+function niceYTicks(dataMin, dataMax, count = 5) {
+  const range = dataMax - dataMin || 1;
+  const rough = range / (count - 1);
+  const mag   = Math.pow(10, Math.floor(Math.log10(rough)));
+  const norm  = rough / mag;
+  const step  = norm < 1.5 ? mag : norm < 3.5 ? 2 * mag : norm < 7.5 ? 5 * mag : 10 * mag;
+  const lo    = Math.floor(dataMin / step) * step;
+  const hi    = Math.ceil(dataMax / step) * step;
+  const ticks = [];
+  for (let v = lo; v <= hi + step * 1e-9; v = Math.round((v + step) * 1e10) / 1e10) ticks.push(v);
+  return { ticks, lo, hi };
+}
+
 
 function filterByRangeYears(rows, field, rangeYears) {
   const valid = rows.filter(r => r[field] != null);
@@ -50,9 +63,7 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
   const vals   = valid.map(r => r[field]);
   const minV   = Math.min(...vals);
   const maxV   = Math.max(...vals);
-  const span   = maxV - minV || 1;
-  const yMin   = minV - span * 0.04;
-  const yMax   = maxV + span * 0.04;
+  const { ticks: yTicks, lo: yMin, hi: yMax } = niceYTicks(minV, maxV);
 
   const firstOrd  = valid[0].year * 12 + valid[0].month - 1;
   const lastOrd   = valid[valid.length - 1].year * 12 + valid[valid.length - 1].month - 1;
@@ -60,9 +71,6 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
 
   const xOf = row => padL + ((row.year * 12 + row.month - 1 - firstOrd) / totalMons) * chartW;
   const yOf = v   => padT + chartH - ((v - yMin) / (yMax - yMin)) * chartH;
-
-  // Y ticks
-  const yTicks = Array.from({length: 5}, (_, i) => yMin + (yMax - yMin) * (i / 4));
 
   // X ticks: 3a/5a → a cada 6 meses; 10a/Todos → a cada 12 meses
   const xOf_ord = ord => padL + ((ord - firstOrd) / totalMons) * chartW;
@@ -370,9 +378,7 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
 
   const minV = Math.min(...allVals);
   const maxV = Math.max(...allVals);
-  const span = maxV - minV || 1;
-  const yMin = minV - span * 0.04;
-  const yMax = maxV + span * 0.04;
+  const { ticks: yTicks, lo: yMin, hi: yMax } = niceYTicks(minV, maxV);
 
   const firstOrd  = valid[0].year * 12 + valid[0].month - 1;
   const lastOrd   = valid[valid.length - 1].year * 12 + valid[valid.length - 1].month - 1;
@@ -384,8 +390,6 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
 
   const lineOpacity = key => pinnedSeries ? (pinnedSeries === key ? 1 : 0.15) : 1;
   const lineWidth   = key => pinnedSeries === key ? 2.5 : 2;
-
-  const yTicks = Array.from({length: 5}, (_, i) => yMin + (yMax - yMin) * (i / 4));
 
   const stepMons = totalMons <= 72 ? 6 : 12;
   const xTicks = [];

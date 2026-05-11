@@ -834,9 +834,7 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
     // Auto-detecção dos blocos de snapshot via headers
     const row0 = bgRaw[0] || [];
     const row1 = bgRaw[1] || [];
-    console.log('[SELIC] row0:', JSON.stringify(row0));
-    console.log('[SELIC] row1:', JSON.stringify(row1));
-    const snapshotDefs = [];
+const snapshotDefs = [];
     for (let c = 0; c < row0.length; c++) {
       const cell = row0[c];
       // "abr/26" pode estar armazenada como data Excel → Date object com cellDates:true

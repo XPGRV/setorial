@@ -213,7 +213,11 @@ function SelicSnapshotCard({ selicSnapshots }) {
   const allRows  = bySnapshot[selectedSnap] || [];
   const snapMeta = parseSnapLabel(selectedSnap);
 
-  const rows = allRows;
+  // Mostra só 6 meses de historico antes do snapshot + forecast completo
+  const rows = useMemo(() => {
+    const cutOrd = snapMeta.year * 12 + snapMeta.month - 6;
+    return allRows.filter(r => r.isForecast || (r.year * 12 + r.month) >= cutOrd);
+  }, [allRows, snapMeta.year, snapMeta.month]);
 
   const latest = useMemo(() => [...rows].filter(r => !r.isForecast).at(-1), [rows]);
 

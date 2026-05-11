@@ -5,18 +5,6 @@ const { useState, useEffect, useMemo, useRef, useLayoutEffect } = React;
 const MONTHS_ABR  = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const CHART_GREEN = 'oklch(0.82 0.18 155)';
 
-function smoothPath(pts) {
-  if (pts.length < 2) return pts.length === 1 ? `M${pts[0].x},${pts[0].y}` : '';
-  let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[Math.max(0, i - 1)], p1 = pts[i];
-    const p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
-    const cp1x = p1.x + (p2.x - p0.x) / 6, cp1y = p1.y + (p2.y - p0.y) / 6;
-    const cp2x = p2.x - (p3.x - p1.x) / 6, cp2y = p2.y - (p3.y - p1.y) / 6;
-    d += `C${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
-  }
-  return d;
-}
 
 const SERIES_META = [
   { id: 'ipca',   label: 'IPCA',   eyebrow: 'BCB SGS 433 · Variação Mensal', unit: '%',      decimals: 2 },
@@ -124,9 +112,9 @@ function PtaxDailyChart({ rows, accent, unit, decimals, height = 220, chartStyle
     }
   }
 
-  const sPts     = valid.map(r => ({ x: xOf(r), y: yOf(r.value) }));
-  const linePath = smoothPath(sPts);
-  const areaPath = linePath + `L${xOf(valid[valid.length - 1]).toFixed(1)},${(padT + chartH).toFixed(1)}L${padL},${(padT + chartH).toFixed(1)}Z`;
+  const pts      = valid.map(r => `${xOf(r).toFixed(1)},${yOf(r.value).toFixed(1)}`);
+  const linePath = `M${pts.join('L')}`;
+  const areaPath = `${linePath}L${xOf(valid[valid.length - 1]).toFixed(1)},${(padT + chartH).toFixed(1)}L${padL},${(padT + chartH).toFixed(1)}Z`;
 
   const onMouseMove = e => {
     if (!svgRef.current) return;

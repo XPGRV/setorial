@@ -3,7 +3,7 @@ import React from 'react'
 const { useState, useEffect, useMemo, useRef, useLayoutEffect } = React;
 
 const MONTHS_ABR  = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-const CHART_GREEN = 'oklch(0.82 0.18 155)';
+const CHART_GREEN = 'oklch(0.70 0.19 160)';
 
 function niceYTicks(dataMin, dataMax, count = 5) {
   const range = dataMax - dataMin || 1;

@@ -650,7 +650,13 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
         national_composite:      parseNum(r[20]),  // col U
         plantel_matrizes:        plantelMap[`${md.year}-${md.month}`]      ?? null,
         produtividade_matrizes:  produtividadeMap[`${md.year}-${md.month}`] ?? null,
-        ovos_incubados:          parseNum(r[30]),  // col AE — EGGSESUS
+        ovos_incubados:          parseNum(r[30]),  // col AE
+        hatchability:            parseNum(r[31]),  // col AF
+        chicks_placed:           parseNum(r[36]),  // col AK
+        mortality:               parseNum(r[38]),  // col AM
+        abates_frango:           parseNum(r[39]),  // col AN
+        peso_medio:              parseNum(r[41]),  // col AP
+        producao:                parseNum(r[43]),  // col AR
         pintos_eclodiram:        pintosMap[`${md.year}-${md.month}`] ?? null,
       });
     }

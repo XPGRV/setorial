@@ -699,8 +699,11 @@ const FrangoUSPriceCard = ({ data, accent }) => {
 };
 
 // ── Card genérico para Feed Grain e Spread ────────────────────────────────────
-const FrangoUSSimpleCard = ({ data, seriesKey, cardId, title, eyebrow, unit, events, accent, defaultYears, decimals = 3, scale = 1 }) => {
-  const allPoints = React.useMemo(() => data.frango_us_daily || [], [data]);
+const FrangoUSSimpleCard = ({ data, seriesKey, cardId, title, eyebrow, unit, events, accent, defaultYears, decimals = 3, scale = 1, monthly = false }) => {
+  const allPoints = React.useMemo(
+    () => monthly ? (data.frango_us_monthly || []) : (data.frango_us_daily || []),
+    [data, monthly]
+  );
 
   const [chartStyle, setChartStyle] = React.useState('line');
   const [showStats, setShowStats]   = React.useState(false);
@@ -713,11 +716,14 @@ const FrangoUSSimpleCard = ({ data, seriesKey, cardId, title, eyebrow, unit, eve
       const v = r[seriesKey];
       if (v == null) continue;
       if (!out[r.year]) out[r.year] = [];
-      out[r.year].push({ doy: MONTH_DOY_US[r.month - 1] + r.day, value: v * scale });
+      const doy = monthly
+        ? MONTH_DOY_US[r.month - 1] + 15
+        : MONTH_DOY_US[r.month - 1] + r.day;
+      out[r.year].push({ doy, value: v * scale });
     }
     for (const yr of Object.keys(out)) out[yr].sort((a, b) => a.doy - b.doy);
     return out;
-  }, [allPoints, seriesKey, scale]);
+  }, [allPoints, seriesKey, scale, monthly]);
 
   const allYears = React.useMemo(() => Object.keys(byYear).map(Number).sort((a,b)=>a-b), [byYear]);
 
@@ -733,19 +739,24 @@ const FrangoUSSimpleCard = ({ data, seriesKey, cardId, title, eyebrow, unit, eve
 
   const latestRaw = React.useMemo(() => {
     return [...allPoints].filter(r => r[seriesKey] != null)
-      .sort((a,b) => a.year!==b.year ? a.year-b.year : a.month!==b.month ? a.month-b.month : a.day-b.day)
+      .sort((a, b) => a.year !== b.year ? a.year - b.year : a.month !== b.month ? a.month - b.month : monthly ? 0 : (a.day || 0) - (b.day || 0))
       .slice(-1)[0] || null;
-  }, [allPoints, seriesKey]);
+  }, [allPoints, seriesKey, monthly]);
 
   const yoyRaw = React.useMemo(() => {
     if (!latestRaw) return null;
+    if (monthly) {
+      return allPoints.find(r =>
+        r.year === latestRaw.year - 1 && r.month === latestRaw.month && r[seriesKey] != null
+      ) || null;
+    }
     const candidates = allPoints.filter(r =>
       r.year === latestRaw.year - 1 && r.month === latestRaw.month && r[seriesKey] != null
     );
     let best = null, bestD = Infinity;
     for (const r of candidates) { const d = Math.abs(r.day - latestRaw.day); if (d < bestD) { bestD = d; best = r; } }
     return best;
-  }, [allPoints, latestRaw, seriesKey]);
+  }, [allPoints, latestRaw, seriesKey, monthly]);
 
   const yoy = latestRaw && yoyRaw
     ? (latestRaw[seriesKey] - yoyRaw[seriesKey]) / Math.abs(yoyRaw[seriesKey])
@@ -1468,85 +1479,92 @@ function BroilerProductionSection({ data }) {
         seriesKey="ovos_incubados"
         cardId="us-ovos-incubados"
         title="Ovos Incubados"
-        eyebrow="Bloomberg · EGGSESUS Index · Broiler Eggs Set In Incubators"
+        eyebrow="FrangoUS · Col AE · Broiler Eggs Set In Incubators"
         unit="000 Eggs"
         decimals={0}
         events={EVENTS_FRANGO_US}
         accent={chartAccent}
         defaultYears={5}
+        monthly
       />
       <FrangoUSSimpleCard
         data={data}
         seriesKey="hatchability"
         cardId="us-hatchability"
         title="Hatchability"
-        eyebrow="Bloomberg · EGGSHCUS Index · Broiler Eggs Hatched Ratio"
+        eyebrow="FrangoUS · Col AF · Broiler Eggs Hatched Ratio"
         unit="%"
         decimals={1}
         events={EVENTS_FRANGO_US}
         accent={chartAccent}
         defaultYears={5}
+        monthly
       />
       <FrangoUSSimpleCard
         data={data}
         seriesKey="chicks_placed"
         cardId="us-chicks-placed"
         title="Chicks Placed"
-        eyebrow="Bloomberg · EGGSCPUS Index · Broiler Chicks Placed"
+        eyebrow="FrangoUS · Col AK · Broiler Chicks Placed"
         unit="000 Chicks"
         decimals={0}
         events={EVENTS_FRANGO_US}
         accent={chartAccent}
         defaultYears={5}
+        monthly
       />
       <FrangoUSSimpleCard
         data={data}
         seriesKey="mortality"
         cardId="us-mortality"
         title="Mortality"
-        eyebrow="Bloomberg · Cálculo Próprio · Chicks Placed - Slaughter"
+        eyebrow="FrangoUS · Col AM · Chicks Placed - Slaughter"
         unit="%"
         decimals={1}
         scale={100}
         events={EVENTS_FRANGO_US}
         accent={chartAccent}
         defaultYears={5}
+        monthly
       />
       <FrangoUSSimpleCard
         data={data}
         seriesKey="abates_frango"
         cardId="us-abates-frango"
         title="Abates de Frango"
-        eyebrow="Bloomberg · POSLHDYC Index · Poultry Slaughter Head Count"
+        eyebrow="FrangoUS · Col AN · Poultry Slaughter Head Count"
         unit="000 Heads"
         decimals={0}
         events={EVENTS_FRANGO_US}
         accent={chartAccent}
         defaultYears={5}
+        monthly
       />
       <FrangoUSSimpleCard
         data={data}
         seriesKey="peso_medio"
         cardId="us-peso-medio"
         title="Peso Médio"
-        eyebrow="Bloomberg · POSLAWYC Index · Poultry Slaughter Average Weight"
+        eyebrow="FrangoUS · Col AP · Poultry Slaughter Average Weight"
         unit="lb"
         decimals={2}
         events={EVENTS_FRANGO_US}
         accent={chartAccent}
         defaultYears={5}
+        monthly
       />
       <FrangoUSSimpleCard
         data={data}
         seriesKey="producao"
         cardId="us-producao"
         title="Produção de Frango"
-        eyebrow="Bloomberg · Cálculo Próprio · Poultry Slaughter Head Count * Poultry Slaughter Avg. Weight"
+        eyebrow="FrangoUS · Col AR · Broiler Production"
         unit="Ton"
         decimals={0}
         events={EVENTS_FRANGO_US}
         accent={chartAccent}
         defaultYears={5}
+        monthly
       />
     </main>
   );

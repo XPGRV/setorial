@@ -834,6 +834,8 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
     // Auto-detecção dos blocos de snapshot via headers
     const row0 = bgRaw[0] || [];
     const row1 = bgRaw[1] || [];
+    console.log('[SELIC] row0:', JSON.stringify(row0));
+    console.log('[SELIC] row1:', JSON.stringify(row1));
     const snapshotDefs = [];
     for (let c = 0; c < row0.length; c++) {
       const tag = parseMonthTag(String(row0[c] || '').trim());

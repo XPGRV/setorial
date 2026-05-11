@@ -699,7 +699,7 @@ const FrangoUSPriceCard = ({ data, accent }) => {
 };
 
 // ── Card genérico para Feed Grain e Spread ────────────────────────────────────
-const FrangoUSSimpleCard = ({ data, seriesKey, cardId, title, eyebrow, unit, events, accent, defaultYears, decimals = 3, scale = 1, monthly = false }) => {
+const FrangoUSSimpleCard = ({ data, seriesKey, cardId, title, eyebrow, unit, events, accent, defaultYears, decimals = 3, scale = 1, monthly = false, obs }) => {
   const allPoints = React.useMemo(
     () => monthly ? (data.frango_us_monthly || []) : (data.frango_us_daily || []),
     [data, monthly]
@@ -804,6 +804,11 @@ const FrangoUSSimpleCard = ({ data, seriesKey, cardId, title, eyebrow, unit, eve
         decimals={decimals}
         chartId={cardId}
       />
+      {obs && (
+        <div style={{padding:'6px 0 4px', fontSize:11, color:'var(--fg-dim)', lineHeight:1.6}}>
+          {obs}
+        </div>
+      )}
     </section>
   );
 };
@@ -1460,6 +1465,7 @@ function BroilerProductionSection({ data }) {
         decimals={0}
         fullWidth
         events={EVENTS_FRANGO_US}
+        footerNote="OBS: O plantel de matrizes representa o número de galinhas "mães" que existem nas granjas. São esses animais que botam os ovos férteis que, depois de chocados, vão originar os pintinhos destinados ao abate. Quanto maior o plantel de matrizes, maior tende a ser a produção de frangos no futuro."
       />
       <window.PriceCard
         cardId="us-produtividade-matrizes"
@@ -1473,26 +1479,28 @@ function BroilerProductionSection({ data }) {
         decimals={1}
         fullWidth
         events={EVENTS_FRANGO_US}
+        footerNote="OBS: A produtividade das matrizes mede quantos ovos férteis, em média, cada galinha matriz consegue botar em um determinado período. Quanto mais ovos cada matriz produz, mais pintinhos nascem sem precisar aumentar o número de galinhas — ou seja, é um indicador de eficiência do plantel."
       />
       <FrangoUSSimpleCard
         data={data}
         seriesKey="ovos_incubados"
         cardId="us-ovos-incubados"
         title="Ovos Incubados"
-        eyebrow="FrangoUS · Col AE · Broiler Eggs Set In Incubators"
+        eyebrow="BLOOMBERG · EGGSESUS Index · Broiler Eggs Set In Incubators"
         unit="000 Eggs"
         decimals={0}
         events={EVENTS_FRANGO_US}
         accent={chartAccent}
         defaultYears={5}
         monthly
+        obs="OBS: Ovos incubados são os ovos férteis colocados em incubadoras para que os pintinhos nasçam. Nem todos os ovos botados pelas matrizes chegam aqui — parte é descartada por baixa qualidade. Como a incubação dura cerca de 21 dias, esse indicador antecipa em aproximadamente 3 semanas a quantidade de pintinhos que entrarão no sistema de produção."
       />
       <FrangoUSSimpleCard
         data={data}
         seriesKey="hatchability"
         cardId="us-hatchability"
         title="Hatchability"
-        eyebrow="FrangoUS · Col AF · Broiler Eggs Hatched Ratio"
+        eyebrow="BLOOMBERG · EGGSHCUS Index · Broiler Eggs Hatched Ratio"
         unit="%"
         decimals={2}
         scale={100}
@@ -1500,32 +1508,35 @@ function BroilerProductionSection({ data }) {
         accent={chartAccent}
         defaultYears={5}
         monthly
+        obs="OBS: Hatchability é a proporção dos ovos incubados que efetivamente eclodem. Não é 100% pois alguns ovos não são fertilizados corretamente ou param de se desenvolver durante a incubação. Como os pintinhos nascidos hoje chegam ao abate em cerca de 6 a 7 semanas, esse indicador antecipa a oferta de frango no médio prazo."
       />
       <FrangoUSSimpleCard
         data={data}
         seriesKey="chicks_placed"
         cardId="us-chicks-placed"
         title="Chicks Placed"
-        eyebrow="FrangoUS · Col AK · Broiler Chicks Placed"
+        eyebrow="BLOOMBERG · EGGSCPUS Index · Broiler Chicks Placed"
         unit="000 Chicks"
         decimals={0}
         events={EVENTS_FRANGO_US}
         accent={chartAccent}
         defaultYears={5}
         monthly
+        obs="OBS: Chicks placed é o número de pintinhos efetivamente colocados nos galpões de engorda. Esse número é ligeiramente menor do que o de pintinhos nascidos (hatched), pois uma parte é descartada logo após o nascimento por baixo peso, deformidades ou problemas de saúde. Como o ciclo de engorda dura cerca de 6 a 7 semanas, esse é o indicador com o menor lead time da cadeia."
       />
       <FrangoUSSimpleCard
         data={data}
         seriesKey="mortality"
         cardId="us-mortality"
         title="Mortality"
-        eyebrow="FrangoUS · Col AM · Chicks Placed - Slaughter"
+        eyebrow="Conta Própria · Chicks Placed - Slaughter"
         unit="%"
         decimals={2}
         events={EVENTS_FRANGO_US}
         accent={chartAccent}
         defaultYears={5}
         monthly
+        obs="OBS: Mortality é a taxa de mortalidade dos frangos durante o ciclo de engorda, ou seja, a proporção dos pintinhos alojados que não chegam ao abate. Perdas são inevitáveis por doenças, estresse térmico ou problemas sanitários. Quanto menor essa taxa, maior a eficiência da granja e maior o volume de frangos disponível para abate ao final do ciclo."
       />
       <FrangoUSSimpleCard
         data={data}

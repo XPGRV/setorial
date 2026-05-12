@@ -1483,17 +1483,17 @@ function BroilerProductionSection({ data }) {
       />
       <FrangoUSSimpleCard
         data={data}
-        seriesKey="pintos_eclodiram"
-        cardId="us-chicks-hatched"
-        title="Chicks Hatched"
-        eyebrow="USDA · Broiler-Type Chicks Hatched · Production"
-        unit="000 heads"
-        decimals={0}
+        seriesKey="ovos_quebrados"
+        cardId="us-ovos-quebrados"
+        title="Ovos Quebrados"
+        eyebrow="USDA · FrangoUS · Broiler Eggs — Loss Rate"
+        unit="%"
+        decimals={2}
         events={EVENTS_FRANGO_US}
         accent={chartAccent}
         defaultYears={5}
         monthly
-        obs="OBS: Chicks hatched é o número de pintinhos broiler efetivamente nascidos nas incubadoras a cada mês. É o resultado direto da combinação entre ovos incubados e hatchability: quanto mais ovos são chocados e maior a taxa de eclosão, maior o número de pintinhos que nascem. Como a engorda leva cerca de 6 a 7 semanas, esse indicador antecipa a oferta de frango no mercado com esse mesmo horizonte de tempo."
+        obs="OBS: Ovos Quebrados representa a proporção de ovos produzidos pelas matrizes (Plantel × Produtividade) que se perde antes de entrar nas incubadoras — por quebra, contaminação ou descarte de qualidade. Quanto maior essa perda, menor o aproveitamento do potencial reprodutivo do plantel. É o elo que fecha o balanço entre a produção bruta de ovos e os ovos efetivamente incubados."
       />
       <FrangoUSSimpleCard
         data={data}

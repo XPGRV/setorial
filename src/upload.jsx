@@ -652,6 +652,7 @@ async function parseWorkbook(arrayBuffer, { parseBR = true, parseUS = true, pars
         national_composite:      parseNum(r[20]),  // col U
         plantel_matrizes:        plantelMap[`${md.year}-${md.month}`]      ?? null,
         produtividade_matrizes:  produtividadeMap[`${md.year}-${md.month}`] ?? null,
+        ovos_quebrados:          parseNum(r[29]),  // col AD
         ovos_incubados:          parseNum(r[30]),  // col AE
         hatchability:            typeof usdaRawV[i]?.[31] === 'number' ? usdaRawV[i][31] : parseNum(r[31]),  // col AF — raw para preservar decimais
         chicks_placed:           parseNum(r[36]),  // col AK

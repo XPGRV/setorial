@@ -887,7 +887,11 @@ const snapshotDefs = [];
           entries.push({ year: e.year, month: e.month, value: e.value, isForecast: false });
       }
 
-      // Forecast: pula meses já no histMap (latest) ou já no histórico (outros)
+      // mês atual do calendário (ex: jun/26 = 2026*12+6)
+      const now = new Date();
+      const nowOrd = now.getFullYear() * 12 + (now.getMonth() + 1);
+
+      // Forecast: pula meses já no histMap (evita duplicata) ou dentro do histórico
       for (let i = 4; i < bgRaw.length; i++) {
         const r = bgRaw[i];
         if (!r) continue;
@@ -896,11 +900,11 @@ const snapshotDefs = [];
         const val = parseNum(r[snap.fValueCol]);
         if (val == null) continue;
         const ord = pd.year * 12 + pd.month;
-        const skip = isLatest
-          ? histMap[`${pd.year}-${pd.month}`] != null  // já tem dado real
-          : ord <= snapOrd;                             // dentro do histórico
-        if (skip) continue;
-        entries.push({ year: pd.year, month: pd.month, value: val, isForecast: true });
+        if (histMap[`${pd.year}-${pd.month}`] != null) continue; // já coberto pelo histórico
+        if (!isLatest && ord <= snapOrd) continue;               // dentro do histórico (snapshots antigos)
+        // Para o snapshot mais recente: meses já decorridos (≤ hoje) = realizado; futuros = forecast
+        const isForecast = isLatest ? ord > nowOrd : true;
+        entries.push({ year: pd.year, month: pd.month, value: val, isForecast });
       }
 
       entries.sort((a, b) => (a.year * 12 + a.month) - (b.year * 12 + b.month));

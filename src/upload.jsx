@@ -872,18 +872,22 @@ const snapshotDefs = [];
 
     const bySnapshot = {};
     const snapshots  = [];
-    for (const snap of snapshotDefs) {
-      const snapOrd = snap.year * 12 + snap.month;
-      const entries = [];
+    // Snapshot mais recente: pode mostrar histórico além da sua data (ex: jun/26 num snapshot de mai/26)
+    const maxSnapOrd = Math.max(...snapshotDefs.map(s => s.year * 12 + s.month));
 
-      // Histórico completo até o mês da snapshot — corte aplicado no frontend
+    for (const snap of snapshotDefs) {
+      const snapOrd  = snap.year * 12 + snap.month;
+      const isLatest = snapOrd === maxSnapOrd;
+      const entries  = [];
+
+      // Histórico: snapshots antigos cortam em snapOrd; o mais recente inclui todo o histMap
       for (const e of Object.values(histMap)) {
         const ord = e.year * 12 + e.month;
-        if (ord <= snapOrd)
+        if (isLatest || ord <= snapOrd)
           entries.push({ year: e.year, month: e.month, value: e.value, isForecast: false });
       }
 
-      // Forecast: CDI da snapshot, linhas 5+ (idx 4+), datas após o mês da snapshot (pontilhado)
+      // Forecast: pula meses já no histMap (latest) ou já no histórico (outros)
       for (let i = 4; i < bgRaw.length; i++) {
         const r = bgRaw[i];
         if (!r) continue;
@@ -892,7 +896,10 @@ const snapshotDefs = [];
         const val = parseNum(r[snap.fValueCol]);
         if (val == null) continue;
         const ord = pd.year * 12 + pd.month;
-        if (ord <= snapOrd) continue; // mês da snapshot já coberto pelo histórico
+        const skip = isLatest
+          ? histMap[`${pd.year}-${pd.month}`] != null  // já tem dado real
+          : ord <= snapOrd;                             // dentro do histórico
+        if (skip) continue;
         entries.push({ year: pd.year, month: pd.month, value: val, isForecast: true });
       }
 

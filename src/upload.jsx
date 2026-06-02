@@ -876,11 +876,9 @@ const snapshotDefs = [];
       const snapOrd = snap.year * 12 + snap.month;
       const entries = [];
 
-      // Histórico completo até o mês da snapshot — corte aplicado no frontend
+      // Histórico completo — sem corte por data de snapshot (o frontend faz o windowing)
       for (const e of Object.values(histMap)) {
-        const ord = e.year * 12 + e.month;
-        if (ord <= snapOrd)
-          entries.push({ year: e.year, month: e.month, value: e.value, isForecast: false });
+        entries.push({ year: e.year, month: e.month, value: e.value, isForecast: false });
       }
 
       // Forecast: CDI da snapshot, linhas 5+ (idx 4+), datas após o mês da snapshot (pontilhado)
@@ -891,8 +889,8 @@ const snapshotDefs = [];
         if (!pd) continue;
         const val = parseNum(r[snap.fValueCol]);
         if (val == null) continue;
-        const ord = pd.year * 12 + pd.month;
-        if (ord <= snapOrd) continue; // mês da snapshot já coberto pelo histórico
+        // Pula meses que já têm dado real no histMap (evita duplicata histórico + forecast)
+        if (histMap[`${pd.year}-${pd.month}`] != null) continue;
         entries.push({ year: pd.year, month: pd.month, value: val, isForecast: true });
       }
 

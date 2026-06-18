@@ -17,12 +17,31 @@
   <link rel="stylesheet" href="src/themes.css" />
   <link rel="stylesheet" href="src/reactive.css" />
 
+  <script>
+    /* Resolve tema/modo/accent ANTES de qualquer paint (inclui a tela de loading),
+       seguindo o prefers-color-scheme do sistema ou a preferência salva. */
+    (function () {
+      var root = document.documentElement;
+      root.dataset.theme = 'flux';
+      root.dataset.density = 'comfortable';
+      var resolved = 'dark';
+      try {
+        var m = localStorage.getItem('rx-color-mode') || 'system';
+        var sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        resolved = m === 'system' ? (sysDark ? 'dark' : 'light') : m;
+      } catch (e) {}
+      root.dataset.mode = resolved;
+      root.style.setProperty('--accent',
+        resolved === 'light' ? 'oklch(0.55 0.18 155)' : 'oklch(0.82 0.18 155)');
+    })();
+  </script>
+
   <style>
     #loading-screen {
       position: fixed;
       inset: 0;
       z-index: 9999;
-      background: oklch(0.17 0.008 255);
+      background: var(--bg, oklch(0.17 0.008 255));
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -64,20 +83,20 @@
       font-weight: 600;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: oklch(0.96 0.004 255);
+      color: var(--fg, oklch(0.96 0.004 255));
     }
     .ld-sub {
       font-family: ui-monospace, monospace;
       font-size: 10px;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: oklch(0.52 0.008 255);
+      color: var(--fg-mute, oklch(0.52 0.008 255));
     }
     .ld-bar {
       width: 180px;
       height: 2px;
       border-radius: 2px;
-      background: oklch(0.26 0.010 255);
+      background: var(--border, oklch(0.26 0.010 255));
       overflow: hidden;
       position: relative;
     }
@@ -112,13 +131,6 @@
   </div>
 
   <div id="root"></div>
-
-  <script>
-    /* Aplica theme/accent antes do primeiro paint para evitar flash de estilo */
-    document.documentElement.dataset.theme   = 'aurora';
-    document.documentElement.dataset.density = 'comfortable';
-    document.documentElement.style.setProperty('--accent', 'oklch(0.82 0.18 155)');
-  </script>
 
   <script type="module" src="/src/main.jsx"></script>
 </body>

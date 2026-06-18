@@ -307,7 +307,7 @@
 .chart-svg path,
 .chart-svg rect,
 .chart-svg circle {
-  transition: opacity 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: opacity 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 /* Dashed forecast lines: reveal left→right via clip-path (preserves dash pattern).
    animationDelay and animationDuration are set inline per-element to sync with solid line. */
@@ -399,39 +399,6 @@
   border: 1px solid var(--border);
   position: relative;
   overflow: hidden;
-}
-
-/* =========================================================================
-   PÓS-CARGA — depois da 1ª pintura, navegar entre abas é instantâneo.
-   A entrada animada (fade-up dos cards + desenho das linhas) toca uma vez;
-   re-montagens por troca de aba/proteína não re-disparam a animação pesada.
-   O JS adiciona html.rx-ready ~1.6s após o primeiro render.
-   Animações de interação (toggle de anos, stats, área, undraw) seguem ativas.
-   ========================================================================= */
-html.rx-ready .card,
-html.rx-ready .chart-wrap { animation: none !important; }
-html.rx-ready .chart-svg path[stroke]:not([stroke="transparent"]):not([stroke-dasharray]) { animation: none !important; }
-html.rx-ready .chart-svg .rx-dashed-line { animation: none !important; }
-html.rx-ready .chart-svg .grid-line { animation: none !important; opacity: 0.6; }
-html.rx-ready .chart-svg .axis-line,
-html.rx-ready .chart-svg text { animation: none !important; }
-html.rx-ready .chart-svg rect:not(.rx-bar):not(.rx-no-anim),
-html.rx-ready .chart-svg circle:not(.rx-event-dot):not(.rx-no-anim),
-html.rx-ready .chart-svg path[fill]:not([fill="none"]):not([fill="transparent"]):not(.rx-area):not(.rx-stat-band) { animation: none !important; }
-html.rx-ready .chart-svg .rx-bar,
-html.rx-ready .chart-svg .rx-event-dot,
-html.rx-ready .chart-svg line.rx-event-beam { animation: none !important; }
-
-/* =========================================================================
-   ACESSIBILIDADE — respeita "reduzir movimento" do sistema operacional
-   ========================================================================= */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
 }
 
 /* === card title micro-shimmer on hover === */

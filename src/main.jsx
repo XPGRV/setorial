@@ -103,8 +103,4 @@ document.documentElement.style.setProperty('--accent', 'oklch(0.82 0.18 155)')
       }
     }, 120)
   }))
-
-  // Após a entrada inicial tocar uma vez, marca pronto → trocar de aba/proteína
-  // passa a ser instantâneo (sem re-desenhar todas as linhas a cada navegação).
-  setTimeout(() => document.documentElement.classList.add('rx-ready'), 1600)
 })()

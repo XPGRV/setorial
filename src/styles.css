@@ -684,7 +684,10 @@ body {
 
 /* === Cards === */
 .chart-svg path {
-  transition: stroke-width 0.3s ease;
+  transition: d 0.4s cubic-bezier(0.4, 0, 0.2, 1), stroke-width 0.3s ease;
+}
+.chart-svg area {
+  transition: d 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .tick-label {
   font-family: var(--font-mono);
@@ -695,6 +698,10 @@ body {
 .axis-line {
   stroke: var(--border-strong);
   stroke-width: 1.5;
+}
+@keyframes rx-grid-fade {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 0.6; transform: translateX(0); }
 }
 .card {
   background: var(--bg-panel);

@@ -484,16 +484,32 @@
 }
 
 /* No light, estados ativos dos controles usam TINT SUAVE (fundo accent bem
-   claro + texto/borda no accent, sem glow) — em vez de preenchimento sólido
-   saturado, que "estoura" no fundo branco. Alinhado ao DESIGN.md (chips).    */
+   claro + texto no accent) com BORDA num tom mais escuro do accent — em vez de
+   preenchimento sólido saturado, que "estoura" no fundo branco. A borda é feita
+   com box-shadow inset (1px) porque os botões segmentados não têm border-style,
+   então um border-color comum não apareceria. Alinhado ao DESIGN.md (chips).  */
 :root[data-theme="flux"][data-mode="light"] .seg-btn.is-on,
 :root[data-theme="flux"][data-mode="light"] .year-seg-btn.is-on,
 :root[data-theme="flux"][data-mode="light"] .cur-btn.is-on,
 :root[data-theme="flux"][data-mode="light"] .ctrl-btn.is-on {
   background: color-mix(in oklch, var(--accent) 14%, var(--bg-panel));
   color: var(--accent);
-  border-color: color-mix(in oklch, var(--accent) 38%, var(--border));
-  box-shadow: none;
+  border-color: transparent;
+  box-shadow: inset 0 0 0 1px oklch(from var(--accent) calc(l - 0.12) c h);
+}
+
+/* Botão primário "Atualizar Planilha" — mesmo tratamento suave no claro */
+:root[data-theme="flux"][data-mode="light"] .upload-btn {
+  background: color-mix(in oklch, var(--accent) 16%, var(--bg-panel));
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px oklch(from var(--accent) calc(l - 0.12) c h);
+}
+:root[data-theme="flux"][data-mode="light"] .upload-btn:hover {
+  background: color-mix(in oklch, var(--accent) 24%, var(--bg-panel));
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 0 0 1px oklch(from var(--accent) calc(l - 0.12) c h),
+    0 4px 14px color-mix(in oklch, var(--accent) 18%, transparent);
 }
 
 /* =========================================================================

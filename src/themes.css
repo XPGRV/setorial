@@ -440,7 +440,11 @@
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 :root[data-theme="flux"] .card:hover {
-  border-color: var(--border-strong);
+  border-color: color-mix(in oklch, var(--accent) 45%, var(--border));
+  box-shadow:
+    var(--shadow),
+    0 0 0 1px color-mix(in oklch, var(--accent) 25%, transparent),
+    0 0 24px color-mix(in oklch, var(--accent) 14%, transparent);
 }
 
 /* ---------- 8b. OBSIDIAN FLUX LIGHT  (off-white institucional, airy) ---------- */
@@ -468,7 +472,11 @@
   box-shadow: var(--shadow);
 }
 :root[data-theme="flux"][data-mode="light"] .card:hover {
-  border-color: var(--border-strong);
+  border-color: color-mix(in oklch, var(--accent) 50%, var(--border));
+  box-shadow:
+    var(--shadow),
+    0 0 0 1px color-mix(in oklch, var(--accent) 22%, transparent),
+    0 0 20px color-mix(in oklch, var(--accent) 12%, transparent);
 }
 /* No light, a sidebar é branca (Level 1) e o canvas off-white (Level 0) */
 :root[data-theme="flux"][data-mode="light"] .sidebar {

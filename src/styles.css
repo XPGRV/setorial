@@ -473,6 +473,24 @@ body {
 }
 .topbar-spacer { flex: 1; }
 
+/* Toggle de tema claro/escuro (Sol/Lua/Sistema) na topbar */
+.topbar-mode-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-sm);
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  color: var(--fg-dim);
+  cursor: pointer;
+  transition: color 0.18s, border-color 0.18s, background 0.18s;
+}
+.topbar-mode-btn:hover {
+  color: var(--fg);
+  border-color: var(--border-strong);
+  background: color-mix(in oklch, var(--accent) 10%, var(--bg-inset));
+}
+
 /* === Upload widget === */
 .upload-widget {
   display: inline-flex;

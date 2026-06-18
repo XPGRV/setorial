@@ -17,9 +17,16 @@ import './macro-tab.jsx'
 import './app.jsx'
 
 // Aplica tema antes do primeiro paint
-document.documentElement.dataset.theme   = 'aurora'
+document.documentElement.dataset.theme   = 'flux'
 document.documentElement.dataset.density = 'comfortable'
-document.documentElement.style.setProperty('--accent', 'oklch(0.82 0.18 155)')
+
+// Resolve modo claro/escuro antes do paint (evita flash de tema errado)
+const savedMode = (() => { try { return localStorage.getItem('rx-color-mode') } catch { return null } })() || 'system'
+const sysDark   = window.matchMedia('(prefers-color-scheme: dark)').matches
+const resolved  = savedMode === 'system' ? (sysDark ? 'dark' : 'light') : savedMode
+document.documentElement.dataset.mode = resolved
+document.documentElement.style.setProperty('--accent',
+  resolved === 'light' ? 'oklch(0.55 0.18 155)' : 'oklch(0.82 0.18 155)')
 
 ;(async () => {
   const DATA_VERSION = '5'

@@ -408,6 +408,73 @@
 }
 :root[data-theme="ember"] .topbar { border-bottom-color: color-mix(in oklch, var(--fg) 10%, transparent); }
 
+/* ---------- 8. OBSIDIAN FLUX  (design base — padrão; claro/escuro via data-mode) ----------
+   Escuro = default. O modo claro é ativado por [data-mode="light"] (controlado
+   pelo toggle Sol/Lua na topbar ou pelo prefers-color-scheme do sistema).
+   Aplica-se à ESTRUTURA (superfícies, tipografia, elevação, formas). As cores
+   das LINHAS dos gráficos continuam definidas no JS — não são tocadas aqui.   */
+:root[data-theme="flux"] {
+  --bg:            #121316;
+  --bg-panel:      #1b1b1f;
+  --bg-inset:      #202124;
+  --border:        #2b2d31;
+  --border-strong: #3b3d42;
+  --fg:            #e3e2e6;
+  --fg-dim:        #b6b7bb;
+  --fg-mute:       #80828a;
+  --radius:        8px;
+  --radius-sm:     4px;
+  --shadow:        0 1px 0 oklch(1 0 0 / 0.04) inset, 0 12px 32px oklch(0 0 0 / 0.45);
+  --glow-strength: 0.3;
+}
+:root[data-theme="flux"] body {
+  background:
+    radial-gradient(ellipse 90% 60% at 50% -10%, color-mix(in oklch, var(--accent) 9%, transparent), transparent 65%),
+    var(--bg);
+  background-attachment: fixed;
+}
+:root[data-theme="flux"] .card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+:root[data-theme="flux"] .card:hover {
+  border-color: var(--border-strong);
+}
+
+/* ---------- 8b. OBSIDIAN FLUX LIGHT  (off-white institucional, airy) ---------- */
+:root[data-theme="flux"][data-mode="light"] {
+  --bg:            #f7f9fb;
+  --bg-panel:      #ffffff;
+  --bg-inset:      #f2f4f6;
+  --border:        #e4e7eb;
+  --border-strong: #cdd2d9;
+  --fg:            #191c1e;
+  --fg-dim:        #44474c;
+  --fg-mute:       #70747a;
+  --up:            oklch(0.52 0.15 155);
+  --down:          oklch(0.52 0.20 25);
+  --shadow:        0 1px 2px oklch(0 0 0 / 0.04), 0 4px 20px oklch(0 0 0 / 0.05);
+}
+:root[data-theme="flux"][data-mode="light"] body {
+  background:
+    radial-gradient(ellipse 90% 60% at 50% -10%, color-mix(in oklch, var(--accent) 5%, transparent), transparent 60%),
+    var(--bg);
+}
+:root[data-theme="flux"][data-mode="light"] .card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+:root[data-theme="flux"][data-mode="light"] .card:hover {
+  border-color: var(--border-strong);
+}
+/* No light, a sidebar é branca (Level 1) e o canvas off-white (Level 0) */
+:root[data-theme="flux"][data-mode="light"] .sidebar {
+  background: #ffffff;
+}
+
 /* =========================================================================
    GLOBAL OVERLAYS — apenas para temas que precisam (controlado por var)
    ========================================================================= */

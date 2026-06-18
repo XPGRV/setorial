@@ -19,9 +19,17 @@ const TYPE_STACKS = {
   humanist:  { name: 'Humanista',  sans: '"Work Sans", system-ui, sans-serif',     mono: '"IBM Plex Mono", ui-monospace, monospace' },
 };
 
+// Escurece um accent oklch p/ garantir contraste sobre fundo claro (light mode).
+// Só afeta a cor de UI (--accent); as cores das linhas dos gráficos são separadas.
+const darkenAccent = (str, maxL = 0.55) => {
+  const m = /oklch\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)/.exec(str || '');
+  if (!m) return str;
+  return `oklch(${Math.min(parseFloat(m[1]), maxL)} ${m[2]} ${m[3]})`;
+};
+
 
 function App({ data: propData, initialData, initialMeta }) {
-  const TWEAK_DEFAULTS = { palette: 'neon', typography: 'modern', density: 'comfortable', theme: 'aurora' };
+  const TWEAK_DEFAULTS = { palette: 'neon', typography: 'modern', density: 'comfortable', theme: 'flux' };
 
   // ── Todos os hooks ANTES de qualquer return condicional ──────────────────────
   const [data, setData] = useState(propData || initialData);
@@ -30,6 +38,29 @@ function App({ data: propData, initialData, initialMeta }) {
   const [editMode, setEditMode] = useState(false);
   const [tab, setTab] = useState('precos');
   const [activeDataset, setActiveDataset] = useState('beef_br');
+
+  // Modo claro/escuro: 'system' | 'light' | 'dark' (persistido), + valor resolvido
+  const [colorMode, setColorMode] = useState(() => {
+    try { return localStorage.getItem('rx-color-mode') || 'system'; } catch { return 'system'; }
+  });
+  const [resolvedMode, setResolvedMode] = useState(() =>
+    (typeof document !== 'undefined' && document.documentElement.dataset.mode) || 'dark');
+  const cycleMode = () => setColorMode(m => m === 'system' ? 'light' : m === 'light' ? 'dark' : 'system');
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const apply = () => {
+      const r = colorMode === 'system' ? (mq.matches ? 'dark' : 'light') : colorMode;
+      document.documentElement.dataset.mode = r;
+      setResolvedMode(r);
+    };
+    apply();
+    try { localStorage.setItem('rx-color-mode', colorMode); } catch {}
+    if (colorMode === 'system') {
+      mq.addEventListener('change', apply);
+      return () => mq.removeEventListener('change', apply);
+    }
+  }, [colorMode]);
 
   useEffect(() => {
     const onUpload = (e) => {
@@ -115,9 +146,9 @@ function App({ data: propData, initialData, initialMeta }) {
 
   useEffect(() => {
     document.documentElement.dataset.density = tweaks.density;
-    document.documentElement.dataset.theme = tweaks.theme || 'refined';
+    document.documentElement.dataset.theme = tweaks.theme || 'flux';
     const themeAccent = (window.THEMES && window.THEMES[tweaks.theme]?.accent) || uiAccent;
-    const finalAccent = activeDataset === 'beef_us'
+    let finalAccent = activeDataset === 'beef_us'
       ? 'oklch(0.72 0.18 240)'
       : activeDataset === 'poultry_br'
       ? 'oklch(0.78 0.18 85)'
@@ -126,10 +157,12 @@ function App({ data: propData, initialData, initialMeta }) {
       : activeDataset === 'macro'
       ? 'oklch(0.70 0.19 160)'
       : themeAccent;
+    // No modo claro, escurece o accent de UI p/ contraste (gráficos não são afetados)
+    if (resolvedMode === 'light') finalAccent = darkenAccent(finalAccent);
     document.documentElement.style.setProperty('--accent', finalAccent);
     document.documentElement.style.setProperty('--font-sans', typeStack.sans);
     document.documentElement.style.setProperty('--font-mono', typeStack.mono);
-  }, [uiAccent, typeStack, tweaks.density, tweaks.theme, activeDataset]);
+  }, [uiAccent, typeStack, tweaks.density, tweaks.theme, activeDataset, resolvedMode]);
 
   const onUpload = (d, m) => { setData(d); setMeta(m); window.__dashboardData = d; window.__dashboardMeta = m; };
 
@@ -161,7 +194,8 @@ function App({ data: propData, initialData, initialMeta }) {
         activeDataset={activeDataset} setActiveDataset={setActiveDataset}
         onUpload={onUpload}/>
       <div className="app-content">
-        <TopBar meta={meta} onUpload={onUpload} activeDataset={activeDataset}/>
+        <TopBar meta={meta} onUpload={onUpload} activeDataset={activeDataset}
+          colorMode={colorMode} onCycleMode={cycleMode}/>
         <TickerBar data={data} activeDataset={activeDataset}/>
         {activeDataset === 'beef_us' ? (
           <window.BeefUSTab data={data} accent={accent}/>
@@ -326,7 +360,15 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
   );
 }
 
-function TopBar({ meta, onUpload, activeDataset }) {
+// Ícones do toggle de tema (Sistema / Claro / Escuro)
+const MODE_ICON = {
+  system: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>,
+  light:  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>,
+  dark:   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>,
+};
+const MODE_LABEL = { system: 'Tema: Sistema', light: 'Tema: Claro', dark: 'Tema: Escuro' };
+
+function TopBar({ meta, onUpload, activeDataset, colorMode = 'system', onCycleMode }) {
   const title  = activeDataset === 'macro' ? 'MACRO' : (activeDataset === 'poultry_br' || activeDataset === 'poultry_us') ? 'POULTRY' : 'BEEF';
   const suffix = activeDataset === 'macro' ? '' : (activeDataset === 'beef_us' || activeDataset === 'poultry_us') ? 'US' : 'BR';
   const currentMeta = activeDataset === 'beef_us'
@@ -341,11 +383,15 @@ function TopBar({ meta, onUpload, activeDataset }) {
   return (
     <header className="topbar topbar-slim">
       <div className="topbar-title">
-        <h1 style={{ color: '#fff', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+        <h1 style={{ color: 'var(--fg)', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
           {title} <span style={{ color: 'var(--accent)' }}>{suffix}</span>
         </h1>
       </div>
       <div className="topbar-spacer"/>
+      <button className="topbar-mode-btn" onClick={onCycleMode}
+        title={MODE_LABEL[colorMode]} aria-label={MODE_LABEL[colorMode]}>
+        {MODE_ICON[colorMode]}
+      </button>
       <window.UploadWidget onLoad={onUpload} lastUpdate={currentMeta?.updated} currentSource={currentMeta?.source}/>
     </header>
   );

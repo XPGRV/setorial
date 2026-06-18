@@ -84,6 +84,7 @@ import React from 'react'
 // THEMES list & React component (consumed by TweaksPanel)
 // =========================================================================
 window.THEMES = {
+  flux:      { name: 'Obsidian Flux', sub: 'Design base · Claro/Escuro', accent: 'oklch(0.82 0.18 155)' },
   refined:   { name: 'Refined',      sub: 'Linear · Vercel',         accent: 'oklch(0.82 0.18 155)' },
   terminal:  { name: 'Terminal',     sub: 'Bloomberg · Mono',        accent: 'oklch(0.86 0.20 95)'  },
   aurora:    { name: 'Aurora',       sub: 'Glass · Gradients',       accent: 'oklch(0.78 0.18 290)' },
@@ -97,6 +98,10 @@ window.THEMES = {
 window.ThemePreview = function ThemePreview({ theme }) {
   const t = window.THEMES[theme];
   const styles = {
+    flux: {
+      background: 'linear-gradient(135deg, #121316, #1f1f23)',
+      accent: t.accent
+    },
     refined: {
       background: 'linear-gradient(135deg, oklch(0.16 0.006 260), oklch(0.22 0.012 260))',
       accent: t.accent

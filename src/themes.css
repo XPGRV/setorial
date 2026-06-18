@@ -483,6 +483,19 @@
   background: #ffffff;
 }
 
+/* No light, estados ativos dos controles usam TINT SUAVE (fundo accent bem
+   claro + texto/borda no accent, sem glow) — em vez de preenchimento sólido
+   saturado, que "estoura" no fundo branco. Alinhado ao DESIGN.md (chips).    */
+:root[data-theme="flux"][data-mode="light"] .seg-btn.is-on,
+:root[data-theme="flux"][data-mode="light"] .year-seg-btn.is-on,
+:root[data-theme="flux"][data-mode="light"] .cur-btn.is-on,
+:root[data-theme="flux"][data-mode="light"] .ctrl-btn.is-on {
+  background: color-mix(in oklch, var(--accent) 14%, var(--bg-panel));
+  color: var(--accent);
+  border-color: color-mix(in oklch, var(--accent) 38%, var(--border));
+  box-shadow: none;
+}
+
 /* =========================================================================
    GLOBAL OVERLAYS — apenas para temas que precisam (controlado por var)
    ========================================================================= */

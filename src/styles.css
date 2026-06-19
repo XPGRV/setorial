@@ -477,37 +477,38 @@ body {
 }
 .topbar-spacer { flex: 1; }
 
+/* Agrupa busca + toggle de tema + upload, centralizados verticalmente entre si */
+.topbar-actions { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
+
 /* Busca global na topbar */
-.rx-search { position: relative; display: flex; align-items: center; flex: 0 0 auto; }
+.rx-search { position: relative; display: flex; align-items: center; flex: 0 0 auto; width: 300px; }
 .rx-search-icon {
-  position: absolute; left: 10px;
+  position: absolute; left: 12px;
   color: var(--fg-mute);
   pointer-events: none;
 }
 .rx-search-input {
-  width: 200px; height: 34px;
-  padding: 0 10px 0 30px;
+  width: 100%; height: 38px;
+  padding: 0 12px 0 32px;
   background: var(--bg-inset);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   color: var(--fg);
   font-family: var(--font-sans);
   font-size: 12px;
   outline: none;
-  transition: width 0.2s ease, border-color 0.18s, box-shadow 0.18s;
+  transition: border-color 0.18s, box-shadow 0.18s;
 }
 .rx-search-input::placeholder { color: var(--fg-mute); }
 .rx-search-input:focus {
-  width: 260px;
   border-color: color-mix(in oklch, var(--accent) 55%, var(--border));
   box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent) 14%, transparent);
 }
 .rx-search-results {
-  position: absolute; top: calc(100% + 6px); right: 0;
-  width: 300px;
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0;
   background: var(--bg-panel);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 4px;
   z-index: 1000;
@@ -537,9 +538,9 @@ body {
 /* Toggle de tema claro/escuro (Sol/Lua/Sistema) na topbar */
 .topbar-mode-btn {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px;
+  width: 38px; height: 38px;
   flex: 0 0 auto;
-  border-radius: var(--radius-sm);
+  border-radius: 999px;
   background: var(--bg-inset);
   border: 1px solid var(--border);
   color: var(--fg-dim);

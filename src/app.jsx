@@ -594,12 +594,14 @@ function TopBar({ meta, onUpload, activeDataset, colorMode = 'system', onCycleMo
         </h1>
       </div>
       <div className="topbar-spacer"/>
-      <GlobalSearch onNavigate={onNavigate}/>
-      <button className="topbar-mode-btn" onClick={onCycleMode}
-        title={MODE_LABEL[colorMode]} aria-label={MODE_LABEL[colorMode]}>
-        {MODE_ICON[colorMode]}
-      </button>
-      <window.UploadWidget onLoad={onUpload} lastUpdate={currentMeta?.updated} currentSource={currentMeta?.source}/>
+      <div className="topbar-actions">
+        <GlobalSearch onNavigate={onNavigate}/>
+        <button className="topbar-mode-btn" onClick={onCycleMode}
+          title={MODE_LABEL[colorMode]} aria-label={MODE_LABEL[colorMode]}>
+          {MODE_ICON[colorMode]}
+        </button>
+        <window.UploadWidget onLoad={onUpload} lastUpdate={currentMeta?.updated} currentSource={currentMeta?.source}/>
+      </div>
     </header>
   );
 }

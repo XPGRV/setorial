@@ -166,6 +166,28 @@ function App({ data: propData, initialData, initialMeta }) {
 
   const onUpload = (d, m) => { setData(d); setMeta(m); window.__dashboardData = d; window.__dashboardMeta = m; };
 
+  // Navega para um destino da busca: troca dataset/aba e rola até o gráfico.
+  const navigateTo = useCallback((dest) => {
+    if (!dest) return;
+    setActiveDataset(dest.dataset);
+    if (dest.tab) setTab(dest.tab);
+    let tries = 0;
+    const go = () => {
+      if (dest.cardId) {
+        const el = document.querySelector(`[data-card-id="${dest.cardId}"]`);
+        if (el) {
+          const top = el.getBoundingClientRect().top + window.scrollY - 80;
+          window.scrollTo({ top, behavior: 'smooth' });
+          rxHighlightCard(el);
+          return;
+        }
+        if (tries++ < 12) { setTimeout(go, 80); return; }
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    setTimeout(go, 70);
+  }, []);
+
   if (!data) {
     return (
       <div className="app app-empty">
@@ -195,7 +217,7 @@ function App({ data: propData, initialData, initialMeta }) {
         onUpload={onUpload}/>
       <div className="app-content">
         <TopBar meta={meta} onUpload={onUpload} activeDataset={activeDataset}
-          colorMode={colorMode} onCycleMode={cycleMode}/>
+          colorMode={colorMode} onCycleMode={cycleMode} onNavigate={navigateTo}/>
         <TickerBar data={data} activeDataset={activeDataset}/>
         {activeDataset === 'beef_us' ? (
           <window.BeefUSTab data={data} accent={accent}/>
@@ -360,6 +382,190 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
   );
 }
 
+// ============================ Busca global ============================
+// Normaliza: minúsculas, sem acento, espaços colapsados.
+const rxNorm = s => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+
+const DS_LABEL  = { beef_br: 'Beef BR', beef_us: 'Beef US', poultry_br: 'Poultry BR', poultry_us: 'Poultry US', macro: 'Macro' };
+const TAB_LABEL = { precos: 'Preços & Spreads', abates: 'Produção', ipca: 'Processados', producao: 'Produção' };
+// Sinônimos PT/EN herdados por todos os destinos de cada dataset.
+const DS_KW = {
+  beef_br:    'beef boi carne gado bovino brasil br',
+  beef_us:    'beef boi carne gado bovino eua usa us estados unidos america',
+  poultry_br: 'poultry frango chicken aves ave brasil br',
+  poultry_us: 'poultry frango chicken aves ave eua usa us estados unidos america',
+  macro:      'macro cenario',
+};
+
+// [dataset, tab, cardId, label, sinônimos-extra]
+const SEARCH_RAW = [
+  // Abas
+  ['beef_br','precos',null,'Preços & Spreads','preco precos spread'],
+  ['beef_br','abates',null,'Produção','producao abate abates ciclo femeas slaughter'],
+  ['beef_us',null,null,'Beef US','producao abate edgebeef ciclo forecast preco'],
+  ['poultry_br','precos',null,'Preços & Spreads','preco precos spread'],
+  ['poultry_br','abates',null,'Produção','producao abate abates pintos chick'],
+  ['poultry_br','ipca',null,'Processados','processados ipca growth nielsen industrializados inflacao'],
+  ['poultry_us','precos',null,'Preços & Spreads','preco precos spread'],
+  ['poultry_us','producao',null,'Produção','producao production broiler matrizes ovos pintos'],
+  ['macro',null,null,'Macro · CDI','cdi selic juros taxa banco central bcb cenario macro'],
+  // Beef BR · Preços
+  ['beef_br','precos','card-carne-mi','Preço Carne · Mercado Interno','carne mercado interno mi domestic price'],
+  ['beef_br','precos','card-carne-me','Preço Carne · Mercado Externo','carne mercado externo me exportacao export'],
+  ['beef_br','precos','card-cattle','Preço Boi Gordo','boi gordo arroba cattle live bacaindx'],
+  ['beef_br','precos','card-spread-mi','Spread MI','spread mercado interno mi'],
+  ['beef_br','precos','card-spread-me','Spread ME','spread mercado externo me'],
+  // Beef BR · Produção
+  ['beef_br','abates','card-abates','Abates Totais','abate abates totais slaughter cabecas sidra sif'],
+  ['beef_br','abates','card-ciclo','Ciclo do Boi','ciclo femeas boi bezerro cattle cycle'],
+  // Beef US
+  ['beef_us',null,'us-edgebeef','EdgeBeef','edgebeef edge margem frigorifico margin packer'],
+  ['beef_us',null,'us-ciclo','Ciclo do Boi','ciclo femeas boi bezerro cattle cycle'],
+  ['beef_us',null,'us-production','Revisão de Forecast','producao forecast revisao usda trimestral quarterly'],
+  ['beef_us',null,'us-annual','Revisão de Forecast · Anual','producao forecast anual annual usda'],
+  // Poultry BR · Preços
+  ['poultry_br','precos','card-frango-mi','Preço Frango · Mercado Interno','frango mercado interno mi'],
+  ['poultry_br','precos','card-frango-me','Preço Frango · Mercado Externo','frango mercado externo me exportacao secex'],
+  ['poultry_br','precos','card-feed-grain','Feed Grain','feed grain racao milho soja corn soybean custo'],
+  ['poultry_br','precos','card-spread-mi-frango','Spread MI','spread mercado interno mi'],
+  ['poultry_br','precos','card-spread-me-frango','Spread ME','spread mercado externo me'],
+  // Poultry BR · Produção
+  ['poultry_br','abates','card-abates-frango','Abates de Frango','abate abates slaughter sidra sif'],
+  ['poultry_br','abates','card-chick-placed','Chick Placed','chick placed pintos alojados apinco'],
+  // Poultry BR · Processados
+  ['poultry_br','ipca','card-ipca-processados','IPCA Processados','ipca processados industrializados inflacao'],
+  ['poultry_br','ipca','card-growth-px','Growth Like-for-Like Pricing','growth pricing preco nielsen brf seara'],
+  ['poultry_br','ipca','card-growth-vol','Growth Volume','growth volume nielsen brf seara'],
+  // Poultry US · Preços
+  ['poultry_us','precos','us-frango-price','Preço Frango','frango preco price'],
+  ['poultry_us','precos','us-feed-grain','Feed Grain','feed grain racao milho soja corn soybean custo'],
+  ['poultry_us','precos','us-spread','Spread · Frango - Ração','spread frango racao feed'],
+  ['poultry_us','precos','us-poultry-beef','Poultry / Beef','poultry beef ratio razao frango boi'],
+  ['poultry_us','precos','us-national-composite','National Composite','national composite whole bird wogs atacado wholesale'],
+  ['poultry_us','precos','us-usda-price','Broilers · Preço','broilers preco price usda'],
+  ['poultry_us','precos','us-usda-feed','Broilers · Feed Costs','broilers feed costs racao usda'],
+  ['poultry_us','precos','us-usda-spread','Broilers · Spread','broilers spread usda'],
+  // Poultry US · Produção
+  ['poultry_us','producao','us-broiler-production','Revisão de Forecast','producao forecast broiler usda trimestral'],
+  ['poultry_us','producao','us-broiler-annual','Revisão de Forecast · Anual','producao forecast anual broiler usda'],
+  ['poultry_us','producao','us-plantel-matrizes','Plantel de Matrizes','plantel matrizes breeder hatching layers'],
+  ['poultry_us','producao','us-produtividade-matrizes','Produtividade das Matrizes','produtividade matrizes eggs per layer'],
+  ['poultry_us','producao','us-ovos-incubados','Ovos Incubados','ovos incubados eggs set incubacao'],
+  ['poultry_us','producao','us-ovos-quebrados','Ovos Quebrados','ovos quebrados eggs broken'],
+  ['poultry_us','producao','us-hatchability','Hatchability','hatchability eclodibilidade eclosao'],
+  ['poultry_us','producao','us-chicks-placed','Chicks Placed','chicks placed pintos alojados'],
+  ['poultry_us','producao','us-mortality','Mortality','mortality mortalidade'],
+  ['poultry_us','producao','us-abates-frango','Abates de Frango','abate abates slaughter'],
+  ['poultry_us','producao','us-peso-medio','Peso Médio','peso medio average weight'],
+  ['poultry_us','producao','us-producao','Produção de Frango','producao production output'],
+];
+
+const SEARCH_INDEX = SEARCH_RAW.map(([dataset, tab, cardId, label, kw]) => {
+  const breadcrumb = DS_LABEL[dataset] + (tab && TAB_LABEL[tab] ? ' · ' + TAB_LABEL[tab] : '');
+  return { dataset, tab, cardId, label, breadcrumb, _text: rxNorm([label, breadcrumb, kw, DS_KW[dataset]].join(' ')) };
+});
+
+function searchDestinations(query) {
+  const tokens = rxNorm(query).split(' ').filter(Boolean);
+  if (!tokens.length) return [];
+  const scored = [];
+  for (const e of SEARCH_INDEX) {
+    let ok = true, score = 0;
+    for (const t of tokens) {
+      const idx = e._text.indexOf(t);
+      if (idx < 0) { ok = false; break; }
+      score += (e._text.startsWith(t) ? 3 : 1) + Math.max(0, 4 - idx / 12);
+    }
+    if (!ok) continue;
+    if (!e.cardId) score += 1.2; // abas levemente priorizadas
+    scored.push({ e, score });
+  }
+  scored.sort((a, b) => b.score - a.score);
+  return scored.map(s => s.e);
+}
+
+// Realça um card com pulso na cor de destaque (Web Animations API)
+function rxHighlightCard(el) {
+  if (!el) return;
+  const accentRaw = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+  if (el._rxCardAnim) { try { el._rxCardAnim.cancel(); } catch (_) {} }
+  el._rxCardAnim = el.animate([
+    { boxShadow: `0 0 0 0 color-mix(in oklch, ${accentRaw} 60%, transparent)` },
+    { boxShadow: `0 0 0 10px color-mix(in oklch, ${accentRaw} 0%, transparent)`, offset: 0.6 },
+    { boxShadow: '0 0 0 0 transparent' },
+  ], { duration: 1400, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)', fill: 'none' });
+}
+
+function GlobalSearch({ onNavigate }) {
+  const [q, setQ] = useState('');
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const wrapRef = useRef(null);
+  const inputRef = useRef(null);
+
+  const results = useMemo(() => (q.trim() ? searchDestinations(q).slice(0, 8) : []), [q]);
+  useEffect(() => { setActive(0); }, [q]);
+
+  useEffect(() => {
+    if (!open) return;
+    const h = e => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [open]);
+
+  // Atalho "/" foca a busca
+  useEffect(() => {
+    const h = e => {
+      const tag = ((document.activeElement && document.activeElement.tagName) || '').toLowerCase();
+      if (e.key === '/' && tag !== 'input' && tag !== 'textarea') {
+        e.preventDefault(); setOpen(true); if (inputRef.current) inputRef.current.focus();
+      }
+    };
+    document.addEventListener('keydown', h);
+    return () => document.removeEventListener('keydown', h);
+  }, []);
+
+  const choose = (r) => {
+    if (!r) return;
+    onNavigate(r);
+    setQ(''); setOpen(false);
+    if (inputRef.current) inputRef.current.blur();
+  };
+
+  const onKeyDown = (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setOpen(true); setActive(a => Math.min(a + 1, results.length - 1)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(a => Math.max(a - 1, 0)); }
+    else if (e.key === 'Enter') { e.preventDefault(); choose(results[active]); }
+    else if (e.key === 'Escape') { setOpen(false); if (inputRef.current) inputRef.current.blur(); }
+  };
+
+  return (
+    <div className="rx-search" ref={wrapRef}>
+      <svg className="rx-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+      </svg>
+      <input ref={inputRef} className="rx-search-input" type="text" placeholder="Buscar aba ou gráfico…"
+        value={q} onChange={e => { setQ(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)} onKeyDown={onKeyDown} aria-label="Buscar"/>
+      {open && q.trim() && (
+        <div className="rx-search-results">
+          {results.length === 0 ? (
+            <div className="rx-search-empty">Nada encontrado</div>
+          ) : results.map((r, i) => (
+            <button key={r.dataset + '/' + r.tab + '/' + (r.cardId || '') + i}
+              className={`rx-search-item ${i === active ? 'is-active' : ''}`}
+              onMouseEnter={() => setActive(i)}
+              onMouseDown={(e) => { e.preventDefault(); choose(r); }}>
+              <span className="rx-search-item-label">{r.label}</span>
+              <span className="rx-search-item-crumb">{r.breadcrumb}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Ícones do toggle de tema (Sistema / Claro / Escuro)
 const MODE_ICON = {
   system: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>,
@@ -368,7 +574,7 @@ const MODE_ICON = {
 };
 const MODE_LABEL = { system: 'Tema: Sistema', light: 'Tema: Claro', dark: 'Tema: Escuro' };
 
-function TopBar({ meta, onUpload, activeDataset, colorMode = 'system', onCycleMode }) {
+function TopBar({ meta, onUpload, activeDataset, colorMode = 'system', onCycleMode, onNavigate }) {
   const title  = activeDataset === 'macro' ? 'MACRO' : (activeDataset === 'poultry_br' || activeDataset === 'poultry_us') ? 'POULTRY' : 'BEEF';
   const suffix = activeDataset === 'macro' ? '' : (activeDataset === 'beef_us' || activeDataset === 'poultry_us') ? 'US' : 'BR';
   const currentMeta = activeDataset === 'beef_us'
@@ -388,6 +594,7 @@ function TopBar({ meta, onUpload, activeDataset, colorMode = 'system', onCycleMo
         </h1>
       </div>
       <div className="topbar-spacer"/>
+      <GlobalSearch onNavigate={onNavigate}/>
       <button className="topbar-mode-btn" onClick={onCycleMode}
         title={MODE_LABEL[colorMode]} aria-label={MODE_LABEL[colorMode]}>
         {MODE_ICON[colorMode]}

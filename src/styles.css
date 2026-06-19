@@ -36,6 +36,10 @@
 }
 
 * { box-sizing: border-box; }
+/* Reserva o espaço da barra de rolagem desde o início — evita que o conteúdo
+   centralizado (ex: logo da tela de loading) "ande" pro lado quando a barra
+   aparece após o app renderizar. */
+html { scrollbar-gutter: stable; }
 html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); }
 body {
   font-family: var(--font-sans);

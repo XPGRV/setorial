@@ -37,7 +37,7 @@ function App({ data: propData, initialData, initialMeta }) {
   const [tweaks, setTweaks] = useState(TWEAK_DEFAULTS);
   const [editMode, setEditMode] = useState(false);
   const [tab, setTab] = useState('precos');
-  const [activeDataset, setActiveDataset] = useState('beef_br');
+  const [activeDataset, setActiveDataset] = useState('beef_us');
 
   // Modo claro/escuro (binário, persistido). Padrão inicial = preferência do
   // sistema, mas só até o usuário escolher; depois é o que ele setou.

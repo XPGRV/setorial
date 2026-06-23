@@ -21,9 +21,9 @@ document.documentElement.dataset.theme   = 'flux'
 document.documentElement.dataset.density = 'comfortable'
 
 // Resolve modo claro/escuro antes do paint (evita flash de tema errado)
-const savedMode = (() => { try { return localStorage.getItem('rx-color-mode') } catch { return null } })() || 'system'
+const savedMode = (() => { try { return localStorage.getItem('rx-color-mode') } catch { return null } })()
 const sysDark   = window.matchMedia('(prefers-color-scheme: dark)').matches
-const resolved  = savedMode === 'system' ? (sysDark ? 'dark' : 'light') : savedMode
+const resolved  = (savedMode === 'light' || savedMode === 'dark') ? savedMode : (sysDark ? 'dark' : 'light')
 document.documentElement.dataset.mode = resolved
 document.documentElement.style.setProperty('--accent',
   resolved === 'light' ? 'oklch(0.55 0.18 155)' : 'oklch(0.82 0.18 155)')

@@ -39,27 +39,20 @@ function App({ data: propData, initialData, initialMeta }) {
   const [tab, setTab] = useState('precos');
   const [activeDataset, setActiveDataset] = useState('beef_br');
 
-  // Modo claro/escuro: 'system' | 'light' | 'dark' (persistido), + valor resolvido
+  // Modo claro/escuro (binário, persistido). Padrão inicial = preferência do
+  // sistema, mas só até o usuário escolher; depois é o que ele setou.
   const [colorMode, setColorMode] = useState(() => {
-    try { return localStorage.getItem('rx-color-mode') || 'system'; } catch { return 'system'; }
+    try {
+      const s = localStorage.getItem('rx-color-mode');
+      if (s === 'light' || s === 'dark') return s;
+    } catch {}
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
-  const [resolvedMode, setResolvedMode] = useState(() =>
-    (typeof document !== 'undefined' && document.documentElement.dataset.mode) || 'dark');
-  const cycleMode = () => setColorMode(m => m === 'system' ? 'light' : m === 'light' ? 'dark' : 'system');
+  const cycleMode = () => setColorMode(m => m === 'dark' ? 'light' : 'dark');
 
   useEffect(() => {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const apply = () => {
-      const r = colorMode === 'system' ? (mq.matches ? 'dark' : 'light') : colorMode;
-      document.documentElement.dataset.mode = r;
-      setResolvedMode(r);
-    };
-    apply();
+    document.documentElement.dataset.mode = colorMode;
     try { localStorage.setItem('rx-color-mode', colorMode); } catch {}
-    if (colorMode === 'system') {
-      mq.addEventListener('change', apply);
-      return () => mq.removeEventListener('change', apply);
-    }
   }, [colorMode]);
 
   useEffect(() => {
@@ -158,11 +151,11 @@ function App({ data: propData, initialData, initialMeta }) {
       ? 'oklch(0.70 0.19 160)'
       : themeAccent;
     // No modo claro, escurece o accent de UI p/ contraste (gráficos não são afetados)
-    if (resolvedMode === 'light') finalAccent = darkenAccent(finalAccent);
+    if (colorMode === 'light') finalAccent = darkenAccent(finalAccent);
     document.documentElement.style.setProperty('--accent', finalAccent);
     document.documentElement.style.setProperty('--font-sans', typeStack.sans);
     document.documentElement.style.setProperty('--font-mono', typeStack.mono);
-  }, [uiAccent, typeStack, tweaks.density, tweaks.theme, activeDataset, resolvedMode]);
+  }, [uiAccent, typeStack, tweaks.density, tweaks.theme, activeDataset, colorMode]);
 
   const onUpload = (d, m) => { setData(d); setMeta(m); window.__dashboardData = d; window.__dashboardMeta = m; };
 
@@ -566,15 +559,14 @@ function GlobalSearch({ onNavigate }) {
   );
 }
 
-// Ícones do toggle de tema (Sistema / Claro / Escuro)
+// Ícones do toggle de tema (Claro / Escuro) — mostra o estado atual
 const MODE_ICON = {
-  system: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>,
   light:  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>,
   dark:   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>,
 };
-const MODE_LABEL = { system: 'Tema: Sistema', light: 'Tema: Claro', dark: 'Tema: Escuro' };
+const MODE_LABEL = { light: 'Tema: Claro · clique p/ Escuro', dark: 'Tema: Escuro · clique p/ Claro' };
 
-function TopBar({ meta, onUpload, activeDataset, colorMode = 'system', onCycleMode, onNavigate }) {
+function TopBar({ meta, onUpload, activeDataset, colorMode = 'dark', onCycleMode, onNavigate }) {
   const title  = activeDataset === 'macro' ? 'MACRO' : (activeDataset === 'poultry_br' || activeDataset === 'poultry_us') ? 'POULTRY' : 'BEEF';
   const suffix = activeDataset === 'macro' ? '' : (activeDataset === 'beef_us' || activeDataset === 'poultry_us') ? 'US' : 'BR';
   const currentMeta = activeDataset === 'beef_us'

@@ -26,9 +26,9 @@
       root.dataset.density = 'comfortable';
       var resolved = 'dark';
       try {
-        var m = localStorage.getItem('rx-color-mode') || 'system';
+        var m = localStorage.getItem('rx-color-mode');
         var sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        resolved = m === 'system' ? (sysDark ? 'dark' : 'light') : m;
+        resolved = (m === 'light' || m === 'dark') ? m : (sysDark ? 'dark' : 'light');
       } catch (e) {}
       root.dataset.mode = resolved;
       root.style.setProperty('--accent',

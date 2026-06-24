@@ -6,11 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "update": "node scripts/update-dashboard.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
+  },
+  "optionalDependencies": {
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/package/xlsx-0.20.2.tgz"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",

@@ -161,11 +161,23 @@ function formatRelative(iso) {
   } catch { return ''; }
 }
 
-async function refreshDashboard(onLoad) {
-  if (typeof window.refreshDashboardData !== 'function') {
-    throw new Error('Refresh indisponivel');
+async function refreshDashboard(onLoad, dataset) {
+  const res = await fetch(`/api/update-dashboard?dataset=${encodeURIComponent(dataset || 'beef_br')}`, {
+    method: 'POST',
+    cache: 'no-store',
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || !json?.data) {
+    throw new Error(json?.error || `Falha ao atualizar (${res.status})`);
   }
-  const { data, meta } = await window.refreshDashboardData();
+  const { data, meta } = json;
+  window.__dashboardData = data;
+  window.__dashboardMeta = meta || {};
+  try {
+    localStorage.setItem('dashboard_data', JSON.stringify(data));
+    localStorage.setItem('dashboard_meta', JSON.stringify(meta || {}));
+    localStorage.setItem('dashboard_version', '5');
+  } catch (_) {}
   if (onLoad) onLoad(data, meta);
   return { data, meta };
 }
@@ -177,17 +189,17 @@ const RefreshIcon = ({ size = 14 }) => (
   </svg>
 );
 
-const RefreshWidget = ({ onLoad, lastUpdate, currentSource }) => {
+const RefreshWidget = ({ onLoad, dataset, lastUpdate, currentSource }) => {
   const [status, setStatus] = React.useState(null);
 
   const handleRefresh = async () => {
-    setStatus({ kind: 'loading', msg: 'Buscando dados...' });
+    setStatus({ kind: 'loading', msg: 'Buscando planilha...' });
     try {
-      await refreshDashboard(onLoad);
-      setStatus({ kind: 'ok', msg: 'Dados atualizados' });
+      await refreshDashboard(onLoad, dataset);
+      setStatus({ kind: 'ok', msg: 'Planilha atualizada' });
       setTimeout(() => setStatus(null), 3500);
     } catch (e) {
-      setStatus({ kind: 'err', msg: 'Erro ao atualizar' });
+      setStatus({ kind: 'err', msg: 'Erro ao buscar planilha' });
       setTimeout(() => setStatus(null), 5000);
     }
   };
@@ -196,7 +208,7 @@ const RefreshWidget = ({ onLoad, lastUpdate, currentSource }) => {
     <div className="upload-widget">
       <button className="upload-btn" onClick={handleRefresh} disabled={status?.kind === 'loading'}>
         <RefreshIcon/>
-        <span>Atualizar dados</span>
+        <span>Atualizar planilha</span>
       </button>
       <div className="upload-meta">
         {status ? (
@@ -207,7 +219,7 @@ const RefreshWidget = ({ onLoad, lastUpdate, currentSource }) => {
             <span className="upload-last-time">atualizado {formatRelative(lastUpdate)}</span>
           </span>
         ) : (
-          <span className="upload-hint">buscar nuvem</span>
+          <span className="upload-hint">buscar Drive</span>
         )}
       </div>
     </div>
@@ -216,18 +228,18 @@ const RefreshWidget = ({ onLoad, lastUpdate, currentSource }) => {
 
 const META_LABELS = { br: 'BeefBR', us: 'BeefUS', poultry_br: 'FrangoBR', poultry_us: 'FrangoUS' };
 
-const SidebarRefresh = ({ onLoad }) => {
+const SidebarRefresh = ({ onLoad, dataset }) => {
   const [status, setStatus] = React.useState(null);
 
   const handleRefresh = async () => {
-    setStatus({ kind: 'loading', msg: 'Buscando dados...' });
+    setStatus({ kind: 'loading', msg: 'Buscando planilha...' });
     try {
-      const { meta } = await refreshDashboard(onLoad);
+      const { meta } = await refreshDashboard(onLoad, dataset);
       const tabs = Object.keys(meta || {}).map(k => META_LABELS[k]).filter(Boolean).join(' · ');
-      setStatus({ kind: 'ok', msg: tabs ? `Atualizado: ${tabs}` : 'Dados atualizados' });
+      setStatus({ kind: 'ok', msg: tabs ? `Atualizado: ${tabs}` : 'Planilha atualizada' });
       setTimeout(() => setStatus(null), 3500);
     } catch (e) {
-      setStatus({ kind: 'err', msg: 'Erro ao atualizar' });
+      setStatus({ kind: 'err', msg: 'Erro ao buscar planilha' });
       setTimeout(() => setStatus(null), 5000);
     }
   };
@@ -236,7 +248,7 @@ const SidebarRefresh = ({ onLoad }) => {
     <div className="sidebar-upload-zone">
       <button className="sidebar-upload-btn" onClick={handleRefresh} disabled={status?.kind === 'loading'}>
         <RefreshIcon size={15}/>
-        <span>Atualizar dados</span>
+        <span>Atualizar planilha</span>
       </button>
       {status && (
         <div className="sidebar-upload-hint">

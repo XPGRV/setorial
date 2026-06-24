@@ -190,7 +190,7 @@ function App({ data: propData, initialData, initialMeta }) {
             <div className="topbar-sub">acompanhamento setorial</div>
           </div>
           <div className="topbar-spacer"/>
-          <window.RefreshWidget onLoad={onUpload} lastUpdate={null} currentSource={null}/>
+          <window.RefreshWidget onLoad={onUpload} dataset={activeDataset} lastUpdate={null} currentSource={null}/>
         </header>
         <main className="main" style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,minHeight:'60vh',color:'var(--fg-dim)'}}>
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -369,7 +369,7 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
 
       <div className="sidebar-section">
         <div className="sidebar-section-label">Base de Dados</div>
-        <window.SidebarRefresh onLoad={onUpload}/>
+        <window.SidebarRefresh onLoad={onUpload} dataset={activeDataset}/>
       </div>
     </aside>
   );
@@ -592,7 +592,7 @@ function TopBar({ meta, onUpload, activeDataset, colorMode = 'dark', onCycleMode
           title={MODE_LABEL[colorMode]} aria-label={MODE_LABEL[colorMode]}>
           {MODE_ICON[colorMode]}
         </button>
-        <window.RefreshWidget onLoad={onUpload} lastUpdate={currentMeta?.updated} currentSource={currentMeta?.source}/>
+        <window.RefreshWidget onLoad={onUpload} dataset={activeDataset} lastUpdate={currentMeta?.updated} currentSource={currentMeta?.source}/>
       </div>
     </header>
   );

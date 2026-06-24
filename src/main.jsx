@@ -35,24 +35,54 @@ document.documentElement.style.setProperty('--accent',
   window.__SB_URL = SB_URL
   window.__SB_KEY = SB_KEY
 
+  const normalizeDashboardPayload = (data, meta) => {
+    if (data) {
+      const fixPct = rows => rows?.map(r =>
+        r.pct_femeas != null && r.pct_femeas > 100
+          ? { ...r, pct_femeas: Math.round(r.pct_femeas * 10) / 1000 }
+          : r
+      )
+      if (data.beef)    data.beef    = fixPct(data.beef)
+      if (data.beef_us) data.beef_us = fixPct(data.beef_us)
+    }
+    if (meta && !meta.br && !meta.us && meta.updated) meta = { br: meta }
+    return { data, meta: meta || {} }
+  }
+
+  async function fetchCloudDashboardData(timeoutMs = 8000) {
+    const ctrl = new AbortController()
+    const tid  = setTimeout(() => ctrl.abort(), timeoutMs)
+    try {
+      const resp = await fetch(
+        `${SB_URL}/storage/v1/object/public/dashboard/data.json?t=${Date.now()}`,
+        { cache: 'no-store', signal: ctrl.signal }
+      )
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+      const json = await resp.json()
+      if (!json?.data) throw new Error('data.json sem dados')
+      const payload = normalizeDashboardPayload(json.data, json.meta || null)
+      try {
+        localStorage.setItem('dashboard_data', JSON.stringify(payload.data))
+        localStorage.setItem('dashboard_meta', JSON.stringify(payload.meta))
+        localStorage.setItem('dashboard_version', DATA_VERSION)
+      } catch {}
+      window.__dashboardData = payload.data
+      window.__dashboardMeta = payload.meta
+      return payload
+    } finally {
+      clearTimeout(tid)
+    }
+  }
+
+  window.refreshDashboardData = async () => {
+    const payload = await fetchCloudDashboardData()
+    window.dispatchEvent(new CustomEvent('dashboard-data-updated', { detail: payload }))
+    return payload
+  }
+
   let data = null, meta = null
 
-  // 1. Supabase — versão mais recente do último upload (timeout 5s)
-  try {
-    const ctrl = new AbortController()
-    const tid  = setTimeout(() => ctrl.abort(), 5000)
-    const resp = await fetch(
-      `${SB_URL}/storage/v1/object/public/dashboard/data.json?t=${Date.now()}`,
-      { cache: 'no-store', signal: ctrl.signal }
-    )
-    clearTimeout(tid)
-    if (resp.ok) {
-      const json = await resp.json()
-      if (json?.data) { data = json.data; meta = json.meta || null }
-    }
-  } catch {}
-
-  // 2. localStorage — cache local do browser
+  // 1. localStorage — cache local do browser
   if (!data) {
     try {
       const cached        = localStorage.getItem('dashboard_data')
@@ -69,7 +99,7 @@ document.documentElement.style.setProperty('--accent',
     } catch {}
   }
 
-  // 3. Fallback — data.json embutido no repositório
+  // 2. Fallback — data.json embutido no repositório
   if (!data) {
     try {
       const resp = await fetch('./data.json')
@@ -80,22 +110,10 @@ document.documentElement.style.setProperty('--accent',
     } catch {}
   }
 
-  // Normaliza pct_femeas (dados antigos salvos como 3925 em vez de 39.25)
-  if (data) {
-    const fixPct = rows => rows?.map(r =>
-      r.pct_femeas != null && r.pct_femeas > 100
-        ? { ...r, pct_femeas: Math.round(r.pct_femeas * 10) / 1000 }
-        : r
-    )
-    if (data.beef)    data.beef    = fixPct(data.beef)
-    if (data.beef_us) data.beef_us = fixPct(data.beef_us)
-  }
-
-  // Migra meta antigo para novo formato { br, us }
-  if (meta && !meta.br && !meta.us && meta.updated) meta = { br: meta }
+  ;({ data, meta } = normalizeDashboardPayload(data, meta))
 
   window.__dashboardData = data
-  window.__dashboardMeta = meta || {}
+  window.__dashboardMeta = meta
 
   const root = ReactDOM.createRoot(document.getElementById('root'))
   root.render(<window.App initialData={data} initialMeta={meta} />)

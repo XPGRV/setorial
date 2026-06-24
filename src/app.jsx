@@ -190,14 +190,14 @@ function App({ data: propData, initialData, initialMeta }) {
             <div className="topbar-sub">acompanhamento setorial</div>
           </div>
           <div className="topbar-spacer"/>
-          <window.UploadWidget onLoad={onUpload} lastUpdate={null} currentSource={null}/>
+          <window.RefreshWidget onLoad={onUpload} lastUpdate={null} currentSource={null}/>
         </header>
         <main className="main" style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,minHeight:'60vh',color:'var(--fg-dim)'}}>
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M12 16V4M8 8l4-4 4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/>
           </svg>
           <div style={{fontSize:16,fontWeight:500,color:'var(--fg)'}}>Nenhum dado encontrado</div>
-          <div style={{fontSize:13,textAlign:'center',maxWidth:320}}>Faça upload da planilha BeefBR.xlsm ou BeefUS.xlsm para começar.</div>
+          <div style={{fontSize:13,textAlign:'center',maxWidth:320}}>Atualize os dados para buscar o data.json mais recente.</div>
         </main>
       </div>
     );
@@ -369,7 +369,7 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
 
       <div className="sidebar-section">
         <div className="sidebar-section-label">Base de Dados</div>
-        <window.SidebarUpload onLoad={onUpload}/>
+        <window.SidebarRefresh onLoad={onUpload}/>
       </div>
     </aside>
   );
@@ -592,7 +592,7 @@ function TopBar({ meta, onUpload, activeDataset, colorMode = 'dark', onCycleMode
           title={MODE_LABEL[colorMode]} aria-label={MODE_LABEL[colorMode]}>
           {MODE_ICON[colorMode]}
         </button>
-        <window.UploadWidget onLoad={onUpload} lastUpdate={currentMeta?.updated} currentSource={currentMeta?.source}/>
+        <window.RefreshWidget onLoad={onUpload} lastUpdate={currentMeta?.updated} currentSource={currentMeta?.source}/>
       </div>
     </header>
   );
@@ -764,7 +764,7 @@ function DailySeasonalCard({ data, accent, dailyKey, usdDailyKey, cardId, title,
             <div className="card-eyebrow">{sub}</div>
             <h3 className="card-title">{title}</h3>
             <div style={{fontSize:13, color:'var(--fg-dim)', marginTop:8}}>
-              Faça upload da planilha para visualizar os dados diários.
+              Atualize os dados para buscar as séries diárias mais recentes.
             </div>
           </div>
         </div>

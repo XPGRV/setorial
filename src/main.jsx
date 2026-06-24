@@ -82,6 +82,12 @@ document.documentElement.style.setProperty('--accent',
 
   let data = null, meta = null
 
+  try {
+    const payload = await fetchCloudDashboardData(15000)
+    data = payload.data
+    meta = payload.meta
+  } catch {}
+
   // 1. localStorage — cache local do browser
   if (!data) {
     try {

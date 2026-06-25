@@ -1,20 +1,10 @@
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
-
-// Importa em ordem de dependência (reactive primeiro, app por último)
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './reactive.js'
-import './data-utils.jsx'
-import './upload.jsx'
-import './seasonal-chart.jsx'
-import './ciclo-boi.jsx'
-import './beef-us-tab.jsx'
-import './production-chart.jsx'
-import './bimonthly-chart.jsx'
-import './continuous-chart.jsx'
-import './poultry-br-tab.jsx'
-import './poultry-us-tab.jsx'
-import './macro-tab.jsx'
-import './app.jsx'
+import HomePage from './home.jsx'
+
+const ProteinasApp = lazy(() => import('./proteinas-entry.jsx'))
 
 // Aplica tema antes do primeiro paint
 document.documentElement.dataset.theme   = 'flux'
@@ -88,7 +78,7 @@ document.documentElement.style.setProperty('--accent',
     meta = payload.meta
   } catch {}
 
-  // 1. localStorage — cache local do browser
+  // Fallback 1 — localStorage
   if (!data) {
     try {
       const cached        = localStorage.getItem('dashboard_data')
@@ -105,7 +95,7 @@ document.documentElement.style.setProperty('--accent',
     } catch {}
   }
 
-  // 2. Fallback — data.json embutido no repositório
+  // Fallback 2 — data.json embutido
   if (!data) {
     try {
       const resp = await fetch('./data.json')
@@ -122,7 +112,19 @@ document.documentElement.style.setProperty('--accent',
   window.__dashboardMeta = meta
 
   const root = ReactDOM.createRoot(document.getElementById('root'))
-  root.render(<window.App initialData={data} initialMeta={meta} />)
+  root.render(
+    <BrowserRouter>
+      <Routes>
+        <Route path="/"          element={<Navigate to="/home" replace />} />
+        <Route path="/home"      element={<HomePage />} />
+        <Route path="/proteinas" element={
+          <Suspense fallback={<div className="sector-loading">Carregando…</div>}>
+            <ProteinasApp initialData={data} initialMeta={meta} />
+          </Suspense>
+        } />
+      </Routes>
+    </BrowserRouter>
+  )
 
   // Esconde loading screen após o browser pintar o React
   requestAnimationFrame(() => requestAnimationFrame(() => {

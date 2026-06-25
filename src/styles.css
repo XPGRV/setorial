@@ -1397,3 +1397,136 @@ body {
   transform-origin: bottom;
   animation: rx-bar-grow 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+
+/* === Home page === */
+.home-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 48px;
+  padding: 40px 24px;
+}
+
+.home-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.home-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.home-title {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--fg);
+  letter-spacing: -0.02em;
+}
+
+.home-sub {
+  margin: 0;
+  font-size: 14px;
+  color: var(--fg-mute);
+}
+
+.home-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+}
+
+.home-card {
+  position: relative;
+  width: 240px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  overflow: hidden;
+}
+
+.home-card.is-active:hover {
+  border-color: var(--card-accent);
+  box-shadow: 0 0 24px color-mix(in oklch, var(--card-accent) 22%, transparent);
+  transform: translateY(-2px);
+}
+
+.home-card.is-soon {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.home-card-stripe {
+  height: 3px;
+  background: var(--card-accent);
+}
+
+.home-card-body {
+  padding: 20px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.home-card-label {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.home-card-desc {
+  font-size: 12px;
+  color: var(--fg-mute);
+  line-height: 1.5;
+}
+
+.home-card-badge {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 7px;
+}
+
+.home-card-arrow {
+  position: absolute;
+  bottom: 18px;
+  right: 18px;
+  font-size: 16px;
+  color: var(--card-accent);
+  opacity: 0;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.home-card.is-active:hover .home-card-arrow {
+  opacity: 1;
+  transform: translateX(4px);
+}
+
+/* Fallback enquanto chunk lazy carrega */
+.sector-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: var(--fg-mute);
+  font-size: 14px;
+}

@@ -78,21 +78,37 @@ const RefreshWidget = ({ onLoad, dataset, lastUpdate, currentSource }) => {
   );
 };
 
-const META_LABELS = { br: 'BeefBR', us: 'BeefUS', poultry_br: 'FrangoBR', poultry_us: 'FrangoUS' };
+const ALL_DATASETS = [
+  { key: 'beef_us',    label: 'BeefUS'   },
+  { key: 'beef_br',   label: 'BeefBR'   },
+  { key: 'poultry_us', label: 'FrangoUS' },
+  { key: 'poultry_br', label: 'FrangoBR' },
+  { key: 'macro',     label: 'Macro'    },
+];
 
-const SidebarRefresh = ({ onLoad, dataset }) => {
+const SidebarRefresh = ({ onLoad }) => {
   const [status, setStatus] = React.useState(null);
 
   const handleRefresh = async () => {
-    setStatus({ kind: 'loading', msg: 'Buscando planilha...' });
-    try {
-      const { meta } = await refreshDashboard(onLoad, dataset);
-      const tabs = Object.keys(meta || {}).map(k => META_LABELS[k]).filter(Boolean).join(' · ');
-      setStatus({ kind: 'ok', msg: tabs ? `Atualizado: ${tabs}` : 'Planilha atualizada' });
+    let lastData = null, lastMeta = null, failed = [];
+    for (let i = 0; i < ALL_DATASETS.length; i++) {
+      const { key, label } = ALL_DATASETS[i];
+      setStatus({ kind: 'loading', msg: `${label} (${i + 1}/${ALL_DATASETS.length})…` });
+      try {
+        const result = await refreshDashboard(null, key);
+        lastData = result.data;
+        lastMeta = result.meta;
+      } catch {
+        failed.push(label);
+      }
+    }
+    if (lastData && onLoad) onLoad(lastData, lastMeta);
+    if (failed.length) {
+      setStatus({ kind: 'err', msg: `Erro: ${failed.join(', ')}` });
+      setTimeout(() => setStatus(null), 6000);
+    } else {
+      setStatus({ kind: 'ok', msg: 'Todas as planilhas atualizadas' });
       setTimeout(() => setStatus(null), 3500);
-    } catch (e) {
-      setStatus({ kind: 'err', msg: 'Erro ao buscar planilha' });
-      setTimeout(() => setStatus(null), 5000);
     }
   };
 
@@ -100,7 +116,7 @@ const SidebarRefresh = ({ onLoad, dataset }) => {
     <div className="sidebar-upload-zone">
       <button className="sidebar-upload-btn" onClick={handleRefresh} disabled={status?.kind === 'loading'}>
         <RefreshIcon size={15}/>
-        <span>Atualizar planilha</span>
+        <span>Atualizar tudo</span>
       </button>
       {status && (
         <div className="sidebar-upload-hint">

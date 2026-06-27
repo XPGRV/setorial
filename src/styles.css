@@ -116,24 +116,26 @@ body {
   display: flex; flex-direction: column; gap: 14px;
   padding: 4px 8px 22px;
   border-bottom: 1px solid var(--border);
-  position: relative;
+}
+.sidebar-brand-row {
+  display: flex; align-items: center; gap: 10px;
 }
 .sidebar-back-btn {
-  position: absolute;
-  top: 4px; right: 8px;
-  width: 26px; height: 26px;
+  flex-shrink: 0;
+  width: 30px; height: 30px;
   display: flex; align-items: center; justify-content: center;
   background: transparent;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--fg-mute);
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  transition: color 0.15s, border-color 0.15s, background 0.15s, transform 0.15s;
 }
 .sidebar-back-btn:hover {
   color: var(--fg);
   border-color: var(--border-strong);
   background: var(--bg-inset);
+  transform: translateX(-2px);
 }
 .sidebar-brand .brand-mark {
   width: 38px; height: 38px;

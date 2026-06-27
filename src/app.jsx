@@ -246,6 +246,18 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
   const navigate = useNavigate();
   const [openGroups, setOpenGroups] = useState(() => new Set([activeDataset]));
 
+  // Fade-out da dash antes de voltar pra home (transição suave de saída)
+  const goHome = () => {
+    const appEl = document.querySelector('.app');
+    if (appEl) {
+      appEl.style.transition = 'opacity 0.22s ease';
+      appEl.style.opacity = '0';
+      setTimeout(() => navigate('/home'), 200);
+    } else {
+      navigate('/home');
+    }
+  };
+
   const onPick = (ds, sub) => {
     setActiveDataset(ds);
     if (sub) setTab(sub);
@@ -292,18 +304,20 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <button className="sidebar-back-btn" onClick={() => navigate('/home')} title="Voltar ao início">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
         <div className="sidebar-brand-logobox" style={isPoultry ? {background:'oklch(0.83 0.20 88)'} : {}}>
           <img src="./xp-asset-logo.svg" alt="XP Asset Management" className="sidebar-brand-logo"
             style={isPoultry ? {filter:'brightness(0)'} : {}}/>
         </div>
-        <div className="sidebar-brand-text">
-          <div className="sidebar-brand-title">Proteínas</div>
-          <div className="sidebar-brand-sub">{currentMonthSub}</div>
+        <div className="sidebar-brand-row">
+          <button className="sidebar-back-btn" onClick={goHome} title="Voltar ao início">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <div className="sidebar-brand-text">
+            <div className="sidebar-brand-title">Proteínas</div>
+            <div className="sidebar-brand-sub">{currentMonthSub}</div>
+          </div>
         </div>
       </div>
 

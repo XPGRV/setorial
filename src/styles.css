@@ -118,11 +118,12 @@ body {
   border-bottom: 1px solid var(--border);
 }
 .sidebar-brand-row {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: stretch; gap: 10px;
 }
 .sidebar-back-btn {
   flex-shrink: 0;
-  width: 30px; height: 30px;
+  width: 32px;
+  align-self: stretch;
   display: flex; align-items: center; justify-content: center;
   background: transparent;
   border: 1px solid var(--border);

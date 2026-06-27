@@ -264,6 +264,10 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
   const isPoultryUS = activeDataset === 'poultry_us';
   const isMacro     = activeDataset === 'macro';
 
+  const PT_MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const _now = new Date();
+  const currentMonthSub = `Dashboard · ${PT_MONTHS[_now.getMonth()]}/${String(_now.getFullYear()).slice(2)}`;
+
   const Chevron = ({ open }) => (
     <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"
       strokeLinecap="round" strokeLinejoin="round"
@@ -291,14 +295,12 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
             style={isPoultry ? {filter:'brightness(0)'} : {}}/>
         </div>
         <div className="sidebar-brand-text">
-          <div className="sidebar-brand-title">Setorial</div>
-          <div className="sidebar-brand-sub">Dashboard · abr/26</div>
+          <div className="sidebar-brand-title">Proteínas</div>
+          <div className="sidebar-brand-sub">{currentMonthSub}</div>
         </div>
       </div>
 
       <div className="sidebar-section">
-        <div className="sidebar-section-label">Proteínas</div>
-
         <button className={`sidebar-item ${isUS ? 'is-on' : ''}`} onClick={() => onPick('beef_us')}>
           <span className="sidebar-item-icon">{SIcon.cow}</span>
           <span className="sidebar-item-label" style={{textTransform:'uppercase', letterSpacing:'0.1em', fontSize:11}}>Beef US</span>

@@ -118,25 +118,23 @@ body {
   border-bottom: 1px solid var(--border);
 }
 .sidebar-brand-row {
-  display: flex; align-items: stretch; gap: 10px;
+  display: flex; align-items: center; gap: 10px;
 }
 .sidebar-back-btn {
-  flex-shrink: 0;
-  width: 32px;
-  align-self: stretch;
-  display: flex; align-items: center; justify-content: center;
-  background: transparent;
-  border: 1px solid var(--border);
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px;
   border-radius: var(--radius-sm);
-  color: var(--fg-mute);
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  color: var(--fg-dim);
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s, background 0.15s, transform 0.15s;
+  transition: color 0.18s, border-color 0.18s, background 0.18s;
 }
 .sidebar-back-btn:hover {
   color: var(--fg);
   border-color: var(--border-strong);
-  background: var(--bg-inset);
-  transform: translateX(-2px);
+  background: color-mix(in oklch, var(--accent) 10%, var(--bg-inset));
 }
 .sidebar-brand .brand-mark {
   width: 38px; height: 38px;

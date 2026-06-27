@@ -310,8 +310,9 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
         </div>
         <div className="sidebar-brand-row">
           <button className="sidebar-back-btn" onClick={goHome} title="Voltar ao início">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M2.5 7.2 8 2.5l5.5 4.7M4 6v6.5a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5V6"
+                stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
           <div className="sidebar-brand-text">

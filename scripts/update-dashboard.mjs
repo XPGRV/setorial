@@ -21,7 +21,17 @@ import * as XLSX from 'xlsx';
 import { parseWorkbookData } from '../src/parse-workbook.js';
 
 const PASTA    = process.env.SETORIAL_DIR || 'G:\\Meu Drive\\Arquivos\\Setorial - Proteínas';
-const ARQUIVOS = ['FrangoUS.xlsm', 'BeefBR.xlsm', 'BeefUS.xlsm', 'FrangoBR.xlsm', 'Planilha - Selic.xlsm'];
+const DB_DIR   = process.env.DATABASE_DIR || 'G:\\Meu Drive\\Arquivos\\Setorial - Database';
+// Cada item: { dir, nome }. As planilhas de proteína vêm da pasta Proteínas;
+// as de "base de dados" (ex: WEG) vêm da pasta Database.
+const ARQUIVOS = [
+  { dir: PASTA,  nome: 'FrangoUS.xlsm' },
+  { dir: PASTA,  nome: 'BeefBR.xlsm' },
+  { dir: PASTA,  nome: 'BeefUS.xlsm' },
+  { dir: PASTA,  nome: 'FrangoBR.xlsm' },
+  { dir: PASTA,  nome: 'Planilha - Selic.xlsm' },
+  { dir: DB_DIR, nome: 'WEG - Setorial.xlsm' },
+];
 const SB_URL   = process.env.SUPABASE_URL || 'https://wmxjdveucxbousoquwmc.supabase.co';
 const SB_KEY   = process.env.SUPABASE_SERVICE_ROLE;
 
@@ -33,14 +43,15 @@ function flagsFor(nome) {
   const forcePoultryUS = lc.includes('frangous') || (lc.includes('frango') && lc.includes('us'));
   const forcePoultry   = forcePoultryBR || forcePoultryUS;
   const forceSelic     = lc.includes('selic');
+  const forceWeg       = lc.includes('weg');
   return {
     opts: {
-      parseBR: !forceUS && !forcePoultry && !forceSelic,
+      parseBR: !forceUS && !forcePoultry && !forceSelic && !forceWeg,
       parseUS: forceUS,
       parsePoultryUS: forcePoultryUS,
       parseSelic: forceSelic,
     },
-    metaKey: forceSelic ? 'selic' : forceUS ? 'us' : forcePoultryUS ? 'poultry_us' : forcePoultryBR ? 'poultry_br' : 'br',
+    metaKey: forceWeg ? 'weg' : forceSelic ? 'selic' : forceUS ? 'us' : forcePoultryUS ? 'poultry_us' : forcePoultryBR ? 'poultry_br' : 'br',
   };
 }
 
@@ -67,8 +78,8 @@ async function main() {
   let meta = { ...baseMeta };
   let okCount = 0;
 
-  for (const nome of ARQUIVOS) {
-    const caminho = path.join(PASTA, nome);
+  for (const { dir, nome } of ARQUIVOS) {
+    const caminho = path.join(dir, nome);
     if (!fs.existsSync(caminho)) {
       console.warn(`! não encontrado, mantendo dados anteriores: ${caminho}`);
       continue;

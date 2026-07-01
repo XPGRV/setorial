@@ -9,6 +9,7 @@ import './continuous-chart.jsx'
 import './poultry-br-tab.jsx'
 import './poultry-us-tab.jsx'
 import './macro-tab.jsx'
+import './weg-tab.jsx'
 import './app.jsx'
 
 export default function ProteinasApp({ initialData, initialMeta }) {

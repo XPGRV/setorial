@@ -84,6 +84,7 @@ const ALL_DATASETS = [
   { key: 'poultry_us', label: 'FrangoUS' },
   { key: 'poultry_br', label: 'FrangoBR' },
   { key: 'macro',     label: 'Macro'    },
+  { key: 'weg',       label: 'WEG'      },
 ];
 
 const SidebarRefresh = ({ onLoad }) => {

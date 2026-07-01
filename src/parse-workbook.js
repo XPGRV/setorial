@@ -914,6 +914,24 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
     if (snapshots.length > 0) result.selic_snapshots = { snapshots, bySnapshot };
   }
 
+  // ── WEG · Transformadores (WEG - Setorial.xlsm · aba Transformadores) ─────────
+  // Série mensal contínua. Coluna C (idx 2) = preço; linha 5 (idx 4) = jan/2000.
+  // O mês é derivado da posição da linha (1 mês por linha a partir de jan/2000).
+  if (findSheet('Transformadores')) {
+    const tRaw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('Transformadores')], { header: 1, raw: true });
+    const weg_transformadores = [];
+    for (let i = 4; i < tRaw.length; i++) {
+      const r = tRaw[i];
+      const val = r ? parseNum(r[2]) : null; // col C
+      if (val == null) continue;
+      const off   = i - 4;                    // 0 = jan/2000
+      const year  = 2000 + Math.floor(off / 12);
+      const month = (off % 12) + 1;
+      weg_transformadores.push({ year, month, value: val });
+    }
+    if (weg_transformadores.length) result.weg_transformadores = weg_transformadores;
+  }
+
   if (Object.keys(result).length === 0) throw new Error(`Nenhuma aba reconhecida. Abas encontradas: ${sheets.join(', ')}`);
   return result;
 }

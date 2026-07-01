@@ -36,6 +36,13 @@ const DATASETS = {
     metaKey: 'selic',
     opts: { parseBR: false, parseUS: false, parsePoultryUS: false, parseSelic: true },
   },
+  weg: {
+    fileName: 'WEG - Setorial.xlsm',
+    fileIdEnv: 'GOOGLE_DRIVE_WEG_FILE_ID',
+    folderIdEnv: 'GOOGLE_DRIVE_DATABASE_FOLDER_ID', // WEG mora na pasta "Setorial - Database"
+    metaKey: 'weg',
+    opts: { parseBR: false, parseUS: false, parsePoultryUS: false, parseSelic: false },
+  },
 };
 
 function json(res, status, body) {
@@ -69,9 +76,10 @@ async function resolveFileId(drive, cfg) {
   const directId = process.env[cfg.fileIdEnv];
   if (directId) return directId;
 
-  const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+  const folderId = (cfg.folderIdEnv && process.env[cfg.folderIdEnv]) || process.env.GOOGLE_DRIVE_FOLDER_ID;
   if (!folderId) {
-    throw new Error(`Defina ${cfg.fileIdEnv} ou GOOGLE_DRIVE_FOLDER_ID no Vercel.`);
+    const envs = [cfg.fileIdEnv, cfg.folderIdEnv, 'GOOGLE_DRIVE_FOLDER_ID'].filter(Boolean).join(' ou ');
+    throw new Error(`Defina ${envs} no Vercel.`);
   }
 
   const escapedName = cfg.fileName.replace(/'/g, "\\'");

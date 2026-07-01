@@ -4,11 +4,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './reactive.js'
 import HomePage from './home.jsx'
 
-function ProteinasLoading({ label = 'Proteinas', useMeat = true }) {
+function ProteinasLoading({ label = 'Proteinas', imageSrc = '/meat-food.gif' }) {
   return (
     <div className="proteinas-loading" role="status" aria-label="Carregando Proteinas">
       <div className="proteinas-loading-media">
-        <img src={useMeat ? '/meat-food.gif' : '/xp-asset-logo.svg'} alt="" fetchPriority="high" />
+        <img src={imageSrc} alt="" fetchPriority="high" />
       </div>
       <div className="proteinas-loading-text">
         <div className="proteinas-loading-title">{label}</div>
@@ -42,7 +42,12 @@ function ProteinasRoute({ initialData, initialMeta, initialDataset = 'beef_us', 
 
   if (!Component) {
     const label = dashboardSection === 'macro' ? 'Macro' : dashboardSection === 'capitalgoods' ? 'Bens de Capital' : 'Proteinas'
-    return <ProteinasLoading label={label} useMeat={dashboardSection === 'proteinas'} />
+    const imageSrc = dashboardSection === 'capitalgoods'
+      ? '/factory.gif'
+      : dashboardSection === 'macro'
+      ? '/xp-asset-logo.svg'
+      : '/meat-food.gif'
+    return <ProteinasLoading label={label} imageSrc={imageSrc} />
   }
   return <Component initialData={initialData} initialMeta={initialMeta}
     initialDataset={initialDataset} dashboardSection={dashboardSection} />

@@ -8,7 +8,7 @@ function ProteinasLoading() {
   return (
     <div className="proteinas-loading" role="status" aria-label="Carregando Proteinas">
       <div className="proteinas-loading-media">
-        <img src="/meat-food.gif" alt="" />
+        <img src="/meat-food.gif" alt="" fetchPriority="high" />
       </div>
       <div className="proteinas-loading-text">
         <div className="proteinas-loading-title">Proteinas</div>

@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Beef, Car, Factory, Landmark, Clock3, Search, ChevronRight, SlidersHorizontal } from 'lucide-react'
+import { Beef, Car, Factory, Landmark, Clock3, Search, ChevronRight, SlidersHorizontal, Sun, Moon } from 'lucide-react'
 
 // ── Mesh reativo da topbar (canvas) ───────────────────────────────────────────
 // Malha de pontos que reage ao cursor: fundo navy + accent, constelação e glow.
@@ -205,10 +205,17 @@ function SectionTitle({ title, right }) {
 
 export default function HomePage() {
   const navigate = useNavigate()
+  const [mode, setMode] = React.useState(() => document.documentElement.dataset.mode === 'light' ? 'light' : 'dark')
   const [query, setQuery] = React.useState('')
   const [marketTab, setMarketTab] = React.useState('Commodities')
 
   const go = s => { if (s.active && s.route) navigate(s.route) }
+  const toggleMode = () => {
+    const next = mode === 'dark' ? 'light' : 'dark'
+    setMode(next)
+    document.documentElement.dataset.mode = next
+    try { localStorage.setItem('rx-color-mode', next) } catch {}
+  }
 
   const filteredNews = NEWS.filter(item => {
     const hay = `${item.title} ${item.summary} ${item.src} ${item.cat}`.toLowerCase()
@@ -238,6 +245,11 @@ export default function HomePage() {
         <div className="home-brand">
           <div className="home-brand-logo"><img src="/xp-asset-logo.svg" alt="XP Asset Management" /></div>
         </div>
+        <button className="topbar-mode-btn" onClick={toggleMode}
+          title={mode === 'dark' ? 'Tema: Escuro · clique p/ Claro' : 'Tema: Claro · clique p/ Escuro'}
+          aria-label="Alternar tema claro/escuro">
+          {mode === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
+        </button>
       </TopbarMesh>
 
       <main className="home-workspace">

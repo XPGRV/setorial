@@ -254,6 +254,23 @@ const SIcon = {
 function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
   const navigate = useNavigate();
   const [openGroups, setOpenGroups] = useState(() => new Set([activeDataset]));
+  const [logoPulse, setLogoPulse] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    const pulse = () => {
+      setLogoPulse(false);
+      requestAnimationFrame(() => {
+        setLogoPulse(true);
+        timer = setTimeout(() => setLogoPulse(false), 1100);
+      });
+    };
+    window.addEventListener('dashboard-refresh-success', pulse);
+    return () => {
+      window.removeEventListener('dashboard-refresh-success', pulse);
+      clearTimeout(timer);
+    };
+  }, []);
 
   // Fade-out da dash antes de voltar pra home (transição suave de saída)
   const goHome = () => {
@@ -314,7 +331,7 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <div className="sidebar-brand-logobox" style={isPoultry ? {background:'oklch(0.83 0.20 88)'} : {}}>
+        <div className={`sidebar-brand-logobox${logoPulse ? ' is-refresh-pulse' : ''}`} style={isPoultry ? {background:'oklch(0.83 0.20 88)'} : {}}>
           <img src="./xp-asset-logo.svg" alt="XP Asset Management" className="sidebar-brand-logo"
             style={isPoultry ? {filter:'brightness(0)'} : {}}/>
         </div>

@@ -48,6 +48,7 @@ const RefreshWidget = ({ onLoad, dataset, lastUpdate, currentSource }) => {
     setStatus({ kind: 'loading', msg: 'Buscando planilha...' });
     try {
       await refreshDashboard(onLoad, dataset);
+      window.dispatchEvent(new CustomEvent('dashboard-refresh-success'));
       setStatus({ kind: 'ok', msg: 'Planilha atualizada' });
       setTimeout(() => setStatus(null), 3500);
     } catch (e) {
@@ -104,6 +105,7 @@ const SidebarRefresh = ({ onLoad }) => {
       }
     }
     if (lastData && onLoad) onLoad(lastData, lastMeta);
+    if (lastData) window.dispatchEvent(new CustomEvent('dashboard-refresh-success'));
     if (failed.length) {
       setStatus({ kind: 'err', msg: `Erro: ${failed.join(', ')}` });
       setTimeout(() => setStatus(null), 6000);

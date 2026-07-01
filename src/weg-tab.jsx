@@ -72,8 +72,8 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey, chart
 
   const [hover, setHover] = React.useState(null);
   const [mouseY, setMouseY] = React.useState(0);
-  const [sel, setSel] = React.useState(null); // brush em andamento: {x0,x1} em coords do viewBox
-  const dragRef = React.useRef(null);          // px inicial do arraste (ou null)
+  const dragRef = React.useRef(null); // px inicial do arraste (ou null)
+  const selRef  = React.useRef(null); // <rect> da seleção, atualizado imperativamente (sem re-render)
   const { shouldRender: showAreaRender, isLeaving: areaLeaving } = window.useFadeOut(chartStyle === 'area', 400);
 
   const tOf = React.useCallback(r => r.year + (r.month - 1) / 12 + (r.day - 0.5) / 365.25, []);
@@ -155,16 +155,26 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey, chart
   const clampX = px => Math.max(padL, Math.min(padL + chartW, px));
   const tAtPx  = px => geom.tFirst + ((clampX(px) - padL) / chartW) * geom.span;
 
+  // Atualiza o retângulo direto no DOM — sem setState, sem re-render, zero lag.
+  const drawRect = (x0, x1) => {
+    const el = selRef.current; if (!el) return;
+    const x = Math.min(x0, x1), w = Math.abs(x1 - x0);
+    el.setAttribute('x', x);
+    el.setAttribute('width', w);
+    el.style.visibility = w > 1 ? 'visible' : 'hidden';
+  };
+  const hideRect = () => { if (selRef.current) selRef.current.style.visibility = 'hidden'; };
+
   const onDown = e => {
     if (e.button !== 0) return;
     const { px } = pxOf(e);
     dragRef.current = clampX(px);
-    setSel({ x0: dragRef.current, x1: dragRef.current });
     setHover(null);
+    drawRect(dragRef.current, dragRef.current);
   };
   const onMove = e => {
     const { px, py } = pxOf(e);
-    if (dragRef.current != null) { setSel({ x0: dragRef.current, x1: clampX(px) }); return; }
+    if (dragRef.current != null) { drawRect(dragRef.current, clampX(px)); return; }
     const t = tAtPx(px);
     let best = null, bestD = Infinity;
     for (const r of rows) { const d = Math.abs(tOf(r) - t); if (d < bestD) { bestD = d; best = r; } }
@@ -174,15 +184,14 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey, chart
     const start = dragRef.current;
     if (start == null) return;
     dragRef.current = null;
-    const { px } = pxOf(e);
-    const end = clampX(px);
-    setSel(null);
+    hideRect();
+    const end = clampX(pxOf(e).px);
     // Só dá zoom se o arraste for significativo (evita conflito com clique simples)
-    if (Math.abs(end - start) >= 8 && onZoom) {
+    if (Math.abs(end - start) >= 6 && onZoom) {
       onZoom({ t0: tAtPx(Math.min(start, end)), t1: tAtPx(Math.max(start, end)) });
     }
   };
-  const onLeave = () => { dragRef.current = null; setSel(null); setHover(null); };
+  const onLeave = () => { dragRef.current = null; hideRect(); setHover(null); };
 
   const clipId = `weg-peers-clip-${chartId}`;
   const gradId = key => `weg-grad-${chartId}-${key}`;
@@ -235,13 +244,12 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey, chart
           ) : null
         ))}
 
-        {/* Retângulo de seleção do brush (zoom) */}
-        {sel && Math.abs(sel.x1 - sel.x0) > 1 && (
-          <rect x={Math.min(sel.x0, sel.x1)} y={padT} width={Math.abs(sel.x1 - sel.x0)} height={chartH}
-            fill="var(--accent)" fillOpacity="0.12" stroke="var(--accent)" strokeOpacity="0.5" strokeWidth="1"/>
-        )}
+        {/* Retângulo de seleção do brush (zoom) — posicionado imperativamente via ref */}
+        <rect ref={selRef} x={padL} y={padT} width={0} height={chartH}
+          fill="var(--accent)" fillOpacity="0.12" stroke="var(--accent)" strokeOpacity="0.5" strokeWidth="1"
+          pointerEvents="none" style={{ visibility: 'hidden' }}/>
 
-        {hover && !sel && (
+        {hover && (
           <g>
             <line x1={xOf(hover)} x2={xOf(hover)} y1={padT} y2={H - padB}
               stroke="var(--fg)" strokeOpacity="0.2" strokeWidth="1"/>

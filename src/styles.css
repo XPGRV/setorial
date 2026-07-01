@@ -406,18 +406,20 @@ body {
 .sidebar-group-header .sidebar-item-icon { color: var(--accent); opacity: 1; }
 .sidebar-item-icon.is-icon-breathing svg {
   transform-origin: center;
-  animation: icon-glow-breathe 3.6s ease-in-out infinite;
+  animation: icon-glow-breathe 6s ease-in-out infinite;
 }
 @keyframes icon-glow-breathe {
   0%, 100% {
     transform: scale(1);
-    filter: drop-shadow(0 0 0 transparent);
+    filter:
+      drop-shadow(0 0 2px color-mix(in oklch, var(--accent) 42%, transparent))
+      drop-shadow(0 0 4px color-mix(in oklch, var(--accent) 20%, transparent));
   }
   50% {
-    transform: scale(1.04);
+    transform: scale(1.015);
     filter:
-      drop-shadow(0 0 3px color-mix(in oklch, var(--accent) 75%, transparent))
-      drop-shadow(0 0 7px color-mix(in oklch, var(--accent) 38%, transparent));
+      drop-shadow(0 0 3px color-mix(in oklch, var(--accent) 62%, transparent))
+      drop-shadow(0 0 6px color-mix(in oklch, var(--accent) 30%, transparent));
   }
 }
 @media (prefers-reduced-motion: reduce) {

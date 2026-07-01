@@ -177,7 +177,6 @@ body {
     0 1px 0 oklch(1 0 0 / 0.1) inset,
     0 6px 20px color-mix(in oklch, var(--accent) 28%, transparent);
   overflow: hidden;
-  transition: background 560ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 560ms ease;
 }
 .sidebar-brand-logobox::before {
   content: '';
@@ -228,7 +227,7 @@ body {
   object-fit: contain;
   /* PNG embutido — força branco para contrastar com a box accent */
   filter: brightness(0) invert(1);
-  transition: filter 560ms ease;
+  transition: filter 240ms ease;
 }
 
 @property --logo-halo-angle {

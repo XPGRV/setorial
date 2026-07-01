@@ -1746,6 +1746,7 @@ body {
 
 /* Loading exclusivo da entrada em Proteinas */
 .proteinas-loading {
+  --accent: oklch(0.72 0.18 240);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1812,8 +1813,8 @@ body {
   width: 60%;
   height: 100%;
   border-radius: 2px;
-  background: oklch(0.82 0.18 155);
-  box-shadow: 0 0 10px oklch(0.82 0.18 155 / 0.55);
+  background: var(--accent);
+  box-shadow: 0 0 10px color-mix(in oklch, var(--accent) 55%, transparent);
   animation: proteinas-loading-slide 1.1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 

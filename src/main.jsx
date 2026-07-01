@@ -28,7 +28,7 @@ function ProteinasRoute({ initialData, initialMeta }) {
     const startedAt = Date.now()
 
     import('./proteinas-entry.jsx').then(module => {
-      const remaining = Math.max(0, 3000 - (Date.now() - startedAt))
+      const remaining = Math.max(0, 2000 - (Date.now() - startedAt))
       timer = setTimeout(() => {
         if (active) setComponent(() => module.default)
       }, remaining)

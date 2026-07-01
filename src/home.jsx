@@ -1,10 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  Beef, Car, Factory, Landmark,
-  LayoutGrid, Layers, Newspaper, TrendingUp,
-  Sun, Moon, Clock3, Search, ChevronRight,
-} from 'lucide-react'
+import { Beef, Car, Factory, Landmark, Sun, Moon, Clock3, Search, ChevronRight } from 'lucide-react'
 
 // ── Setores (esquerda) ────────────────────────────────────────────────────────
 const SECTORS = [
@@ -29,6 +25,11 @@ const TICKER = [
 ]
 
 // ── News Hunter (centro) — estático ───────────────────────────────────────────
+const SRC_COLOR = {
+  XP: 'oklch(0.70 0.15 245)', BLOOMBERG: 'oklch(0.76 0.15 70)', BCB: 'oklch(0.72 0.16 155)',
+  REUTERS: 'oklch(0.66 0.19 25)', BROADCAST: 'oklch(0.68 0.16 300)', USDA: 'oklch(0.72 0.12 200)',
+  VALOR: 'oklch(0.74 0.15 120)', IBGE: 'oklch(0.72 0.13 220)',
+}
 const NEWS = [
   { src: 'XP',        time: '09:42', cat: 'Proteínas',   tone: 'alta',   title: 'Exportações de carne bovina sobem 8% em junho, puxadas pela China', summary: 'Volumes embarcados atingem recorde mensal; preço médio da tonelada avança com demanda asiática aquecida.' },
   { src: 'BLOOMBERG', time: '09:18', cat: 'Commodities', tone: 'alta',   title: 'Boi gordo renova máxima do ano com oferta restrita no Centro-Oeste', summary: 'Arroba negociada acima de R$ 258 em São Paulo; confinamentos seguram animais e pressionam a escala das plantas.' },
@@ -44,9 +45,9 @@ const TONE_LABEL = { alta: 'Alta', baixa: 'Baixa', neutro: 'Neutro' }
 // ── Market Overview (direita) — estático ──────────────────────────────────────
 const MARKET = {
   'Índices': [
-    { name: 'IBOV',    sub: 'Pontos · B3',    val: '129.842', d: +0.72, spark: [4, 5, 4, 6, 7, 6, 8] },
-    { name: 'S&P 500', sub: 'Pontos · CME',   val: '5.431',   d: +0.31, spark: [5, 4, 6, 5, 7, 6, 7] },
-    { name: 'DXY',     sub: 'Índice · ICE',   val: '105,3',   d: +0.22, spark: [4, 5, 5, 6, 5, 6, 6] },
+    { name: 'IBOV',    sub: 'Pontos · B3',  val: '129.842', d: +0.72, spark: [4, 5, 4, 6, 7, 6, 8] },
+    { name: 'S&P 500', sub: 'Pontos · CME', val: '5.431',   d: +0.31, spark: [5, 4, 6, 5, 7, 6, 7] },
+    { name: 'DXY',     sub: 'Índice · ICE', val: '105,3',   d: +0.22, spark: [4, 5, 5, 6, 5, 6, 6] },
   ],
   'Commodities': [
     { name: 'Boi Gordo', sub: 'R$/@ · B3',       val: '258,30', d: +1.12, spark: [4, 5, 5, 6, 7, 7, 8] },
@@ -66,19 +67,23 @@ const MARKET_TABS = ['Índices', 'Commodities', 'Moedas']
 
 const fmtDelta = d => `${d >= 0 ? '+' : ''}${d.toFixed(2).replace('.', ',')}%`
 
-function Sparkbars({ up }) {
-  const bars = up ? [3, 4, 4, 5, 6, 7, 8] : [8, 7, 6, 5, 4, 4, 3]
+function Sparkline({ points, up }) {
+  const w = 64, h = 26, pad = 2
+  const max = Math.max(...points), min = Math.min(...points), span = max - min || 1
+  const step = (w - pad * 2) / (points.length - 1)
+  const d = points.map((p, i) =>
+    `${i === 0 ? 'M' : 'L'}${(pad + i * step).toFixed(1)},${(pad + (h - pad * 2) * (1 - (p - min) / span)).toFixed(1)}`).join(' ')
   return (
-    <div className={`home-sparkbars ${up ? 'is-up' : 'is-down'}`}>
-      {bars.map((h, i) => <i key={i} style={{ height: `${h * 12}%` }} />)}
-    </div>
+    <svg className="home-sparkline" width="100%" height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
+      <path d={d} fill="none" stroke={up ? 'var(--up)' : 'var(--down)'} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
   )
 }
 
-function SectionTitle({ icon: Icon, title, right }) {
+function SectionTitle({ title, right }) {
   return (
     <div className="home-section-title">
-      <div className="home-section-heading"><Icon size={14} />{title}</div>
+      <div className="home-section-heading"><span className="home-dot" />{title}</div>
       {right}
     </div>
   )
@@ -146,16 +151,15 @@ export default function HomePage() {
       <main className="home-workspace">
         {/* Esquerda — Setores */}
         <aside className="home-column home-sectors">
-          <SectionTitle icon={LayoutGrid} title="Setores" right={<span>{SECTORS.length} áreas</span>} />
+          <SectionTitle title="Setores" right={<span className="home-count">{SECTORS.length}</span>} />
           <div className="home-sector-list">{SECTORS.map(renderSector)}</div>
-          <SectionTitle icon={Layers} title="Outros" />
+          <SectionTitle title="Outros" right={<span className="home-count">{OUTROS.length}</span>} />
           <div className="home-sector-list">{OUTROS.map(renderSector)}</div>
         </aside>
 
         {/* Centro — News Hunter */}
         <section className="home-column home-news">
-          <SectionTitle icon={Newspaper} title="News Hunter"
-            right={<span className="home-live"><i />AO VIVO</span>} />
+          <SectionTitle title="News Hunter" right={<span className="home-live"><i />AO VIVO</span>} />
           <div className="home-news-tools">
             <label className="home-news-search">
               <Search size={15} />
@@ -168,18 +172,21 @@ export default function HomePage() {
             </div>
           </div>
           <div className="home-news-feed">
-            {filteredNews.length ? filteredNews.map((item, i) => (
-              <article className={`home-news-item${i === 0 ? ' is-lead' : ''}`} key={item.title}>
-                <div className="home-news-meta">
-                  <span className="home-news-source">{item.src}</span>
-                  <span><Clock3 size={11} />{item.time}</span>
-                  <span>· {item.cat}</span>
-                  <span className={`home-news-tone is-${item.tone}`}>{TONE_LABEL[item.tone]}</span>
-                </div>
-                <h2>{item.title}</h2>
-                <p>{item.summary}</p>
-              </article>
-            )) : (
+            {filteredNews.length ? filteredNews.map((item, i) => {
+              const c = SRC_COLOR[item.src] || 'var(--accent)'
+              return (
+                <article className={`home-news-item${i === 0 ? ' is-lead' : ''}`} key={item.title}>
+                  <div className="home-news-meta">
+                    <span className="home-news-source" style={{ color: c, background: `color-mix(in oklch, ${c} 16%, transparent)` }}>{item.src}</span>
+                    <span><Clock3 size={11} />{item.time}</span>
+                    <span>· {item.cat}</span>
+                    <span className={`home-news-tone is-${item.tone}`}>{TONE_LABEL[item.tone]}</span>
+                  </div>
+                  <h2>{item.title}</h2>
+                  <p>{item.summary}</p>
+                </article>
+              )
+            }) : (
               <div className="home-news-empty">Nenhuma notícia encontrada.</div>
             )}
           </div>
@@ -187,8 +194,7 @@ export default function HomePage() {
 
         {/* Direita — Market Overview */}
         <aside className="home-column home-market">
-          <SectionTitle icon={TrendingUp} title="Market Overview"
-            right={<span className="home-clock">15:42</span>} />
+          <SectionTitle title="Market Overview" right={<span className="home-clock">15:42</span>} />
           <div className="home-market-periods">
             {MARKET_TABS.map(t => (
               <button key={t} className={marketTab === t ? 'is-on' : ''} onClick={() => setMarketTab(t)}>{t}</button>
@@ -200,7 +206,7 @@ export default function HomePage() {
               return (
                 <div className="home-market-row" key={row.name}>
                   <div className="home-market-main"><strong>{row.name}</strong><span>{row.sub}</span></div>
-                  <Sparkbars up={up} />
+                  <Sparkline points={row.spark} up={up} />
                   <div className="home-market-quote">
                     <strong>{row.val}</strong>
                     <span className={up ? 'is-up' : 'is-down'}>{up ? '▲' : '▼'} {fmtDelta(row.d)}</span>

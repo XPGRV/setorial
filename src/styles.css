@@ -1527,8 +1527,18 @@ body {
 /* === Home page === */
 .home-page {
   --accent: oklch(0.72 0.18 240);
+  /* Containers usam a MESMA cor da sidebar da dashboard de proteínas.
+     Cores sólidas (não color-mix entre neutros, que gera tom "marrom" na
+     interpolação de matiz do OKLCH). */
+  --home-panel: oklch(from var(--bg) calc(l - 0.022) c h);
+  --home-strip: oklch(from var(--bg) calc(l + 0.02) c h);
   min-height: 100vh;
   background: var(--bg);
+}
+[data-mode="light"] .home-page {
+  --accent: oklch(0.52 0.17 245);
+  --home-panel: #ffffff;
+  --home-strip: var(--bg-inset);
 }
 .home-topbar {
   height: 92px;
@@ -1588,7 +1598,7 @@ body {
   min-width: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  background: color-mix(in oklch, var(--bg-panel) 94%, var(--bg));
+  background: var(--home-panel);
   box-shadow: 0 8px 24px oklch(0 0 0 / 0.16);
   overflow: hidden;
 }
@@ -1599,15 +1609,17 @@ body {
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--border);
-  background: color-mix(in oklch, var(--bg-inset) 58%, var(--bg-panel));
+  background: var(--home-strip);
 }
-.home-section-heading { display: flex; align-items: center; gap: 8px; color: var(--fg); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+.home-section-heading { display: flex; align-items: center; gap: 9px; color: var(--fg); font-family: var(--font-mono); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
 .home-section-heading svg { color: var(--accent); }
+.home-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 7px color-mix(in oklch, var(--accent) 70%, transparent); }
+.home-count { min-width: 20px; height: 18px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center; border-radius: 9px; background: color-mix(in oklch, var(--fg) 8%, transparent); color: var(--fg-mute); font-family: var(--font-mono); font-size: 9px; }
 .home-section-title > span { color: var(--fg-mute); font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; }
 
 .home-sectors {
   padding: 0;
-  background: color-mix(in oklch, var(--bg-panel) 94%, var(--bg));
+  background: var(--home-panel);
   border-right: 1px solid var(--border);
   overflow: visible;
 }
@@ -1687,9 +1699,10 @@ body {
 .home-news-search { min-width: 170px; flex: 1; height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 10px; border: 1px solid var(--border); border-radius: 5px; color: var(--fg-mute); background: var(--bg); }
 .home-news-search:focus-within { border-color: var(--border-strong); color: var(--fg-dim); }
 .home-news-search input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--fg); font: inherit; font-size: 11px; }
-.home-news-tabs, .home-market-periods { display: flex; align-items: center; padding: 2px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); }
-.home-news-tabs button, .home-market-periods button { height: 27px; padding: 0 9px; border: 0; border-radius: 3px; background: transparent; color: var(--fg-mute); font: inherit; font-size: 9px; cursor: pointer; }
-.home-news-tabs button.is-on, .home-market-periods button.is-on { color: var(--fg); background: var(--bg-inset); }
+.home-news-tabs, .home-market-periods { display: flex; align-items: center; gap: 4px; padding: 3px; border: 1px solid var(--border); border-radius: 999px; background: var(--home-strip); }
+.home-news-tabs button, .home-market-periods button { height: 28px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: var(--fg-mute); font: inherit; font-size: 11px; cursor: pointer; transition: color 0.12s, background 0.12s; }
+.home-news-tabs button:hover, .home-market-periods button:hover { color: var(--fg-dim); }
+.home-news-tabs button.is-on, .home-market-periods button.is-on { color: var(--fg); background: color-mix(in oklch, var(--accent) 20%, transparent); }
 .home-news-feed { min-height: 530px; overflow: hidden; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 .home-news-item { position: relative; padding: 18px 46px 18px 0; border-bottom: 1px solid var(--border); }
 .home-news-item.is-lead { padding-top: 22px; padding-bottom: 22px; background: transparent; }
@@ -1735,7 +1748,7 @@ body {
   .home-nav { display: none; }
   .home-topbar-status { display: none; }
   .home-workspace { padding: 12px; grid-template-columns: 1fr; gap: 12px; }
-  .home-sectors, .home-news, .home-market { padding: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); background: color-mix(in oklch, var(--bg-panel) 94%, var(--bg)); }
+  .home-sectors, .home-news, .home-market { padding: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--home-panel); }
   .home-market { grid-column: auto; }
   .home-news-tools { align-items: stretch; flex-direction: column; }
   .home-news-tabs { width: max-content; }
@@ -1879,8 +1892,6 @@ body {
 .weg-zoom-reset:hover { color: var(--fg); border-color: var(--border-strong) !important; }
 
 /* === Home: adições Atlas (toggle, ticker, badges) === */
-[data-mode="light"] .home-page { --accent: oklch(0.52 0.17 245); }
-
 .home-mode-btn {
   width: 40px; height: 40px; flex: 0 0 auto;
   display: inline-flex; align-items: center; justify-content: center;
@@ -1898,7 +1909,7 @@ body {
   display: flex; align-items: stretch; gap: 0;
   height: 44px; padding: 0 8px;
   border-bottom: 1px solid var(--border);
-  background: color-mix(in oklch, var(--bg-inset) 40%, var(--bg));
+  background: var(--home-strip);
   overflow-x: auto;
 }
 .home-ticker-item {
@@ -1941,3 +1952,6 @@ body {
 
 /* Segunda seção "Outros" dentro da sidebar */
 .home-sectors .home-section-title + .home-sector-list + .home-section-title { border-top: 1px solid var(--border); }
+
+/* Sparkline do Market Overview (linha, não barras) */
+.home-sparkline { width: 100%; height: 26px; display: block; opacity: 0.9; }

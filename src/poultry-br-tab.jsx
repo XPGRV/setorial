@@ -110,6 +110,14 @@ const PoultryIpcaTab = ({ data, accent }) => {
 
   return (
     <main className="main">
+      <window.DailySeasonalCard
+        data={data} accent={accent}
+        dailyKey="porco_mi_daily"
+        cardId="card-porco-mi"
+        title="Preço Porco · Mercado Interno"
+        sub="Bloomberg · WPPKHACA Index"
+        unit="R$/kg" decimals={2}
+      />
       <window.ContinuousCard
         cardId="card-ipca-processados"
         title="IPCA Processados"

@@ -760,12 +760,13 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
   }
 
   // ── Dados diários do FrangoBR (aba BBG_Dados do FrangoBR.xlsm) ─────────────────
-  // col D (3) = data · col E (4) = Frango MI BRL/kg · col K (10) = Feed Grain · col L (11) = Spread MI
+  // col D (3) = data · col E (4) = Frango MI BRL/kg · col K (10) = Feed Grain · col L (11) = Spread MI · col M (12) = Porco MI (WPPKHACA Index)
   if (findSheet('FrangoBR') && findSheet('BBG_Dados')) {
     const bgRaw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('BBG_Dados')], { header: 1, raw: true });
     const frango_mi_daily        = [];
     const feed_grain_daily       = [];
     const frango_spread_mi_daily = [];
+    const porco_mi_daily         = [];
     let bgDate = null;
     for (let i = 3; i < bgRaw.length; i++) {
       const r = bgRaw[i];
@@ -776,19 +777,22 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
       } else if (bgDate) {
         bgDate = new Date(bgDate.getTime() + 86400000);
       } else continue;
-      const hasAny = r[4] != null || r[10] != null || r[11] != null;
+      const hasAny = r[4] != null || r[10] != null || r[11] != null || r[12] != null;
       if (!hasAny) continue;
       const year = bgDate.getUTCFullYear(), month = bgDate.getUTCMonth() + 1, day = bgDate.getUTCDate();
       const frangoMI  = parseNum(r[4]);   // col E — Frango MI BRL/kg
       const feedGrain = parseNum(r[10]);  // col K — Feed Grain
       const spreadMI  = parseNum(r[11]);  // col L — Spread MI
+      const porcoMI   = parseNum(r[12]);  // col M — Porco MI (WPPKHACA Index)
       if (frangoMI  != null) frango_mi_daily.push({ year, month, day, value: frangoMI });
       if (feedGrain != null) feed_grain_daily.push({ year, month, day, value: feedGrain });
       if (spreadMI  != null) frango_spread_mi_daily.push({ year, month, day, value: spreadMI });
+      if (porcoMI   != null) porco_mi_daily.push({ year, month, day, value: porcoMI });
     }
     if (frango_mi_daily.length)        result.frango_mi_daily        = frango_mi_daily;
     if (feed_grain_daily.length)       result.feed_grain_daily       = feed_grain_daily;
     if (frango_spread_mi_daily.length) result.frango_spread_mi_daily = frango_spread_mi_daily;
+    if (porco_mi_daily.length)         result.porco_mi_daily         = porco_mi_daily;
   }
 
   // ── Processados (aba Processados · col P = índice 15) ─────────────────────────

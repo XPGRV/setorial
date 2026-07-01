@@ -1877,3 +1877,67 @@ body {
   background: var(--bg-inset);
 }
 .weg-zoom-reset:hover { color: var(--fg); border-color: var(--border-strong) !important; }
+
+/* === Home: adições Atlas (toggle, ticker, badges) === */
+[data-mode="light"] .home-page { --accent: oklch(0.52 0.17 245); }
+
+.home-mode-btn {
+  width: 40px; height: 40px; flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 999px;
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  color: var(--fg-dim);
+  cursor: pointer;
+  transition: color 0.18s, border-color 0.18s, background 0.18s;
+}
+.home-mode-btn:hover { color: var(--fg); border-color: var(--border-strong); background: color-mix(in oklch, var(--accent) 12%, var(--bg-inset)); }
+
+/* Ticker */
+.home-ticker {
+  display: flex; align-items: stretch; gap: 0;
+  height: 44px; padding: 0 8px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in oklch, var(--bg-inset) 40%, var(--bg));
+  overflow-x: auto;
+}
+.home-ticker-item {
+  display: flex; align-items: center; gap: 7px;
+  padding: 0 18px;
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+  font-size: 11px;
+}
+.home-ticker-item:last-child { border-right: 0; }
+.home-ticker-k { color: var(--fg-mute); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; }
+.home-ticker-v { color: var(--fg); font-family: var(--font-mono); font-weight: 600; }
+.home-ticker-u { color: var(--fg-mute); font-size: 9px; }
+.home-ticker-item > .is-up, .home-ticker-item > .is-down { font-family: var(--font-mono); font-size: 10px; }
+
+/* News: badge de fonte + tom + AO VIVO */
+.home-news-source {
+  padding: 3px 6px; border-radius: 3px; font-weight: 600;
+  color: var(--accent);
+  background: color-mix(in oklch, var(--accent) 14%, transparent);
+}
+.home-news-tone {
+  margin-left: auto; padding: 3px 8px; border-radius: 4px;
+  font-family: var(--font-sans); font-size: 10px; font-weight: 600;
+}
+.home-news-tone.is-alta   { color: var(--up);   background: color-mix(in oklch, var(--up) 13%, transparent); }
+.home-news-tone.is-baixa  { color: var(--down); background: color-mix(in oklch, var(--down) 13%, transparent); }
+.home-news-tone.is-neutro { color: var(--fg-mute); background: color-mix(in oklch, var(--fg) 8%, transparent); }
+.home-live { display: inline-flex; align-items: center; gap: 6px; color: var(--up); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.06em; }
+.home-live i { width: 6px; height: 6px; border-radius: 50%; background: var(--up); box-shadow: 0 0 7px color-mix(in oklch, var(--up) 70%, transparent); }
+.home-clock { color: var(--fg-mute); font-family: var(--font-mono); font-size: 10px; }
+
+/* Badge "Abrir" no setor ativo */
+.home-abrir {
+  padding: 3px 8px; border-radius: 4px;
+  color: var(--accent);
+  background: color-mix(in oklch, var(--accent) 16%, transparent);
+  font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+}
+
+/* Segunda seção "Outros" dentro da sidebar */
+.home-sectors .home-section-title + .home-sector-list + .home-section-title { border-top: 1px solid var(--border); }

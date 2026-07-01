@@ -38,7 +38,14 @@ function App({ data: propData, initialData, initialMeta }) {
   const [tweaks, setTweaks] = useState(TWEAK_DEFAULTS);
   const [editMode, setEditMode] = useState(false);
   const [tab, setTab] = useState('precos');
-  const [activeDataset, setActiveDataset] = useState('beef_us');
+  // Dataset inicial: aceita ?dataset=... da URL (ex: home → /proteinas?dataset=macro)
+  const [activeDataset, setActiveDataset] = useState(() => {
+    try {
+      const d = new URLSearchParams(window.location.search).get('dataset');
+      if (['beef_us', 'beef_br', 'poultry_br', 'poultry_us', 'macro', 'weg'].includes(d)) return d;
+    } catch {}
+    return 'beef_us';
+  });
 
   // Modo claro/escuro (binário, persistido). Padrão inicial = preferência do
   // sistema, mas só até o usuário escolher; depois é o que ele setou.

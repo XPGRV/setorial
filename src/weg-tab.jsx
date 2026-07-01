@@ -191,7 +191,6 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey, chart
   return (
     <div className="chart-wrap">
       <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg" preserveAspectRatio="xMidYMid meet"
-        style={{ cursor: 'crosshair' }}
         onMouseDown={onDown} onMouseMove={onMove} onMouseUp={onUp} onMouseLeave={onLeave}
         onDoubleClick={() => onResetZoom && onResetZoom()}>
         <defs>

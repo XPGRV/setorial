@@ -1413,7 +1413,7 @@ body {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
-  background: color-mix(in oklch, var(--bg-panel) 97%, transparent);
+  background: var(--home-panel);
   backdrop-filter: blur(8px);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
@@ -1810,7 +1810,7 @@ body {
   transform: translate(-5px, -50%);
   transition: opacity 0.14s ease, transform 0.14s ease, visibility 0.14s;
 }
-.home-sector-tooltip::before { content: ''; position: absolute; top: calc(50% - 5px); left: -6px; width: 10px; height: 10px; border-left: 1px solid var(--border-strong); border-bottom: 1px solid var(--border-strong); background: var(--bg-panel); transform: rotate(45deg); }
+.home-sector-tooltip::before { content: ''; position: absolute; top: calc(50% - 5px); left: -6px; width: 10px; height: 10px; border-left: 1px solid var(--border-strong); border-bottom: 1px solid var(--border-strong); background: var(--home-panel); transform: rotate(45deg); }
 .home-sector-tooltip strong { color: var(--fg); font-size: 11px; font-weight: 600; }
 .home-sector-item:hover .home-sector-tooltip,
 .home-sector-item:focus-visible .home-sector-tooltip { opacity: 1; visibility: visible; transform: translate(0, -50%); }

@@ -7,7 +7,14 @@ import HomePage from './home.jsx'
 function ProteinasLoading() {
   return (
     <div className="proteinas-loading" role="status" aria-label="Carregando Proteinas">
-      <img src="/meat-food.gif" alt="" />
+      <div className="proteinas-loading-media">
+        <img src="/meat-food.gif" alt="" />
+      </div>
+      <div className="proteinas-loading-text">
+        <div className="proteinas-loading-title">Proteinas</div>
+        <div className="proteinas-loading-sub">Carregando dados...</div>
+      </div>
+      <div className="proteinas-loading-bar" />
     </div>
   )
 }

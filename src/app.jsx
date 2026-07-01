@@ -322,7 +322,7 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
       style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <span
-          className={`sidebar-item-icon${isActive && groupId === 'beef_br' ? ' is-icon-breathing' : ''}`}
+          className={`sidebar-item-icon${isActive ? ' is-icon-breathing' : ''}`}
           style={isActive ? undefined : { color: 'var(--fg-dim)', opacity: 0.6 }}
         >{icon}</span>
         <span style={labelStyle}>{label}</span>
@@ -356,7 +356,7 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
 
       <div className="sidebar-section">
         <button className={`sidebar-item ${isUS ? 'is-on' : ''}`} onClick={() => onPick('beef_us')}>
-          <span className="sidebar-item-icon">{SIcon.cow}</span>
+          <span className={`sidebar-item-icon${isUS ? ' is-icon-breathing' : ''}`}>{SIcon.cow}</span>
           <span className="sidebar-item-label" style={{textTransform:'uppercase', letterSpacing:'0.1em', fontSize:11}}>Beef US</span>
         </button>
 
@@ -416,11 +416,11 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
         <div className="sidebar-divider" style={{margin:'0 4px 6px'}}/>
         <div className="sidebar-section-label" style={{paddingTop:0}}>Cenário</div>
         <button className={`sidebar-item ${isMacro ? 'is-on' : ''}`} onClick={() => onPick('macro')}>
-          <span className="sidebar-item-icon">{SIcon.globe}</span>
+          <span className={`sidebar-item-icon${isMacro ? ' is-icon-breathing' : ''}`}>{SIcon.globe}</span>
           <span className="sidebar-item-label" style={{textTransform:'uppercase', letterSpacing:'0.1em', fontSize:11}}>MACRO</span>
         </button>
         <button className={`sidebar-item ${isWeg ? 'is-on' : ''}`} onClick={() => onPick('weg')}>
-          <span className="sidebar-item-icon">{SIcon.factory}</span>
+          <span className={`sidebar-item-icon${isWeg ? ' is-icon-breathing' : ''}`}>{SIcon.factory}</span>
           <span className="sidebar-item-label" style={{textTransform:'uppercase', letterSpacing:'0.1em', fontSize:11}}>WEG</span>
         </button>
       </div>

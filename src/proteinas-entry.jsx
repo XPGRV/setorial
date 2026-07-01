@@ -12,6 +12,7 @@ import './macro-tab.jsx'
 import './weg-tab.jsx'
 import './app.jsx'
 
-export default function ProteinasApp({ initialData, initialMeta }) {
-  return <window.App initialData={initialData} initialMeta={initialMeta} />
+export default function ProteinasApp({ initialData, initialMeta, initialDataset, dashboardSection }) {
+  return <window.App initialData={initialData} initialMeta={initialMeta}
+    initialDataset={initialDataset} dashboardSection={dashboardSection} />
 }

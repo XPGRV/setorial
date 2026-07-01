@@ -138,10 +138,10 @@ function TopbarMesh({ accent = '#2f8fc4', spacing = 12, intensity = 0.3, speed =
 const SECTORS = [
   { label: 'Proteínas',       sub: 'Dados setoriais de Beef US, Beef BR, Poultry US e Poultry BR.', icon: Beef, route: '/proteinas', active: true },
   { label: 'Rental',          sub: 'Dados de locadoras, frotas, preços e mobilidade.', icon: Car },
-  { label: 'Bens de Capital', sub: 'Indicadores de máquinas, equipamentos e companhias industriais.', icon: Factory },
+  { label: 'Bens de Capital', sub: 'Indicadores de máquinas, equipamentos e companhias industriais.', icon: Factory, route: '/capitalgoods', active: true },
 ]
 const MACRO = [
-  { label: 'Macro', sub: 'Juros, câmbio, inflação e indicadores de atividade.', icon: Landmark, route: '/proteinas?dataset=macro', active: true },
+  { label: 'Macro', sub: 'Juros, câmbio, inflação e indicadores de atividade.', icon: Landmark, route: '/macro', active: true },
 ]
 
 // ── Ticker (topo) ─────────────────────────────────────────────────────────────

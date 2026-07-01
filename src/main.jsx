@@ -4,14 +4,14 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './reactive.js'
 import HomePage from './home.jsx'
 
-function ProteinasLoading() {
+function ProteinasLoading({ label = 'Proteinas', useMeat = true }) {
   return (
     <div className="proteinas-loading" role="status" aria-label="Carregando Proteinas">
       <div className="proteinas-loading-media">
-        <img src="/meat-food.gif" alt="" fetchPriority="high" />
+        <img src={useMeat ? '/meat-food.gif' : '/xp-asset-logo.svg'} alt="" fetchPriority="high" />
       </div>
       <div className="proteinas-loading-text">
-        <div className="proteinas-loading-title">Proteinas</div>
+        <div className="proteinas-loading-title">{label}</div>
         <div className="proteinas-loading-sub">Carregando dados...</div>
       </div>
       <div className="proteinas-loading-bar" />
@@ -19,7 +19,7 @@ function ProteinasLoading() {
   )
 }
 
-function ProteinasRoute({ initialData, initialMeta }) {
+function ProteinasRoute({ initialData, initialMeta, initialDataset = 'beef_us', dashboardSection = 'proteinas' }) {
   const [Component, setComponent] = React.useState(null)
 
   React.useEffect(() => {
@@ -40,8 +40,12 @@ function ProteinasRoute({ initialData, initialMeta }) {
     }
   }, [])
 
-  if (!Component) return <ProteinasLoading />
-  return <Component initialData={initialData} initialMeta={initialMeta} />
+  if (!Component) {
+    const label = dashboardSection === 'macro' ? 'Macro' : dashboardSection === 'capitalgoods' ? 'Bens de Capital' : 'Proteinas'
+    return <ProteinasLoading label={label} useMeat={dashboardSection === 'proteinas'} />
+  }
+  return <Component initialData={initialData} initialMeta={initialMeta}
+    initialDataset={initialDataset} dashboardSection={dashboardSection} />
 }
 
 // Aplica tema antes do primeiro paint
@@ -154,7 +158,13 @@ document.documentElement.style.setProperty('--accent',
         <Route path="/"          element={<Navigate to="/home" replace />} />
         <Route path="/home"      element={<HomePage />} />
         <Route path="/proteinas" element={
-          <ProteinasRoute initialData={data} initialMeta={meta} />
+          <ProteinasRoute initialData={data} initialMeta={meta} initialDataset="beef_us" dashboardSection="proteinas" />
+        } />
+        <Route path="/macro" element={
+          <ProteinasRoute initialData={data} initialMeta={meta} initialDataset="macro" dashboardSection="macro" />
+        } />
+        <Route path="/capitalgoods" element={
+          <ProteinasRoute initialData={data} initialMeta={meta} initialDataset="weg" dashboardSection="capitalgoods" />
         } />
       </Routes>
     </BrowserRouter>

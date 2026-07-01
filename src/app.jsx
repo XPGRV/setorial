@@ -29,7 +29,7 @@ const darkenAccent = (str, maxL = 0.55) => {
 };
 
 
-function App({ data: propData, initialData, initialMeta }) {
+function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_us', dashboardSection = 'proteinas' }) {
   const TWEAK_DEFAULTS = { palette: 'neon', typography: 'modern', density: 'comfortable', theme: 'flux' };
 
   // ── Todos os hooks ANTES de qualquer return condicional ──────────────────────
@@ -44,7 +44,7 @@ function App({ data: propData, initialData, initialMeta }) {
       const d = new URLSearchParams(window.location.search).get('dataset');
       if (['beef_us', 'beef_br', 'poultry_br', 'poultry_us', 'macro', 'weg'].includes(d)) return d;
     } catch {}
-    return 'beef_us';
+    return initialDataset;
   });
 
   // Modo claro/escuro (binário, persistido). Padrão inicial = preferência do
@@ -221,10 +221,11 @@ function App({ data: propData, initialData, initialMeta }) {
     <div className="app">
       <Sidebar tab={tab} setTab={setTab}
         activeDataset={activeDataset} setActiveDataset={setActiveDataset}
-        onUpload={onUpload}/>
+        onUpload={onUpload} dashboardSection={dashboardSection}/>
       <div className="app-content">
         <TopBar meta={meta} onUpload={onUpload} activeDataset={activeDataset}
-          colorMode={colorMode} onCycleMode={cycleMode} onNavigate={navigateTo}/>
+          colorMode={colorMode} onCycleMode={cycleMode} onNavigate={navigateTo}
+          dashboardSection={dashboardSection}/>
         <TickerBar data={data} activeDataset={activeDataset}/>
         {activeDataset === 'beef_us' ? (
           <window.BeefUSTab data={data} accent={accent}/>
@@ -258,7 +259,7 @@ const SIcon = {
   chicken: <svg width="16" height="16" viewBox="0 0 512 512" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M78.131,72.577c1.653,0,3.267,0.03,4.836,0.05c1.415,0.03,2.785,0.04,4.126,0.04c12.733,0,24.693,3.783,35.341,9.959c10.332-12.382,15.5-23.72,15.5-32.199c0-10.524-8.534-19.063-19.068-19.063c-5.74,0-10.892,2.552-14.388,6.583c0.06-0.606,0.1-1.202,0.1-1.817c0-10.535-8.548-19.063-19.068-19.063c-10.534,0-19.068,8.528-19.068,19.063c0,0.288,0.03,0.576,0.045,0.854c-3.028-2.512-6.925-4.031-11.159-4.031c-9.652,0-17.485,7.834-17.485,17.474c0,6.513,3.654,15.102,11.875,26.372C59.605,73.46,69.037,72.577,78.131,72.577z"/><path d="M34.455,166.909c0,0-11.602,12.571-27.076,42.545c-17.539,33.996,30.759,56.088,41.393,23.203C55.936,210.537,39.295,166.423,34.455,166.909z"/><path d="M33.601,150.477c-4.413-14.824-7.893-27.889-11.234-40.171c-6.578,7.038-13.504,15.895-20.797,27.105c-8.191,12.609,17.926,11.209,26.123,11.596C29.748,149.108,31.715,149.634,33.601,150.477z"/><path d="M499.146,138.862c-34.87-36.906-104.446-43.518-149.423,2.898c-48.238,49.812-36.448,108.8-95.738,108.8c-59.289,0-94.283-49.326-100.097-94.284c0-7.069-1.112-13.86-3.198-20.224c-8.504-26.163-34.536-52.304-63.524-52.304c-14.6,0-33.644-2.333-57.691,19.539c4.925,17.921,9.834,36.976,17.355,60.556c16.556,27.86,22.905,89.368,17.971,135.776c-7.839,67.892,10.986,123.286,70.236,167.091c66.721,49.326,229.2,52.225,248.055-143.62c30.074,7.853,55.407-40.858,35.7-59.056c39.873,18.398,80.751-33.997,44.088-58.441C513.647,214.29,523.809,164.963,499.146,138.862z M75.56,137.779c-6.608,0-11.974-5.361-11.974-11.974c0-6.612,5.366-11.964,11.974-11.964c6.608,0,11.964,5.352,11.964,11.964C87.524,132.418,82.168,137.779,75.56,137.779z M256.437,403.781c-32.497,0-60.417-10.306-82.424-25.17c-22.037-14.874-38.266-34.195-47.911-52.781c-6.394-12.411-9.964-24.484-9.993-35.247c0-0.933,0.03-1.856,0.084-2.76l14.476,0.904c-0.045,0.596-0.06,1.211-0.06,1.856c-0.014,5.56,1.5,12.758,4.682,20.582c3.157,7.804,7.938,16.274,14.203,24.574c12.53,16.631,30.987,32.626,54.221,42.694c15.484,6.722,33.112,10.833,52.722,10.833c24.092,0,51.267-6.206,81.228-21.834l6.706,12.867C312.629,396.87,283.056,403.781,256.437,403.781z"/></svg>,
 };
 
-function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
+function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashboardSection = 'proteinas' }) {
   const navigate = useNavigate();
   const [openGroups, setOpenGroups] = useState(() => new Set([activeDataset]));
   const [logoPulse, setLogoPulse] = useState(false);
@@ -292,6 +293,12 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
   };
 
   const onPick = (ds, sub) => {
+    const targetPath = ds === 'macro'
+      ? '/macro'
+      : ds === 'weg'
+      ? '/capitalgoods'
+      : `/proteinas${ds === 'beef_us' ? '' : `?dataset=${ds}`}`;
+    if (`${window.location.pathname}${window.location.search}` !== targetPath) navigate(targetPath);
     setActiveDataset(ds);
     if (sub) setTab(sub);
   };
@@ -315,6 +322,11 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
   const PT_MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   const _now = new Date();
   const currentMonthSub = `Dashboard · ${PT_MONTHS[_now.getMonth()]}/${String(_now.getFullYear()).slice(2)}`;
+  const sectionTitle = dashboardSection === 'macro'
+    ? 'Macro'
+    : dashboardSection === 'capitalgoods'
+    ? 'Bens de Capital'
+    : 'Proteínas';
 
   const Chevron = ({ open }) => (
     <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"
@@ -355,13 +367,13 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
             </svg>
           </button>
           <div className="sidebar-brand-text">
-            <div className="sidebar-brand-title">Proteínas</div>
+            <div className="sidebar-brand-title">{sectionTitle}</div>
             <div className="sidebar-brand-sub">{currentMonthSub}</div>
           </div>
         </div>
       </div>
 
-      <div className="sidebar-section">
+      {dashboardSection === 'proteinas' && <div className="sidebar-section">
         <button className={`sidebar-item ${isUS ? 'is-on' : ''}`} onClick={() => onPick('beef_us')}>
           <span className={`sidebar-item-icon${isUS ? ' is-icon-breathing' : ''}`}>{SIcon.cow}</span>
           <span className="sidebar-item-label" style={{textTransform:'uppercase', letterSpacing:'0.1em', fontSize:11}}>Beef US</span>
@@ -417,20 +429,22 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
             </button>
           </>)}
         </div>
-      </div>
+      </div>}
 
-      <div style={{display:'flex', flexDirection:'column', gap:2}}>
+      {dashboardSection !== 'proteinas' && <div style={{display:'flex', flexDirection:'column', gap:2}}>
         <div className="sidebar-divider" style={{margin:'0 4px 6px'}}/>
-        <div className="sidebar-section-label" style={{paddingTop:0}}>Cenário</div>
-        <button className={`sidebar-item ${isMacro ? 'is-on' : ''}`} onClick={() => onPick('macro')}>
+        <div className="sidebar-section-label" style={{paddingTop:0}}>
+          {dashboardSection === 'macro' ? 'Cenário' : 'Empresas'}
+        </div>
+        {dashboardSection === 'macro' && <button className={`sidebar-item ${isMacro ? 'is-on' : ''}`} onClick={() => onPick('macro')}>
           <span className={`sidebar-item-icon${isMacro ? ' is-icon-breathing' : ''}`}>{SIcon.globe}</span>
           <span className="sidebar-item-label" style={{textTransform:'uppercase', letterSpacing:'0.1em', fontSize:11}}>MACRO</span>
-        </button>
-        <button className={`sidebar-item ${isWeg ? 'is-on' : ''}`} onClick={() => onPick('weg')}>
+        </button>}
+        {dashboardSection === 'capitalgoods' && <button className={`sidebar-item ${isWeg ? 'is-on' : ''}`} onClick={() => onPick('weg')}>
           <span className={`sidebar-item-icon${isWeg ? ' is-icon-breathing' : ''}`}>{SIcon.factory}</span>
           <span className="sidebar-item-label" style={{textTransform:'uppercase', letterSpacing:'0.1em', fontSize:11}}>WEG</span>
-        </button>
-      </div>
+        </button>}
+      </div>}
 
       <div className="sidebar-spacer"/>
 
@@ -446,7 +460,7 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
 // Normaliza: minúsculas, sem acento, espaços colapsados.
 const rxNorm = s => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
 
-const DS_LABEL  = { beef_br: 'Beef BR', beef_us: 'Beef US', poultry_br: 'Poultry BR', poultry_us: 'Poultry US', macro: 'Macro' };
+const DS_LABEL  = { beef_br: 'Beef BR', beef_us: 'Beef US', poultry_br: 'Poultry BR', poultry_us: 'Poultry US', macro: 'Macro', weg: 'WEG' };
 const TAB_LABEL = { precos: 'Preços & Spreads', abates: 'Produção', ipca: 'Processados', producao: 'Produção' };
 // Sinônimos PT/EN herdados por todos os destinos de cada dataset.
 const DS_KW = {
@@ -455,6 +469,7 @@ const DS_KW = {
   poultry_br: 'poultry frango chicken aves ave brasil br',
   poultry_us: 'poultry frango chicken aves ave eua usa us estados unidos america',
   macro:      'macro cenario',
+  weg:        'weg bens de capital industria equipamentos transformadores motores',
 };
 
 // [dataset, tab, cardId, label, sinônimos-extra]
@@ -469,6 +484,7 @@ const SEARCH_RAW = [
   ['poultry_us','precos',null,'Preços & Spreads','preco precos spread'],
   ['poultry_us','producao',null,'Produção','producao production broiler matrizes ovos pintos'],
   ['macro',null,null,'Macro · CDI','cdi selic juros taxa banco central bcb cenario macro'],
+  ['weg',null,null,'WEG','bens de capital industria equipamentos transformadores motores peers'],
   // Beef BR · Preços
   ['beef_br','precos','card-carne-mi','Preço Carne · Mercado Interno','carne mercado interno mi domestic price'],
   ['beef_br','precos','card-carne-me','Preço Carne · Mercado Externo','carne mercado externo me exportacao export'],
@@ -556,14 +572,22 @@ function rxHighlightCard(el) {
   ], { duration: 1400, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)', fill: 'none' });
 }
 
-function GlobalSearch({ onNavigate }) {
+function GlobalSearch({ onNavigate, dashboardSection = 'proteinas' }) {
   const [q, setQ] = useState('');
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const wrapRef = useRef(null);
   const inputRef = useRef(null);
 
-  const results = useMemo(() => (q.trim() ? searchDestinations(q).slice(0, 8) : []), [q]);
+  const results = useMemo(() => {
+    if (!q.trim()) return [];
+    const allowed = dashboardSection === 'macro'
+      ? ['macro']
+      : dashboardSection === 'capitalgoods'
+      ? ['weg']
+      : ['beef_br', 'beef_us', 'poultry_br', 'poultry_us'];
+    return searchDestinations(q).filter(r => allowed.includes(r.dataset)).slice(0, 8);
+  }, [q, dashboardSection]);
   useEffect(() => { setActive(0); }, [q]);
 
   useEffect(() => {
@@ -633,7 +657,7 @@ const MODE_ICON = {
 };
 const MODE_LABEL = { light: 'Tema: Claro · clique p/ Escuro', dark: 'Tema: Escuro · clique p/ Claro' };
 
-function TopBar({ meta, onUpload, activeDataset, colorMode = 'dark', onCycleMode, onNavigate }) {
+function TopBar({ meta, onUpload, activeDataset, colorMode = 'dark', onCycleMode, onNavigate, dashboardSection }) {
   const title  = activeDataset === 'macro' ? 'MACRO' : activeDataset === 'weg' ? 'WEG' : (activeDataset === 'poultry_br' || activeDataset === 'poultry_us') ? 'POULTRY' : 'BEEF';
   const suffix = (activeDataset === 'macro' || activeDataset === 'weg') ? '' : (activeDataset === 'beef_us' || activeDataset === 'poultry_us') ? 'US' : 'BR';
   const currentMeta = activeDataset === 'beef_us'
@@ -656,7 +680,7 @@ function TopBar({ meta, onUpload, activeDataset, colorMode = 'dark', onCycleMode
       </div>
       <div className="topbar-spacer"/>
       <div className="topbar-actions">
-        <GlobalSearch onNavigate={onNavigate}/>
+        <GlobalSearch onNavigate={onNavigate} dashboardSection={dashboardSection}/>
         <button className="topbar-mode-btn" onClick={onCycleMode}
           title={MODE_LABEL[colorMode]} aria-label={MODE_LABEL[colorMode]}>
           {MODE_ICON[colorMode]}

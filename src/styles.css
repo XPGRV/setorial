@@ -2034,3 +2034,7 @@ body {
 
 /* Sparkline do Market Overview (linha, não barras) */
 .home-sparkline { width: 100%; height: 26px; display: block; opacity: 0.9; }
+
+/* Mesh reativo da topbar (canvas atrás do logo) */
+.home-topbar-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; }
+.home-topbar .home-brand { position: relative; z-index: 3; }

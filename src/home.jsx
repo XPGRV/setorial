@@ -2,6 +2,141 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Beef, Car, Factory, Landmark, Clock3, Search, ChevronRight, SlidersHorizontal } from 'lucide-react'
 
+// ── Mesh reativo da topbar (canvas) ───────────────────────────────────────────
+// Malha de pontos que reage ao cursor: fundo navy + accent, constelação e glow.
+// Cores fixas de propósito (independentes do tema).
+const hex2rgb = (h) => {
+  h = h.replace('#', '')
+  if (h.length === 3) h = h.split('').map((c) => c + c).join('')
+  const n = parseInt(h, 16)
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+}
+const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t)
+const rgba = (c, a) => `rgba(${Math.round(c[0])},${Math.round(c[1])},${Math.round(c[2])},${a})`
+
+function TopbarMesh({ accent = '#2f8fc4', spacing = 12, intensity = 0.6, speed = 1, children }) {
+  const canvasRef = React.useRef(null)
+  const barRef = React.useRef(null)
+
+  React.useEffect(() => {
+    const cv = canvasRef.current
+    const bar = barRef.current
+    const ctx = cv.getContext('2d')
+
+    const navy = [10, 21, 34]
+    const acc = hex2rgb(accent)
+    const hi = mix(acc, [232, 244, 255], 0.55)
+    const dim = mix(navy, acc, 0.5)
+
+    const g = { mx: -999, my: -999, tmx: -999, tmy: -999, pres: 0, tpres: 0,
+                dots: [], cols: 0, rows: 0, w: 0, h: 0, sp: spacing }
+
+    const size = () => {
+      const dpr = Math.min(2, window.devicePixelRatio || 1)
+      const w = cv.clientWidth, h = cv.clientHeight
+      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr)
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      g.w = w; g.h = h
+      const sp = g.sp
+      const cols = Math.ceil(w / sp) + 1, rows = Math.ceil(h / sp) + 1
+      const offx = (w - (cols - 1) * sp) / 2, offy = (h - (rows - 1) * sp) / 2
+      g.cols = cols; g.rows = rows; g.dots = []
+      for (let j = 0; j < rows; j++)
+        for (let i = 0; i < cols; i++)
+          g.dots.push({ bx: offx + i * sp, by: offy + j * sp, x: 0, y: 0, act: 0 })
+    }
+    size()
+
+    const ro = new ResizeObserver(size)
+    ro.observe(cv)
+
+    const move = (e) => {
+      const r = bar.getBoundingClientRect()
+      g.tmx = e.clientX - r.left; g.tmy = e.clientY - r.top; g.tpres = 1
+    }
+    const leave = () => { g.tpres = 0 }
+    bar.addEventListener('pointermove', move)
+    bar.addEventListener('pointerleave', leave)
+
+    let raf, t = 0, prev = performance.now()
+    const R = 150
+    const k = intensity
+
+    const frame = (now) => {
+      const dt = Math.min(0.05, (now - prev) / 1000)
+      prev = now; t += dt * speed
+      const { w, h } = g
+
+      g.mx += (g.tmx - g.mx) * 0.16
+      g.my += (g.tmy - g.my) * 0.16
+      g.pres += (g.tpres - g.pres) * 0.08
+
+      const bg = ctx.createLinearGradient(0, 0, w, 0)
+      bg.addColorStop(0, rgba(mix(navy, acc, 0.28), 1))
+      bg.addColorStop(0.4, rgba(mix(navy, acc, 0.06), 1))
+      bg.addColorStop(1, rgba(navy, 1))
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h)
+
+      for (const d of g.dots) {
+        const dx = d.bx - g.mx, dy = d.by - g.my, dist = Math.hypot(dx, dy)
+        let act = g.pres * Math.max(0, 1 - dist / R); act = act * act
+        const idle = 0.1 + 0.06 * Math.sin(d.bx * 0.045 + d.by * 0.03 + t * 1.4)
+        d.act = Math.max(act, 0)
+        const push = act * 14 * k
+        const ux = dist > 0.001 ? dx / dist : 0, uy = dist > 0.001 ? dy / dist : 0
+        d.x = d.bx + ux * push; d.y = d.by + uy * push
+        const baseR = Math.max(0.5, g.sp / 26)
+        const rad = baseR + act * (g.sp * 0.11)
+        const col = mix(dim, hi, Math.min(1, act * 1.2))
+        ctx.beginPath(); ctx.arc(d.x, d.y, rad, 0, 6.283)
+        ctx.fillStyle = rgba(col, Math.min(1, idle + act * 0.9)); ctx.fill()
+      }
+
+      ctx.lineWidth = 1
+      for (let j = 0; j < g.rows; j++)
+        for (let i = 0; i < g.cols; i++) {
+          const a = g.dots[j * g.cols + i]
+          if (a.act < 0.12) continue
+          const nb = []
+          if (i + 1 < g.cols) nb.push(g.dots[j * g.cols + i + 1])
+          if (j + 1 < g.rows) nb.push(g.dots[(j + 1) * g.cols + i])
+          for (const b of nb) {
+            const s = Math.min(a.act, b.act)
+            if (s < 0.12) continue
+            ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y)
+            ctx.strokeStyle = rgba(hi, s * 0.55); ctx.stroke()
+          }
+        }
+
+      if (g.pres > 0.02) {
+        const gl = ctx.createRadialGradient(g.mx, g.my, 0, g.mx, g.my, R * 0.85)
+        gl.addColorStop(0, rgba(hi, 0.16 * g.pres))
+        gl.addColorStop(1, rgba(hi, 0))
+        ctx.fillStyle = gl; ctx.fillRect(0, 0, w, h)
+      }
+
+      ctx.fillStyle = rgba(hi, 0.5); ctx.fillRect(0, h - 1.5, w, 1.5)
+
+      raf = requestAnimationFrame(frame)
+    }
+    raf = requestAnimationFrame(frame)
+
+    return () => {
+      cancelAnimationFrame(raf)
+      ro.disconnect()
+      bar.removeEventListener('pointermove', move)
+      bar.removeEventListener('pointerleave', leave)
+    }
+  }, [accent, spacing, intensity, speed])
+
+  return (
+    <header className="home-topbar" ref={barRef}>
+      <canvas ref={canvasRef} className="home-topbar-canvas" />
+      {children}
+    </header>
+  )
+}
+
 // ── Setores (esquerda) ────────────────────────────────────────────────────────
 const SECTORS = [
   { label: 'Proteínas',       sub: 'Dados setoriais de Beef US, Beef BR, Poultry US e Poultry BR.', icon: Beef, route: '/proteinas', active: true },
@@ -89,12 +224,6 @@ export default function HomePage() {
 
   const go = s => { if (s.active && s.route) navigate(s.route) }
 
-  const moveTopbarBubble = event => {
-    const rect = event.currentTarget.getBoundingClientRect()
-    event.currentTarget.style.setProperty('--bubble-x', `${event.clientX - rect.left}px`)
-    event.currentTarget.style.setProperty('--bubble-y', `${event.clientY - rect.top}px`)
-  }
-
   const filteredNews = NEWS.filter(item => {
     const hay = `${item.title} ${item.summary} ${item.src} ${item.cat}`.toLowerCase()
     return hay.includes(query.trim().toLowerCase())
@@ -119,24 +248,11 @@ export default function HomePage() {
 
   return (
     <div className="home-page">
-      <header className="home-topbar" onPointerMove={moveTopbarBubble}>
-        <span className="home-topbar-bubble" aria-hidden="true" />
-        <span className="home-topbar-sheen" aria-hidden="true" />
+      <TopbarMesh>
         <div className="home-brand">
           <div className="home-brand-logo"><img src="/xp-asset-logo.svg" alt="XP Asset Management" /></div>
         </div>
-      </header>
-
-      <div className="home-ticker">
-        {TICKER.map(t => (
-          <div className="home-ticker-item" key={t.k}>
-            <span className="home-ticker-k">{t.k}</span>
-            <span className="home-ticker-v">{t.v}</span>
-            {t.u && <span className="home-ticker-u">{t.u}</span>}
-            <span className={t.d >= 0 ? 'is-up' : 'is-down'}>{t.d >= 0 ? '▲' : '▼'} {fmtDelta(t.d)}</span>
-          </div>
-        ))}
-      </div>
+      </TopbarMesh>
 
       <main className="home-workspace">
         {/* Esquerda — Setores */}

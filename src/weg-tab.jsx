@@ -21,7 +21,7 @@ const WegTab = ({ data, accent }) => {
         title="Preço Transformadores"
         sub="WEG · Transformadores"
         accent={accent} data={data} dataset="weg_transformadores"
-        field="value" unit="" decimals={1}
+        field="value" unit="Base 100" decimals={2}
       />
     </main>
   );

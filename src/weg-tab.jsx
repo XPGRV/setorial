@@ -320,7 +320,7 @@ const PEER_METRICS = {
   pe: {
     chartId: 'pe', suffix: '_pe', rebase: false, decimals: 1,
     cardId: 'card-weg-peers-pe', title: 'Peers · Comparação de P/E',
-    eyebrow: 'Bloomberg · Múltiplo Preço/Lucro (P/E)',
+    eyebrow: 'Bloomberg · Múltiplo Preço/Lucro (P/E) Forward 12M',
   },
 };
 

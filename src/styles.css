@@ -1534,7 +1534,7 @@ body {
   --home-strip: oklch(from var(--bg) calc(l + 0.02) c h);
   min-height: 100vh;
   background:
-    radial-gradient(900px 560px at 76% 72%, color-mix(in oklch, var(--accent) 7%, transparent), transparent 72%),
+    radial-gradient(ellipse 95% 48% at 50% 100%, color-mix(in oklch, var(--accent) 8%, transparent), transparent 72%),
     var(--bg);
 }
 [data-mode="light"] .home-page {
@@ -1543,7 +1543,6 @@ body {
   --home-strip: var(--bg-inset);
 }
 .home-topbar {
-  --topbar-light-x: 180px;
   position: relative;
   isolation: isolate;
   height: 92px;
@@ -1552,11 +1551,11 @@ body {
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(100deg,
+  background: linear-gradient(118deg,
     color-mix(in oklch, var(--accent) 56%, var(--bg)) 0%,
-    color-mix(in oklch, var(--accent) 30%, var(--bg)) 25%,
-    color-mix(in oklch, var(--accent) 10%, var(--bg)) 48%,
-    var(--bg) 74%);
+    color-mix(in oklch, var(--accent) 32%, var(--bg)) 31%,
+    color-mix(in oklch, var(--accent) 11%, var(--bg)) 58%,
+    var(--bg) 88%);
   overflow: hidden;
 }
 .home-topbar::after {
@@ -1570,36 +1569,25 @@ body {
   background: linear-gradient(90deg, var(--accent), color-mix(in oklch, var(--accent) 35%, transparent) 52%, transparent 88%);
   box-shadow: 0 0 8px color-mix(in oklch, var(--accent) 40%, transparent);
 }
-.home-topbar-reactive {
-  position: absolute;
-  z-index: 1;
-  top: -35%;
-  bottom: -35%;
-  left: calc(var(--topbar-light-x) - 95px);
-  width: 190px;
-  background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.075), transparent);
-  transform: skewX(-14deg);
-  filter: blur(7px);
-  pointer-events: none;
-  transition: left 120ms ease-out;
-}
 .home-topbar-sheen {
   position: absolute;
   z-index: 2;
   top: -30%;
   bottom: -30%;
-  left: -12%;
-  width: 70px;
+  left: -100px;
+  width: 90px;
   background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.12), transparent);
   transform: skewX(-18deg);
   pointer-events: none;
-  animation: home-topbar-sheen 12s ease-in-out infinite;
+  opacity: 0;
+  animation: home-topbar-sheen 10s linear infinite;
 }
 @keyframes home-topbar-sheen {
-  0%, 78% { left: -12%; opacity: 0; }
-  80% { opacity: 0.7; }
-  90% { left: 46%; opacity: 0.7; }
-  92%, 100% { left: 46%; opacity: 0; }
+  0%, 70% { transform: translateX(0) skewX(-18deg); opacity: 0; }
+  73% { opacity: 0; }
+  78% { opacity: 0.55; }
+  94% { transform: translateX(58vw) skewX(-18deg); opacity: 0.32; }
+  100% { transform: translateX(68vw) skewX(-18deg); opacity: 0; }
 }
 .home-brand { position: relative; z-index: 3; display: flex; align-items: center; gap: 13px; min-width: 0; }
 .home-brand-logo {
@@ -1986,7 +1974,6 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-topbar-reactive { transition: none; }
   .home-topbar-sheen { animation: none; }
 }
 .home-news-tone {

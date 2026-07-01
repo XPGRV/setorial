@@ -1731,8 +1731,8 @@ body {
 }
 .home-sectors .home-section-title { height: 42px; padding: 0 14px; }
 .home-sectors .home-section-heading { font-size: 11px; color: var(--fg); }
-.home-news { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; overflow: visible; }
-.home-news .home-section-title { padding: 0; background: transparent; }
+.home-news { padding: 0; }
+.home-news .home-section-title { padding: 0 14px; background: var(--home-strip); }
 .home-market { padding: 0; border-left: 1px solid var(--border); }
 
 .home-sector-list { padding: 8px; }
@@ -1802,7 +1802,7 @@ body {
 .is-up { color: var(--up) !important; }
 .is-down { color: var(--down) !important; }
 
-.home-news-tools { padding: 14px 0; display: flex; gap: 10px; align-items: center; border-bottom: 1px solid var(--border); }
+.home-news-tools { padding: 14px; display: flex; gap: 10px; align-items: center; border-bottom: 1px solid var(--border); }
 .home-news-search { min-width: 170px; flex: 1; height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 10px; border: 1px solid var(--border); border-radius: 5px; color: var(--fg-mute); background: var(--bg); }
 .home-news-search:focus-within { border-color: var(--border-strong); color: var(--fg-dim); }
 .home-news-search input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--fg); font: inherit; font-size: 11px; }
@@ -1813,7 +1813,7 @@ body {
 .home-news-tabs button:hover, .home-market-periods button:hover { color: var(--fg-dim); }
 .home-news-tabs button.is-on, .home-market-periods button.is-on { color: var(--fg); background: color-mix(in oklch, var(--accent) 20%, transparent); }
 .home-news-feed { min-height: 530px; overflow: hidden; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
-.home-news-item { position: relative; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.home-news-item { position: relative; padding: 14px; border-bottom: 1px solid var(--border); }
 .home-news-item.is-lead { padding-top: 16px; padding-bottom: 16px; background: transparent; }
 .home-news-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; color: var(--fg-mute); font-family: var(--font-mono); font-size: 9px; }
 .home-news-meta span { display: inline-flex; align-items: center; gap: 4px; }

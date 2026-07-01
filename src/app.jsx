@@ -325,7 +325,7 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
   const sectionTitle = dashboardSection === 'macro'
     ? 'Macro'
     : dashboardSection === 'capitalgoods'
-    ? 'Bens de Capital'
+    ? 'Capital Goods'
     : 'Proteínas';
 
   const Chevron = ({ open }) => (

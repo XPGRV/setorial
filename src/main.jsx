@@ -41,7 +41,7 @@ function ProteinasRoute({ initialData, initialMeta, initialDataset = 'beef_us', 
   }, [])
 
   if (!Component) {
-    const label = dashboardSection === 'macro' ? 'Macro' : dashboardSection === 'capitalgoods' ? 'Bens de Capital' : 'Proteinas'
+    const label = dashboardSection === 'macro' ? 'Macro' : dashboardSection === 'capitalgoods' ? 'Capital Goods' : 'Proteinas'
     const imageSrc = dashboardSection === 'capitalgoods'
       ? '/factory.gif'
       : dashboardSection === 'macro'

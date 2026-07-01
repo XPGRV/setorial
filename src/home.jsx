@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Beef, Car, Factory, Landmark, Clock3, Search, ChevronRight, SlidersHorizontal, Sun, Moon } from 'lucide-react'
+import { Beef, Car, Factory, Landmark, Clock3, Search, ChevronRight, SlidersHorizontal, Sun, Moon, Sprout, Utensils } from 'lucide-react'
 
 // ── Mesh reativo da topbar (canvas) ───────────────────────────────────────────
 // Malha de pontos que reage ao cursor: fundo navy + accent, constelação e glow.
@@ -138,7 +138,9 @@ function TopbarMesh({ accent = '#2f8fc4', spacing = 12, intensity = 0.3, speed =
 const SECTORS = [
   { label: 'Proteínas',       sub: 'Dados setoriais de preço e produção de Carne Bovina, Frango e Processados, no Brasil e EUA.', icon: Beef, route: '/proteinas', active: true },
   { label: 'Rental',          sub: 'Dados de locadoras, frotas, preços e mobilidade.', icon: Car },
-  { label: 'Bens de Capital', sub: 'Acompanhamento setorial de empresas como: WEG, Marcopolo, Embraer, etc.', icon: Factory, route: '/capitalgoods', active: true },
+  { label: 'Capital Goods',   sub: 'Acompanhamento setorial de empresas como: WEG, Marcopolo, Embraer, etc.', icon: Factory, route: '/capitalgoods', active: true },
+  { label: 'Agro',            sub: 'Acompanhamento de commodities agrícolas, produção, preços e empresas do agronegócio.', icon: Sprout },
+  { label: 'Food & Beverage', sub: 'Acompanhamento setorial de alimentos, bebidas, consumo e principais empresas.', icon: Utensils },
 ]
 const MACRO = [
   { label: 'Macro', sub: 'Estimativas da taxa de juros.', icon: Landmark, route: '/macro', active: true },

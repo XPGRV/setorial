@@ -22,7 +22,25 @@ async function refreshDashboard(onLoad, dataset) {
   if (!res.ok || !json?.ok) {
     throw new Error(json?.error || `Falha ao atualizar (${res.status})`);
   }
-  const { data, meta } = await window.refreshDashboardData();
+  const metaKeys = {
+    beef_us: 'us', beef_br: 'br', poultry_us: 'poultry_us',
+    poultry_br: 'poultry_br', macro: 'selic', weg: 'weg',
+  };
+  const metaKey = metaKeys[dataset] || 'br';
+  const expectedUpdate = json.meta?.[metaKey]?.updated;
+  let result = null;
+
+  // O Storage pode levar um instante para servir a nova versao do arquivo.
+  // Confirma o timestamp antes de redesenhar os graficos.
+  for (let attempt = 0; attempt < 6; attempt++) {
+    result = await window.refreshDashboardData();
+    if (!expectedUpdate || result.meta?.[metaKey]?.updated === expectedUpdate) break;
+    await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)));
+  }
+  const { data, meta } = result;
+  if (expectedUpdate && meta?.[metaKey]?.updated !== expectedUpdate) {
+    throw new Error('A nova versao ainda nao esta disponivel.');
+  }
   if (onLoad) onLoad(data, meta);
   return { data, meta };
 }

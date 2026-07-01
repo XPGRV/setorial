@@ -35,9 +35,11 @@ export default async function handler(req, res) {
 
     const payload = await response.json();
     if (!payload?.signedURL) throw new Error('Supabase nao retornou a URL assinada.');
-    const location = payload.signedURL.startsWith('http')
+    const signedLocation = payload.signedURL.startsWith('http')
       ? payload.signedURL
       : `${SB_URL}/storage/v1${payload.signedURL}`;
+    const separator = signedLocation.includes('?') ? '&' : '?';
+    const location = `${signedLocation}${separator}v=${encodeURIComponent(req.query.t || Date.now())}`;
 
     res.statusCode = 307;
     res.setHeader('Cache-Control', 'no-store, max-age=0');

@@ -432,7 +432,6 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
       </div>}
 
       {dashboardSection !== 'proteinas' && <div style={{display:'flex', flexDirection:'column', gap:2}}>
-        <div className="sidebar-divider" style={{margin:'0 4px 6px'}}/>
         <div className="sidebar-section-label" style={{paddingTop:0}}>
           {dashboardSection === 'macro' ? 'Cenário' : 'Empresas'}
         </div>

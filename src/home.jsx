@@ -115,7 +115,11 @@ export default function HomePage() {
     <div className="home-page">
       <header className="home-topbar">
         <div className="home-brand">
-          <div className="home-brand-logo"><img src="/xp-asset-logo.svg" alt="XP Asset Management" /></div>
+          <div className="home-brand-logo sidebar-brand-logobox">
+            <div className="sidebar-brand-logo-surface">
+              <img src="/xp-asset-logo.svg" alt="XP Asset Management" className="sidebar-brand-logo" />
+            </div>
+          </div>
         </div>
       </header>
 

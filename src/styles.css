@@ -1533,7 +1533,9 @@ body {
   --home-panel: oklch(from var(--bg) calc(l - 0.022) c h);
   --home-strip: oklch(from var(--bg) calc(l + 0.02) c h);
   min-height: 100vh;
-  background: var(--bg);
+  background:
+    radial-gradient(900px 560px at 76% 72%, color-mix(in oklch, var(--accent) 7%, transparent), transparent 72%),
+    var(--bg);
 }
 [data-mode="light"] .home-page {
   --accent: oklch(0.52 0.17 245);
@@ -1552,12 +1554,12 @@ body {
 }
 .home-brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
 .home-brand-logo {
-  width: 154px;
-  height: 50px;
-  padding: 9px 13px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, oklch(0.62 0.17 240), oklch(0.38 0.13 245));
-  box-shadow: 0 6px 22px oklch(0.62 0.17 240 / 0.2);
+  width: 220px;
+  height: 70px;
+  padding: 0;
+  border-radius: 10px;
+  background: transparent;
+  box-shadow: none;
 }
 .home-brand-logo img { width: 100%; height: 100%; object-fit: contain; filter: brightness(0) invert(1); display: block; }
 .home-brand-title { font-size: 15px; font-weight: 600; color: var(--fg); }
@@ -1744,7 +1746,7 @@ body {
 }
 @media (max-width: 720px) {
   .home-topbar { height: 64px; padding: 0 14px; }
-  .home-brand-logo { width: 92px; height: 34px; }
+  .home-brand-logo { width: 130px; height: 42px; }
   .home-brand-title { font-size: 13px; }
   .home-nav { display: none; }
   .home-topbar-status { display: none; }

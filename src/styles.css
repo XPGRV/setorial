@@ -155,6 +155,13 @@ body {
   width: 100%;
   aspect-ratio: 1582 / 500;
   border-radius: 10px;
+  overflow: visible;
+}
+.sidebar-brand-logo-surface {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: inherit;
   padding: 10px 14px;
   background: linear-gradient(140deg,
     color-mix(in oklch, var(--accent) 78%, var(--bg)),
@@ -168,21 +175,27 @@ body {
   content: '';
   position: absolute;
   z-index: 3;
-  width: 42px;
-  height: 3px;
-  border-radius: 999px;
-  background: color-mix(in oklch, var(--accent) 72%, white);
-  box-shadow:
-    0 0 5px color-mix(in oklch, var(--accent) 85%, transparent),
-    0 0 12px color-mix(in oklch, var(--accent) 58%, transparent),
-    0 0 22px color-mix(in oklch, var(--accent) 34%, transparent);
-  offset-path: inset(2px round 8px);
-  offset-distance: 0%;
-  offset-rotate: 0deg;
+  inset: -1px;
+  padding: 2px;
+  border-radius: 11px;
+  background: conic-gradient(
+    from var(--logo-halo-angle),
+    transparent 0deg 205deg,
+    color-mix(in oklch, var(--accent) 38%, transparent) 235deg,
+    var(--accent) 275deg,
+    color-mix(in oklch, var(--accent) 48%, transparent) 315deg,
+    transparent 345deg 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  filter:
+    drop-shadow(0 0 4px color-mix(in oklch, var(--accent) 70%, transparent))
+    drop-shadow(0 0 9px color-mix(in oklch, var(--accent) 42%, transparent));
   pointer-events: none;
   animation: logo-halo-orbit 7s linear infinite;
 }
-.sidebar-brand-logobox::after {
+.sidebar-brand-logo-surface::after {
   content: '';
   position: absolute;
   z-index: 2;
@@ -209,8 +222,13 @@ body {
   filter: brightness(0) invert(1);
 }
 
+@property --logo-halo-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
 @keyframes logo-halo-orbit {
-  to { offset-distance: 100%; }
+  to { --logo-halo-angle: 360deg; }
 }
 @keyframes logo-glint {
   0%, 82% { transform: skewX(-18deg) translateX(0); opacity: 0; }
@@ -225,7 +243,7 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .sidebar-brand-logobox::before,
-  .sidebar-brand-logobox::after,
+  .sidebar-brand-logo-surface::after,
   .sidebar-brand-logobox.is-refresh-pulse { animation: none; }
 }
 .sidebar-brand-text { display: flex; flex-direction: column; gap: 3px; }

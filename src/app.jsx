@@ -331,9 +331,11 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <div className={`sidebar-brand-logobox${logoPulse ? ' is-refresh-pulse' : ''}`} style={isPoultry ? {background:'oklch(0.83 0.20 88)'} : {}}>
-          <img src="./xp-asset-logo.svg" alt="XP Asset Management" className="sidebar-brand-logo"
-            style={isPoultry ? {filter:'brightness(0)'} : {}}/>
+        <div className={`sidebar-brand-logobox${logoPulse ? ' is-refresh-pulse' : ''}`}>
+          <div className="sidebar-brand-logo-surface" style={isPoultry ? {background:'oklch(0.83 0.20 88)'} : {}}>
+            <img src="./xp-asset-logo.svg" alt="XP Asset Management" className="sidebar-brand-logo"
+              style={isPoultry ? {filter:'brightness(0)'} : {}}/>
+          </div>
         </div>
         <div className="sidebar-brand-row">
           <button className="sidebar-back-btn" onClick={goHome} title="Voltar ao início">

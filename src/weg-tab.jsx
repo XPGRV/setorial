@@ -19,7 +19,7 @@ const WegTab = ({ data, accent }) => {
       <window.ContinuousCard
         cardId="card-weg-transformadores"
         title="Preço Transformadores"
-        sub="WEG · Transformadores"
+        sub="PPI · Electric Power and Specialty Transformer Manufacturing"
         accent={accent} data={data} dataset="weg_transformadores"
         field="value" unit="Base 100" decimals={2}
       />

@@ -124,7 +124,7 @@ function App({ data: propData, initialData, initialMeta }) {
     : activeDataset === 'macro'
     ? 'oklch(0.70 0.19 160)'
     : activeDataset === 'weg'
-    ? 'oklch(0.66 0.16 275)'
+    ? 'oklch(0.491 0.131 247.6)'
     : tweaks.accent || PALETTES[tweaks.palette].accent;
 
   // uiAccent — CSS var, sidebar highlights, logo box
@@ -137,7 +137,7 @@ function App({ data: propData, initialData, initialMeta }) {
     : activeDataset === 'macro'
     ? 'oklch(0.70 0.19 160)'
     : activeDataset === 'weg'
-    ? 'oklch(0.66 0.16 275)'
+    ? 'oklch(0.491 0.131 247.6)'
     : accent;
 
   const typeStack = TYPE_STACKS[tweaks.typography];
@@ -155,7 +155,7 @@ function App({ data: propData, initialData, initialMeta }) {
       : activeDataset === 'macro'
       ? 'oklch(0.70 0.19 160)'
       : activeDataset === 'weg'
-      ? 'oklch(0.66 0.16 275)'
+      ? 'oklch(0.491 0.131 247.6)'
       : themeAccent;
     // No modo claro, escurece o accent de UI p/ contraste (gráficos não são afetados)
     if (colorMode === 'light') finalAccent = darkenAccent(finalAccent);

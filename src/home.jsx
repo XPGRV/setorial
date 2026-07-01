@@ -132,6 +132,7 @@ function TopbarMesh({ accent = '#2f8fc4', spacing = 12, intensity = 0.3, speed =
   return (
     <header className="home-topbar" ref={barRef}>
       <canvas ref={canvasRef} className="home-topbar-canvas" />
+      <span className="home-topbar-sheen" aria-hidden="true" />
       {children}
     </header>
   )

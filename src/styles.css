@@ -1559,7 +1559,6 @@ body {
   overflow: hidden;
   border-radius: 12px;
   background: transparent;
-  box-shadow: 0 0 36px oklch(0.82 0.18 155 / 0.12);
 }
 
 .proteinas-loading-media img {

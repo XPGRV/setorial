@@ -89,6 +89,14 @@ export default function HomePage() {
 
   const go = s => { if (s.active && s.route) navigate(s.route) }
 
+  const moveTopbarMesh = event => {
+    const rect = event.currentTarget.getBoundingClientRect()
+    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 10
+    const y = ((event.clientY - rect.top) / rect.height - 0.5) * 6
+    event.currentTarget.style.setProperty('--mesh-x', `${x.toFixed(2)}px`)
+    event.currentTarget.style.setProperty('--mesh-y', `${y.toFixed(2)}px`)
+  }
+
   const filteredNews = NEWS.filter(item => {
     const hay = `${item.title} ${item.summary} ${item.src} ${item.cat}`.toLowerCase()
     return hay.includes(query.trim().toLowerCase())
@@ -113,8 +121,10 @@ export default function HomePage() {
 
   return (
     <div className="home-page">
-      <header className="home-topbar">
+      <header className="home-topbar" onPointerMove={moveTopbarMesh}>
+        <span className="home-topbar-mesh" aria-hidden="true" />
         <span className="home-topbar-sheen" aria-hidden="true" />
+        <span className="home-topbar-line-sheen" aria-hidden="true" />
         <div className="home-brand">
           <div className="home-brand-logo"><img src="/xp-asset-logo.svg" alt="XP Asset Management" /></div>
         </div>

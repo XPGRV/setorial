@@ -1534,7 +1534,7 @@ body {
   --home-strip: oklch(from var(--bg) calc(l + 0.02) c h);
   min-height: 100vh;
   background:
-    radial-gradient(ellipse 95% 48% at 50% 100%, color-mix(in oklch, var(--accent) 8%, transparent), transparent 72%),
+    radial-gradient(ellipse 95% 48% at 50% 100%, color-mix(in oklch, var(--accent) 4%, transparent), transparent 72%),
     var(--bg);
 }
 [data-mode="light"] .home-page {
@@ -1543,6 +1543,8 @@ body {
   --home-strip: var(--bg-inset);
 }
 .home-topbar {
+  --mesh-x: 0px;
+  --mesh-y: 0px;
   position: relative;
   isolation: isolate;
   height: 92px;
@@ -1557,6 +1559,21 @@ body {
     color-mix(in oklch, var(--accent) 11%, var(--bg)) 58%,
     var(--bg) 88%);
   overflow: hidden;
+}
+.home-topbar-mesh {
+  position: absolute;
+  z-index: 1;
+  inset: -30px 42% -55px -50px;
+  background-image:
+    linear-gradient(color-mix(in oklch, var(--accent) 20%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklch, var(--accent) 20%, transparent) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(90deg, #000 0%, #000 55%, transparent 100%);
+  transform: perspective(320px) rotateX(54deg) translate3d(var(--mesh-x), var(--mesh-y), 0) scale(1.08);
+  transform-origin: 20% 50%;
+  opacity: 0.42;
+  pointer-events: none;
+  transition: transform 130ms ease-out;
 }
 .home-topbar::after {
   content: '';
@@ -1582,6 +1599,22 @@ body {
   opacity: 0;
   animation: home-topbar-sheen 10s linear infinite;
 }
+.home-topbar-line-sheen {
+  position: absolute;
+  z-index: 5;
+  bottom: 0;
+  left: -100px;
+  width: 90px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, oklch(0.92 0.05 240), transparent);
+  box-shadow:
+    0 0 5px color-mix(in oklch, var(--accent) 85%, transparent),
+    0 0 12px color-mix(in oklch, var(--accent) 55%, transparent);
+  pointer-events: none;
+  opacity: 0;
+  animation: home-topbar-sheen 10s linear infinite;
+}
 @keyframes home-topbar-sheen {
   0%, 70% { transform: translateX(0) skewX(-18deg); opacity: 0; }
   73% { opacity: 0; }
@@ -1599,7 +1632,7 @@ body {
   transition: filter 180ms ease, transform 180ms ease;
 }
 .home-brand-logo img { width: 100%; height: 100%; object-fit: contain; filter: brightness(0) invert(1); display: block; }
-.home-brand-logo:hover { filter: drop-shadow(0 0 9px oklch(1 0 0 / 0.28)); transform: translateY(-1px); }
+.home-brand-logo:hover { filter: drop-shadow(0 0 10px oklch(1 0 0 / 0.34)); }
 .home-brand-title { font-size: 15px; font-weight: 600; color: var(--fg); }
 .home-brand-sub { margin-top: 2px; font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--fg-mute); }
 .home-nav { align-self: stretch; display: flex; align-items: center; gap: 6px; }
@@ -1974,7 +2007,9 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-topbar-sheen { animation: none; }
+  .home-topbar-mesh { transition: none; }
+  .home-topbar-sheen,
+  .home-topbar-line-sheen { animation: none; }
 }
 .home-news-tone {
   margin-left: auto; padding: 3px 8px; border-radius: 4px;

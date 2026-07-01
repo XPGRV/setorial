@@ -12,17 +12,15 @@ import {
   Landmark,
   Newspaper,
   Search,
-  TrendingDown,
   TrendingUp,
-  Wheat,
 } from 'lucide-react'
 
 const SECTORS = [
-  { route: '/proteinas', label: 'Proteínas', detail: 'Beef e Poultry', icon: Beef, active: true, color: 'green' },
-  { label: 'Bens de Capital', detail: 'Indústria e equipamentos', icon: Factory, color: 'blue' },
-  { label: 'Locação', detail: 'Veículos e mobilidade', icon: Car, color: 'amber' },
-  { label: 'Financeiro', detail: 'Bancos e serviços', icon: Landmark, color: 'cyan' },
-  { label: 'Real Estate', detail: 'Shoppings e propriedades', icon: Building2, color: 'red' },
+  { route: '/proteinas', label: 'Proteínas', contents: 'Dados setoriais de Beef US, Beef BR, Poultry US, Poultry BR e cenário macro.', icon: Beef, active: true },
+  { label: 'Bens de Capital', contents: 'Indicadores operacionais, mercado e acompanhamento de empresas industriais.', icon: Factory },
+  { label: 'Locação', contents: 'Dados de locação de veículos, frotas, preços e dinâmica competitiva.', icon: Car },
+  { label: 'Financeiro', contents: 'Indicadores de bancos, crédito, spreads e serviços financeiros.', icon: Landmark },
+  { label: 'Real Estate', contents: 'Dados de shoppings, propriedades comerciais e mercado imobiliário.', icon: Building2 },
 ]
 
 const NEWS = [
@@ -32,7 +30,7 @@ const NEWS = [
     source: 'Agência internacional',
     title: 'Exportações e oferta global permanecem no radar do setor de proteínas',
     summary: 'Fluxos comerciais e custos de alimentação seguem como os principais vetores acompanhados pelo mercado.',
-    tone: 'green',
+    tone: 'blue',
   },
   {
     category: 'Macro',
@@ -48,7 +46,7 @@ const NEWS = [
     source: 'Imprensa financeira',
     title: 'Atividade industrial ganha espaço entre os temas corporativos do dia',
     summary: 'Indicadores antecedentes ajudam a calibrar expectativas para demanda e margens.',
-    tone: 'amber',
+    tone: 'blue',
   },
   {
     category: 'Proteínas',
@@ -56,16 +54,8 @@ const NEWS = [
     source: 'Monitor setorial',
     title: 'Preços de grãos voltam ao foco nas cadeias de bovinos e aves',
     summary: 'Movimentos em milho e soja são acompanhados por seus efeitos sobre custos e spreads.',
-    tone: 'green',
+    tone: 'blue',
   },
-]
-
-const MARKETS = [
-  { symbol: 'IBOV', name: 'Ibovespa', value: '128.420', changes: { '1D': 0.62, '5D': 1.18, '1M': -0.44 }, bars: [34, 48, 42, 56, 51, 68, 72, 64, 79, 84] },
-  { symbol: 'USD/BRL', name: 'Dólar', value: '5,438', changes: { '1D': -0.31, '5D': 0.74, '1M': 1.92 }, bars: [68, 64, 72, 61, 58, 54, 59, 48, 44, 39] },
-  { symbol: 'BEEF3', name: 'Minerva', value: '5,92', changes: { '1D': 1.54, '5D': 2.11, '1M': -3.28 }, bars: [30, 36, 33, 45, 51, 48, 62, 58, 69, 76] },
-  { symbol: 'BRFS3', name: 'BRF', value: '19,84', changes: { '1D': -0.48, '5D': 0.32, '1M': 4.07 }, bars: [74, 70, 62, 66, 58, 61, 54, 49, 52, 46] },
-  { symbol: 'WEGE3', name: 'WEG', value: '41,26', changes: { '1D': 0.87, '5D': -0.65, '1M': 2.36 }, bars: [38, 42, 47, 44, 53, 61, 57, 69, 73, 81] },
 ]
 
 function SectionTitle({ icon: Icon, title, detail }) {
@@ -81,7 +71,6 @@ export default function HomePage() {
   const navigate = useNavigate()
   const [newsFilter, setNewsFilter] = React.useState('Todas')
   const [query, setQuery] = React.useState('')
-  const [period, setPeriod] = React.useState('1D')
 
   const filteredNews = NEWS.filter(item => {
     const matchesCategory = newsFilter === 'Todas' || item.category === newsFilter
@@ -89,60 +78,38 @@ export default function HomePage() {
     return matchesCategory && haystack.includes(query.trim().toLowerCase())
   })
 
-  const scrollTo = id => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-
   return (
     <div className="home-page">
       <header className="home-topbar">
         <div className="home-brand">
           <div className="home-brand-logo"><img src="/xp-asset-logo.svg" alt="XP Asset Management" /></div>
-          <div>
-            <div className="home-brand-title">Setorial Intelligence</div>
-            <div className="home-brand-sub">Research workspace</div>
-          </div>
-        </div>
-        <nav className="home-nav" aria-label="Navegação da Home">
-          <button className="is-active">Home</button>
-          <button onClick={() => scrollTo('home-sectors')}>Setores</button>
-          <button onClick={() => scrollTo('news-hunter')}>News Hunter</button>
-          <button onClick={() => scrollTo('market-overview')}>Market Overview</button>
-        </nav>
-        <div className="home-topbar-status">
-          <span className="home-status-dot" />
-          Estrutura visual
         </div>
       </header>
 
       <main className="home-workspace">
-        <aside className="home-column home-sectors" id="home-sectors">
+        <aside className="home-column home-sectors">
           <SectionTitle icon={Globe2} title="Setores" detail={`${SECTORS.length} áreas`} />
           <div className="home-sector-list">
-            {SECTORS.map(({ route, label, detail, icon: Icon, active, color }) => (
+            {SECTORS.map(({ route, label, contents, icon: Icon, active }) => (
               <button
                 key={label}
-                className={`home-sector-item${active ? ' is-active' : ''}`}
+                className={`home-sector-item${active ? ' is-active' : ' is-soon'}`}
                 onClick={() => active && navigate(route)}
-                disabled={!active}
+                aria-disabled={!active}
               >
-                <span className={`home-sector-icon is-${color}`}><Icon size={17} /></span>
-                <span className="home-sector-copy">
-                  <strong>{label}</strong>
-                  <small>{detail}</small>
-                </span>
+                <span className="home-sector-icon"><Icon size={18} /></span>
+                <span className="home-sector-copy"><strong>{label}</strong></span>
                 {active ? <ChevronRight size={15} /> : <span className="home-soon">Em breve</span>}
+                <span className="home-sector-tooltip" role="tooltip">
+                  <strong>{label}</strong>
+                  <span>{contents}</span>
+                </span>
               </button>
             ))}
           </div>
-
-          <div className="home-watch-block">
-            <div className="home-watch-label"><Wheat size={14} /> Radar setorial</div>
-            <div className="home-watch-row"><span>Milho</span><strong className="is-up">+0,8%</strong></div>
-            <div className="home-watch-row"><span>Boi gordo</span><strong className="is-down">-0,3%</strong></div>
-            <div className="home-watch-note">Dados ilustrativos</div>
-          </div>
         </aside>
 
-        <section className="home-column home-news" id="news-hunter">
+        <section className="home-column home-news">
           <SectionTitle icon={Newspaper} title="News Hunter" detail="Feed demonstrativo" />
           <div className="home-news-tools">
             <label className="home-news-search">
@@ -174,40 +141,11 @@ export default function HomePage() {
           </div>
         </section>
 
-        <aside className="home-column home-market" id="market-overview">
-          <SectionTitle icon={TrendingUp} title="Market Overview" detail="Dados ilustrativos" />
-          <div className="home-market-periods" aria-label="Período do mercado">
-            {['1D', '5D', '1M'].map(value => (
-              <button key={value} className={period === value ? 'is-on' : ''} onClick={() => setPeriod(value)}>{value}</button>
-            ))}
-          </div>
-
-          <div className="home-market-list">
-            {MARKETS.map(item => {
-              const change = item.changes[period]
-              const positive = change >= 0
-              const TrendIcon = positive ? TrendingUp : TrendingDown
-              return (
-                <div className="home-market-row" key={item.symbol}>
-                  <div className="home-market-main">
-                    <strong>{item.symbol}</strong>
-                    <span>{item.name}</span>
-                  </div>
-                  <div className={`home-sparkbars${positive ? ' is-up' : ' is-down'}`} aria-hidden="true">
-                    {item.bars.map((height, index) => <i key={index} style={{ height: `${height}%` }} />)}
-                  </div>
-                  <div className="home-market-quote">
-                    <strong>{item.value}</strong>
-                    <span className={positive ? 'is-up' : 'is-down'}><TrendIcon size={12} />{positive ? '+' : ''}{change.toFixed(2).replace('.', ',')}%</span>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-
-          <div className="home-market-footer">
-            <span><span className="home-status-dot" />Mercado aberto</span>
-            <button>Ver painel <ChevronRight size={14} /></button>
+        <aside className="home-column home-market">
+          <SectionTitle icon={TrendingUp} title="Market Overview" />
+          <div className="home-market-empty">
+            <div className="home-market-empty-line" />
+            <span>Sem dados no momento</span>
           </div>
         </aside>
       </main>

@@ -71,11 +71,7 @@ function TopbarMesh({ accent = '#2f8fc4', spacing = 12, intensity = 0.3, speed =
       g.my += (g.tmy - g.my) * 0.16
       g.pres += (g.tpres - g.pres) * 0.08
 
-      const bg = ctx.createLinearGradient(0, 0, w, 0)
-      bg.addColorStop(0, rgba(mix(navy, acc, 0.13), 1))
-      bg.addColorStop(0.4, rgba(mix(navy, acc, 0.03), 1))
-      bg.addColorStop(1, rgba(navy, 1))
-      ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h)
+      ctx.clearRect(0, 0, w, h)
 
       for (const d of g.dots) {
         const dx = d.bx - g.mx, dy = d.by - g.my, dist = Math.hypot(dx, dy)

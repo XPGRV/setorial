@@ -932,6 +932,48 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
     if (weg_transformadores.length) result.weg_transformadores = weg_transformadores;
   }
 
+  // ── WEG · Peers (WEG - Setorial.xlsm · aba Peers) ────────────────────────────
+  // Preços diários das ações (USD). Colunas F..O (idx 5..14):
+  //   F=WEG G=ABB H=Nidec I=Regal Rexnord J=Eaton K=Siemens L=Schneider
+  //   M=GE Vernova N=Hitachi O=Hyosung. A coluna de data é autodetectada (A..E).
+  if (findSheet('Peers')) {
+    const pRaw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('Peers')], { header: 1, raw: true });
+    const PEER_COLS = {
+      weg: 5, abb: 6, nidec: 7, regal: 8, eaton: 9,
+      siemens: 10, schneider: 11, gevernova: 12, hitachi: 13, hyosung: 14,
+    };
+    // Autodetecta a coluna de data entre A..E (a que mais parseia como data)
+    let dateCol = -1, bestHits = 0;
+    for (let c = 0; c <= 4; c++) {
+      let hits = 0;
+      for (let i = 1; i < Math.min(pRaw.length, 60); i++) {
+        if (pRaw[i] && parseDate(pRaw[i][c])) hits++;
+      }
+      if (hits > bestHits) { bestHits = hits; dateCol = c; }
+    }
+    const weg_peers = [];
+    if (dateCol >= 0) {
+      for (let i = 1; i < pRaw.length; i++) {
+        const r = pRaw[i];
+        if (!r) continue;
+        const pd = parseDate(r[dateCol]);
+        if (!pd) continue;
+        const row = { year: pd.year, month: pd.month, day: pd.day };
+        let hasAny = false;
+        for (const [key, col] of Object.entries(PEER_COLS)) {
+          const v = parseNum(r[col]);
+          if (v != null) { row[key] = v; hasAny = true; }
+        }
+        if (hasAny) weg_peers.push(row);
+      }
+    }
+    if (weg_peers.length) {
+      weg_peers.sort((a, b) =>
+        a.year !== b.year ? a.year - b.year : a.month !== b.month ? a.month - b.month : a.day - b.day);
+      result.weg_peers = weg_peers;
+    }
+  }
+
   if (Object.keys(result).length === 0) throw new Error(`Nenhuma aba reconhecida. Abas encontradas: ${sheets.join(', ')}`);
   return result;
 }

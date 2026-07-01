@@ -1,6 +1,360 @@
 import React from 'react'
 
 // Aba WEG (provisória) — dados da planilha WEG - Setorial.xlsm
+
+// ── Definições dos peers ──────────────────────────────────────────────────────
+// Cores puxadas da identidade de cada empresa, mas espalhadas no círculo de
+// matiz para que nenhuma linha fique parecida com a vizinha.
+const WEG_PEERS = [
+  { key: 'weg',       label: 'WEG',           color: 'oklch(0.62 0.17 255)' },
+  { key: 'abb',       label: 'ABB',           color: 'oklch(0.62 0.21 25)'  },
+  { key: 'nidec',     label: 'Nidec',         color: 'oklch(0.72 0.17 150)' },
+  { key: 'regal',     label: 'Regal Rexnord', color: 'oklch(0.74 0.12 200)' },
+  { key: 'eaton',     label: 'Eaton',         color: 'oklch(0.72 0.18 55)'  },
+  { key: 'siemens',   label: 'Siemens',       color: 'oklch(0.58 0.10 215)' },
+  { key: 'schneider', label: 'Schneider',     color: 'oklch(0.58 0.15 135)' },
+  { key: 'gevernova', label: 'GE Vernova',    color: 'oklch(0.60 0.16 290)' },
+  { key: 'hitachi',   label: 'Hitachi',       color: 'oklch(0.66 0.20 350)' },
+  { key: 'hyosung',   label: 'Hyosung',       color: 'oklch(0.80 0.15 90)'  },
+];
+const PEER_BY_KEY = Object.fromEntries(WEG_PEERS.map(p => [p.key, p]));
+
+const PEER_GROUPS = [
+  { key: 'eie', label: 'EIE Peers', members: ['abb', 'nidec', 'regal'] },
+  { key: 'gtd', label: 'GTD Peers', members: ['eaton', 'siemens', 'schneider', 'gevernova', 'hitachi', 'hyosung'] },
+  { key: 'ai',  label: 'AI Peers',  members: [] }, // a definir
+];
+
+const sameSet = (a, b) => a.length === b.length && [...a].sort().join(',') === [...b].sort().join(',');
+
+// Qual grupo (se algum) corresponde à seleção atual de peers (ignorando WEG).
+function groupOf(selected) {
+  const peersSel = [...selected].filter(k => k !== 'weg');
+  for (const g of PEER_GROUPS) {
+    if (g.members.length && sameSet(peersSel, g.members)) return g.key;
+  }
+  return peersSel.length ? 'custom' : 'none';
+}
+
+// ── Dropdown genérico (fecha ao clicar fora) ─────────────────────────────────
+const ChevronDown = () => (
+  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5, marginLeft: 4 }}>
+    <path d="M2 4l4 4 4-4"/>
+  </svg>
+);
+
+function Dropdown({ label, children, width = 200 }) {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    if (!open) return;
+    const onDown = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [open]);
+  return (
+    <div className="weg-dd" ref={ref}>
+      <button className={`weg-dd-btn ${open ? 'is-open' : ''}`} onClick={() => setOpen(o => !o)}>
+        <span>{label}</span><ChevronDown/>
+      </button>
+      {open && <div className="weg-dd-panel" style={{ width }}>{children}</div>}
+    </div>
+  );
+}
+
+// ── Gráfico multi-linha diário contínuo ──────────────────────────────────────
+function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey }) {
+  const W = 1000, H = 340;
+  const padL = 56, padR = 24, padT = 18, padB = 32;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+
+  const [hover, setHover] = React.useState(null);
+  const [mouseY, setMouseY] = React.useState(0);
+  const { shouldRender: showAreaRender, isLeaving: areaLeaving } = window.useFadeOut(chartStyle === 'area', 400);
+
+  const tOf = React.useCallback(r => r.year + (r.month - 1) / 12 + (r.day - 0.5) / 365.25, []);
+
+  const geom = React.useMemo(() => {
+    if (!rows.length || !peers.length) return null;
+    const vals = [];
+    for (const r of rows) for (const p of peers) { const v = r[p.key]; if (v != null) vals.push(v); }
+    if (!vals.length) return null;
+    const rawMin = Math.min(...vals), rawMax = Math.max(...vals);
+    const pad = (rawMax - rawMin) * 0.06 || 1;
+    const vMin = rawMin - pad, vMax = rawMax + pad;
+    const tFirst = tOf(rows[0]), tLast = tOf(rows[rows.length - 1]);
+    const span = tLast - tFirst || 1;
+    const xOf = r => padL + ((tOf(r) - tFirst) / span) * chartW;
+    const yOf = v => padT + (1 - (v - vMin) / (vMax - vMin)) * chartH;
+
+    // Y ticks
+    const vRange = vMax - vMin;
+    const rawStep = vRange / 5;
+    const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+    const niceStep = [1, 2, 2.5, 5, 10].map(f => f * mag).find(s => vRange / s <= 8) || mag * 10;
+    const yTicks = [];
+    for (let v = Math.ceil(vMin / niceStep) * niceStep; v <= vMax + niceStep * 0.01; v = Math.round((v + niceStep) * 1e6) / 1e6)
+      yTicks.push(v);
+
+    // X ticks (por ordinal mensal, como no Poultry/Beef Ratio)
+    const spanYears = tLast - tFirst;
+    const stepMons = spanYears <= 3.5 ? 6 : spanYears <= 6 ? 12 : spanYears <= 13 ? 24 : 60;
+    const firstOrd = rows[0].year * 12 + rows[0].month - 1;
+    const lastOrd = rows[rows.length - 1].year * 12 + rows[rows.length - 1].month - 1;
+    const xTicks = [];
+    for (let ord = Math.ceil(firstOrd / stepMons) * stepMons; ord <= lastOrd; ord += stepMons) {
+      const yr = Math.floor(ord / 12), mo = (ord % 12) + 1;
+      const t = yr + (mo - 1) / 12;
+      const x = padL + ((t - tFirst) / span) * chartW;
+      const label = stepMons === 6 ? `${window.MONTHS_PT[mo - 1]}/${String(yr).slice(-2)}` : String(yr);
+      xTicks.push({ x, label });
+    }
+
+    // Paths por série (quebra em nulos)
+    const paths = {};
+    for (const p of peers) {
+      let d = '', pen = false;
+      for (const r of rows) {
+        const v = r[p.key];
+        if (v == null) { pen = false; continue; }
+        d += `${pen ? 'L' : 'M'}${xOf(r).toFixed(1)},${yOf(v).toFixed(1)}`;
+        pen = true;
+      }
+      paths[p.key] = d;
+    }
+    const baseY = padT + chartH;
+    const areaPaths = {};
+    for (const p of peers) {
+      const pts = rows.filter(r => r[p.key] != null);
+      if (!pts.length) { areaPaths[p.key] = ''; continue; }
+      const line = pts.map(r => `${xOf(r).toFixed(1)},${yOf(r[p.key]).toFixed(1)}`).join('L');
+      areaPaths[p.key] = `M${line}L${xOf(pts[pts.length - 1]).toFixed(1)},${baseY.toFixed(1)}L${xOf(pts[0]).toFixed(1)},${baseY.toFixed(1)}Z`;
+    }
+    return { vMin, vMax, tFirst, span, xOf, yOf, yTicks, xTicks, paths, areaPaths, baseY };
+  }, [rows, peers, tOf]);
+
+  if (!geom) {
+    return <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-dim)', fontSize: 13 }}>Selecione ao menos uma empresa</div>;
+  }
+  const { xOf, yOf, yTicks, xTicks, paths, areaPaths } = geom;
+
+  const opacityOf = key => pinnedKey ? (pinnedKey === key ? 1 : 0.12) : 1;
+  const widthOf   = key => pinnedKey === key ? 2.4 : 1.6;
+
+  const onMove = e => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const px = (e.clientX - rect.left) * (W / rect.width);
+    const py = (e.clientY - rect.top) * (H / rect.height);
+    const t = geom.tFirst + ((px - padL) / chartW) * geom.span;
+    let best = null, bestD = Infinity;
+    for (const r of rows) { const d = Math.abs(tOf(r) - t); if (d < bestD) { bestD = d; best = r; } }
+    setHover(best || null); setMouseY(py);
+  };
+
+  const clipId = 'weg-peers-clip';
+  const visForTip = pinnedKey ? peers.filter(p => p.key === pinnedKey) : peers;
+
+  return (
+    <div className="chart-wrap">
+      <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg" preserveAspectRatio="xMidYMid meet"
+        onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
+        <defs>
+          <clipPath id={clipId}><rect x={padL} y={padT} width={chartW} height={chartH + 4}/></clipPath>
+          {peers.map(p => (
+            <linearGradient key={p.key} id={`weg-grad-${p.key}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={p.color} stopOpacity="0.22"/>
+              <stop offset="100%" stopColor={p.color} stopOpacity="0.01"/>
+            </linearGradient>
+          ))}
+        </defs>
+
+        {yTicks.map(v => (
+          <g key={v}>
+            <line x1={padL} x2={W - padR} y1={yOf(v)} y2={yOf(v)} className="grid-line"/>
+            <text x={padL - 6} y={yOf(v)} className="tick-label" textAnchor="end" dominantBaseline="middle">
+              {window.fmt(v, { decimals: v >= 100 ? 0 : 1 })}
+            </text>
+          </g>
+        ))}
+        {xTicks.map((t, i) => (
+          <g key={i}>
+            <line x1={t.x} x2={t.x} y1={padT} y2={H - padB} className="grid-line" opacity="0.3"/>
+            <text x={t.x} y={H - padB + 16} className="tick-label" textAnchor="middle">{t.label}</text>
+          </g>
+        ))}
+
+        {showAreaRender && peers.map(p => (
+          areaPaths[p.key] ? (
+            <path key={p.key} d={areaPaths[p.key]} fill={`url(#weg-grad-${p.key})`}
+              opacity={pinnedKey && pinnedKey !== p.key ? 0 : 1}
+              style={{ transition: 'opacity 0.25s ease' }}
+              className={`rx-area${areaLeaving ? ' rx-area-leaving' : ''}`} clipPath={`url(#${clipId})`}/>
+          ) : null
+        ))}
+
+        {peers.map(p => (
+          paths[p.key] ? (
+            <g key={p.key}>
+              <path d={paths[p.key]} fill="none" stroke={p.color} strokeWidth={widthOf(p.key)}
+                strokeLinejoin="round" strokeLinecap="round" opacity={opacityOf(p.key)}
+                style={{ transition: 'opacity 0.25s ease' }} clipPath={`url(#${clipId})`}/>
+              <path d={paths[p.key]} fill="none" stroke="transparent" strokeWidth={10}
+                style={{ cursor: 'pointer' }} clipPath={`url(#${clipId})`}
+                onClick={() => setPinnedKey(k => k === p.key ? null : p.key)}/>
+            </g>
+          ) : null
+        ))}
+
+        {hover && (
+          <g>
+            <line x1={xOf(hover)} x2={xOf(hover)} y1={padT} y2={H - padB}
+              stroke="var(--fg)" strokeOpacity="0.2" strokeWidth="1"/>
+            {peers.map(p => {
+              const v = hover[p.key];
+              if (v == null) return null;
+              const dimmed = pinnedKey && pinnedKey !== p.key;
+              return <circle key={p.key} cx={xOf(hover)} cy={yOf(v)} r={dimmed ? 2.5 : 3.5}
+                fill="var(--bg)" stroke={p.color} strokeWidth={2} opacity={dimmed ? 0.3 : 1}/>;
+            })}
+          </g>
+        )}
+
+        <line x1={padL} x2={W - padR} y1={H - padB} y2={H - padB} className="axis-line"/>
+        <line x1={padL} x2={padL} y1={padT} y2={H - padB} className="axis-line"/>
+      </svg>
+
+      {hover && (() => {
+        const xPos = xOf(hover);
+        const isRight = xPos > W * 0.68;
+        return (
+          <div className="hover-card" style={{
+            left: `${(xPos / W * 100).toFixed(1)}%`,
+            top: Math.max(10, Math.min(H - 150, mouseY - 40)),
+            transform: isRight ? 'translateX(calc(-100% - 16px))' : 'translateX(16px)',
+          }}>
+            <div className="hover-month">{String(hover.day).padStart(2, '0')}/{window.MONTHS_PT[hover.month - 1]}/{hover.year}</div>
+            <div className="hover-rows">
+              {visForTip.map(p => hover[p.key] == null ? null : (
+                <div key={p.key} className="hover-row">
+                  <span className="hover-year" style={{ color: p.color }}>{p.label}</span>
+                  <span className="hover-val">{window.fmt(hover[p.key], { decimals: 2 })}<span className="hover-unit"> USD</span></span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
+      <div className="ciclo-legend" style={{ marginTop: 8 }}>
+        {peers.map(p => (
+          <span key={p.key} className="legend-year"
+            style={{
+              userSelect: 'none', padding: '2px 6px', cursor: 'pointer',
+              opacity: pinnedKey && pinnedKey !== p.key ? 0.3 : 1,
+              outline: pinnedKey === p.key ? `1px solid ${p.color}` : 'none', borderRadius: 4,
+            }}
+            onClick={() => setPinnedKey(k => k === p.key ? null : p.key)}>
+            <span className="legend-line" style={{ background: p.color }}/>
+            {p.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Card do gráfico de peers ──────────────────────────────────────────────────
+function WegPeersCard({ data }) {
+  const allRows = React.useMemo(() => data.weg_peers || [], [data]);
+  const [range, setRange] = React.useState('5');
+  const [chartStyle, setChartStyle] = React.useState('line');
+  const [selected, setSelected] = React.useState(() => new Set(['weg', 'abb', 'nidec', 'regal']));
+  const [pinnedKey, setPinnedKey] = React.useState(null);
+
+  const rangeNum = range === 'all' ? 'all' : parseInt(range);
+  const rows = React.useMemo(() => {
+    if (!allRows.length || rangeNum === 'all') return allRows;
+    const last = allRows[allRows.length - 1];
+    const cutOrd = last.year * 12 + last.month - rangeNum * 12;
+    return allRows.filter(r => r.year * 12 + r.month > cutOrd);
+  }, [allRows, rangeNum]);
+
+  const peers = React.useMemo(() => WEG_PEERS.filter(p => selected.has(p.key)), [selected]);
+  const curGroup = groupOf(selected);
+
+  const togglePeer = key => setSelected(prev => {
+    const next = new Set(prev);
+    next.has(key) ? next.delete(key) : next.add(key);
+    return next;
+  });
+  // Grupo é um atalho que substitui os peers, preservando o estado do WEG.
+  const applyGroup = g => setSelected(prev => {
+    const next = new Set(g.members);
+    if (prev.has('weg')) next.add('weg');
+    return next;
+  });
+
+  const groupLabel = curGroup === 'custom' ? 'Personalizado'
+    : curGroup === 'none' ? 'Nenhum'
+    : PEER_GROUPS.find(g => g.key === curGroup)?.label;
+
+  return (
+    <section className="card card-full" data-card-id="card-weg-peers">
+      <div className="card-head">
+        <div>
+          <div className="card-eyebrow">Bloomberg · Preço das ações (USD)</div>
+          <h3 className="card-title">Peers · Comparação de Preço</h3>
+        </div>
+
+        <div className="card-controls">
+          <div className="card-ctrl-row">
+            <div className="year-seg">
+              {[['3a', 3], ['5a', 5], ['10a', 10], ['Todos', 'all']].map(([label, val]) => (
+                <button key={label} className={`year-seg-btn ${range === String(val) ? 'is-on' : ''}`}
+                  onClick={() => setRange(String(val))}>{label}</button>
+              ))}
+            </div>
+            <div className="seg">
+              {[['line', 'Linha'], ['area', 'Área']].map(([v, l]) => (
+                <button key={v} className={`seg-btn ${chartStyle === v ? 'is-on' : ''}`}
+                  onClick={() => setChartStyle(v)}>{l}</button>
+              ))}
+            </div>
+          </div>
+          <div className="card-ctrl-row">
+            <Dropdown label={`Grupo: ${groupLabel}`} width={170}>
+              {PEER_GROUPS.map(g => {
+                const disabled = g.members.length === 0;
+                return (
+                  <button key={g.key} className={`weg-dd-opt ${curGroup === g.key ? 'is-on' : ''}`}
+                    disabled={disabled} onClick={() => !disabled && applyGroup(g)}>
+                    {g.label}{disabled ? ' (a definir)' : ''}
+                  </button>
+                );
+              })}
+            </Dropdown>
+            <Dropdown label={`Empresas (${peers.length})`} width={200}>
+              {WEG_PEERS.map(p => (
+                <label key={p.key} className="weg-dd-check">
+                  <input type="checkbox" checked={selected.has(p.key)} onChange={() => togglePeer(p.key)}/>
+                  <span className="weg-dd-dot" style={{ background: p.color }}/>
+                  <span>{p.label}</span>
+                </label>
+              ))}
+            </Dropdown>
+          </div>
+        </div>
+      </div>
+
+      <WegPeersChart rows={rows} peers={peers} chartStyle={chartStyle}
+        pinnedKey={pinnedKey} setPinnedKey={setPinnedKey}/>
+    </section>
+  );
+}
+
+// ── Aba ───────────────────────────────────────────────────────────────────────
 const EmptyWeg = () => (
   <main className="main" style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,minHeight:'60vh',color:'var(--fg-dim)'}}>
     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -12,17 +366,22 @@ const EmptyWeg = () => (
 );
 
 const WegTab = ({ data, accent }) => {
-  if (!data.weg_transformadores || !data.weg_transformadores.length) return <EmptyWeg />;
+  const hasTransf = data.weg_transformadores && data.weg_transformadores.length;
+  const hasPeers  = data.weg_peers && data.weg_peers.length;
+  if (!hasTransf && !hasPeers) return <EmptyWeg />;
 
   return (
     <main className="main">
-      <window.ContinuousCard
-        cardId="card-weg-transformadores"
-        title="Preço Transformadores"
-        sub="PPI · Electric Power and Specialty Transformer Manufacturing"
-        accent={accent} data={data} dataset="weg_transformadores"
-        field="value" unit="Base 100" decimals={2}
-      />
+      {hasTransf && (
+        <window.ContinuousCard
+          cardId="card-weg-transformadores"
+          title="Preço Transformadores"
+          sub="PPI · Electric Power and Specialty Transformer Manufacturing"
+          accent={accent} data={data} dataset="weg_transformadores"
+          field="value" unit="Base 100" decimals={2}
+        />
+      )}
+      {hasPeers && <WegPeersCard data={data}/>}
     </main>
   );
 };

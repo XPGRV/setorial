@@ -1,10 +1,41 @@
-import React, { lazy, Suspense } from 'react'
+import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './reactive.js'
 import HomePage from './home.jsx'
 
-const ProteinasApp = lazy(() => import('./proteinas-entry.jsx'))
+function ProteinasLoading() {
+  return (
+    <div className="proteinas-loading" role="status" aria-label="Carregando Proteinas">
+      <img src="/meat-food.gif" alt="" />
+    </div>
+  )
+}
+
+function ProteinasRoute({ initialData, initialMeta }) {
+  const [Component, setComponent] = React.useState(null)
+
+  React.useEffect(() => {
+    let active = true
+    let timer = null
+    const startedAt = Date.now()
+
+    import('./proteinas-entry.jsx').then(module => {
+      const remaining = Math.max(0, 3000 - (Date.now() - startedAt))
+      timer = setTimeout(() => {
+        if (active) setComponent(() => module.default)
+      }, remaining)
+    })
+
+    return () => {
+      active = false
+      if (timer) clearTimeout(timer)
+    }
+  }, [])
+
+  if (!Component) return <ProteinasLoading />
+  return <Component initialData={initialData} initialMeta={initialMeta} />
+}
 
 // Aplica tema antes do primeiro paint
 document.documentElement.dataset.theme   = 'flux'
@@ -116,9 +147,7 @@ document.documentElement.style.setProperty('--accent',
         <Route path="/"          element={<Navigate to="/home" replace />} />
         <Route path="/home"      element={<HomePage />} />
         <Route path="/proteinas" element={
-          <Suspense fallback={<div className="sector-loading">Carregando…</div>}>
-            <ProteinasApp initialData={data} initialMeta={meta} />
-          </Suspense>
+          <ProteinasRoute initialData={data} initialMeta={meta} />
         } />
       </Routes>
     </BrowserRouter>

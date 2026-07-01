@@ -1541,14 +1541,19 @@ body {
   transform: translateX(4px);
 }
 
-/* Fallback enquanto chunk lazy carrega */
-.sector-loading {
+/* Loading exclusivo da entrada em Proteinas */
+.proteinas-loading {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100vh;
-  color: var(--fg-mute);
-  font-size: 14px;
+  min-height: 100vh;
+  background: #fff;
+}
+
+.proteinas-loading img {
+  display: block;
+  width: min(320px, 70vw);
+  height: auto;
 }
 
 /* === WEG peers dropdowns === */

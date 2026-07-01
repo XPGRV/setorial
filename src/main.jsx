@@ -21,9 +21,7 @@ document.documentElement.style.setProperty('--accent',
 ;(async () => {
   const DATA_VERSION = '5'
   const SB_URL = 'https://wmxjdveucxbousoquwmc.supabase.co'
-  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndteGpkdmV1Y3hib3Vzb3F1d21jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NDAwMDMsImV4cCI6MjA5MjUxNjAwM30.tCSFE_aRcjrVRziuyqINPuxBYFEbG8AQjTdX2vHiwfw'
   window.__SB_URL = SB_URL
-  window.__SB_KEY = SB_KEY
 
   const normalizeDashboardPayload = (data, meta) => {
     if (data) {
@@ -44,7 +42,7 @@ document.documentElement.style.setProperty('--accent',
     const tid  = setTimeout(() => ctrl.abort(), timeoutMs)
     try {
       const resp = await fetch(
-        `${SB_URL}/storage/v1/object/public/dashboard/data.json?t=${Date.now()}`,
+        `/api/dashboard-data?t=${Date.now()}`,
         { cache: 'no-store', signal: ctrl.signal }
       )
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`)

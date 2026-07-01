@@ -105,14 +105,21 @@ async function downloadWorkbookBuffer(drive, fileId) {
 }
 
 async function fetchExisting() {
+  if (!SB_KEY) throw new Error('SUPABASE_SERVICE_ROLE nao configurada.');
+
   try {
-    const res = await fetch(`${SB_URL}/storage/v1/object/public/dashboard/data.json?t=${Date.now()}`, { cache: 'no-store' });
+    const res = await fetch(`${SB_URL}/storage/v1/object/dashboard/data.json`, {
+      headers: { Authorization: `Bearer ${SB_KEY}` },
+      cache: 'no-store',
+    });
     if (res.ok) {
       const json = await res.json();
       if (json?.data) return { data: json.data, meta: json.meta || {} };
     }
-  } catch (_) {}
-  return { data: {}, meta: {} };
+    throw new Error(`Falha ao ler dados atuais do Supabase: HTTP ${res.status} ${await res.text()}`);
+  } catch (error) {
+    throw new Error(`Nao foi possivel preservar as outras bases: ${error.message}`);
+  }
 }
 
 async function uploadDataJson(payload) {

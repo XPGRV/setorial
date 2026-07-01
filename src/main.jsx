@@ -45,7 +45,7 @@ function ProteinasRoute({ initialData, initialMeta, initialDataset = 'beef_us', 
     const imageSrc = dashboardSection === 'capitalgoods'
       ? '/factory.gif'
       : dashboardSection === 'macro'
-      ? '/xp-asset-logo.svg'
+      ? '/global-finance.gif'
       : '/meat-food.gif'
     return <ProteinasLoading label={label} imageSrc={imageSrc} />
   }

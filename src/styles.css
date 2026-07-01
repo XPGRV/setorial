@@ -1595,3 +1595,12 @@ body {
 .weg-dd-check:hover { background: var(--bg-inset); }
 .weg-dd-check input { cursor: pointer; accent-color: var(--accent); margin: 0; }
 .weg-dd-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+/* Botão de reset do zoom (brush) nos gráficos de peers */
+.weg-zoom-reset {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm);
+  color: var(--fg-dim);
+  background: var(--bg-inset);
+}
+.weg-zoom-reset:hover { color: var(--fg); border-color: var(--border-strong) !important; }

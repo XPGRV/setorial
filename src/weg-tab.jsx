@@ -64,7 +64,7 @@ function Dropdown({ label, children, width = 200 }) {
 }
 
 // ── Gráfico multi-linha diário contínuo ──────────────────────────────────────
-function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey, chartId = 'weg', decimals = 1 }) {
+function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey, chartId = 'weg', decimals = 1, onZoom, onResetZoom }) {
   const W = 1000, H = 340;
   const padL = 56, padR = 24, padT = 18, padB = 32;
   const chartW = W - padL - padR;
@@ -72,6 +72,8 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey, chart
 
   const [hover, setHover] = React.useState(null);
   const [mouseY, setMouseY] = React.useState(0);
+  const [sel, setSel] = React.useState(null); // brush em andamento: {x0,x1} em coords do viewBox
+  const dragRef = React.useRef(null);          // px inicial do arraste (ou null)
   const { shouldRender: showAreaRender, isLeaving: areaLeaving } = window.useFadeOut(chartStyle === 'area', 400);
 
   const tOf = React.useCallback(r => r.year + (r.month - 1) / 12 + (r.day - 0.5) / 365.25, []);
@@ -143,15 +145,44 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey, chart
   const opacityOf = key => pinnedKey ? (pinnedKey === key ? 1 : 0.12) : 1;
   const widthOf   = key => pinnedKey === key ? 2.4 : 1.6;
 
-  const onMove = e => {
+  const pxOf = e => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const px = (e.clientX - rect.left) * (W / rect.width);
-    const py = (e.clientY - rect.top) * (H / rect.height);
-    const t = geom.tFirst + ((px - padL) / chartW) * geom.span;
+    return {
+      px: (e.clientX - rect.left) * (W / rect.width),
+      py: (e.clientY - rect.top) * (H / rect.height),
+    };
+  };
+  const clampX = px => Math.max(padL, Math.min(padL + chartW, px));
+  const tAtPx  = px => geom.tFirst + ((clampX(px) - padL) / chartW) * geom.span;
+
+  const onDown = e => {
+    if (e.button !== 0) return;
+    const { px } = pxOf(e);
+    dragRef.current = clampX(px);
+    setSel({ x0: dragRef.current, x1: dragRef.current });
+    setHover(null);
+  };
+  const onMove = e => {
+    const { px, py } = pxOf(e);
+    if (dragRef.current != null) { setSel({ x0: dragRef.current, x1: clampX(px) }); return; }
+    const t = tAtPx(px);
     let best = null, bestD = Infinity;
     for (const r of rows) { const d = Math.abs(tOf(r) - t); if (d < bestD) { bestD = d; best = r; } }
     setHover(best || null); setMouseY(py);
   };
+  const onUp = e => {
+    const start = dragRef.current;
+    if (start == null) return;
+    dragRef.current = null;
+    const { px } = pxOf(e);
+    const end = clampX(px);
+    setSel(null);
+    // Só dá zoom se o arraste for significativo (evita conflito com clique simples)
+    if (Math.abs(end - start) >= 8 && onZoom) {
+      onZoom({ t0: tAtPx(Math.min(start, end)), t1: tAtPx(Math.max(start, end)) });
+    }
+  };
+  const onLeave = () => { dragRef.current = null; setSel(null); setHover(null); };
 
   const clipId = `weg-peers-clip-${chartId}`;
   const gradId = key => `weg-grad-${chartId}-${key}`;
@@ -160,7 +191,9 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey, chart
   return (
     <div className="chart-wrap">
       <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg" preserveAspectRatio="xMidYMid meet"
-        onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
+        style={{ cursor: 'crosshair' }}
+        onMouseDown={onDown} onMouseMove={onMove} onMouseUp={onUp} onMouseLeave={onLeave}
+        onDoubleClick={() => onResetZoom && onResetZoom()}>
         <defs>
           <clipPath id={clipId}><rect x={padL} y={padT} width={chartW} height={chartH + 4}/></clipPath>
           {peers.map(p => (
@@ -197,18 +230,19 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey, chart
 
         {peers.map(p => (
           paths[p.key] ? (
-            <g key={p.key}>
-              <path d={paths[p.key]} fill="none" stroke={p.color} strokeWidth={widthOf(p.key)}
-                strokeLinejoin="round" strokeLinecap="round" opacity={opacityOf(p.key)}
-                style={{ transition: 'opacity 0.25s ease' }} clipPath={`url(#${clipId})`}/>
-              <path d={paths[p.key]} fill="none" stroke="transparent" strokeWidth={10}
-                style={{ cursor: 'pointer' }} clipPath={`url(#${clipId})`}
-                onClick={() => setPinnedKey(k => k === p.key ? null : p.key)}/>
-            </g>
+            <path key={p.key} d={paths[p.key]} fill="none" stroke={p.color} strokeWidth={widthOf(p.key)}
+              strokeLinejoin="round" strokeLinecap="round" opacity={opacityOf(p.key)}
+              style={{ transition: 'opacity 0.25s ease' }} clipPath={`url(#${clipId})`}/>
           ) : null
         ))}
 
-        {hover && (
+        {/* Retângulo de seleção do brush (zoom) */}
+        {sel && Math.abs(sel.x1 - sel.x0) > 1 && (
+          <rect x={Math.min(sel.x0, sel.x1)} y={padT} width={Math.abs(sel.x1 - sel.x0)} height={chartH}
+            fill="var(--accent)" fillOpacity="0.12" stroke="var(--accent)" strokeOpacity="0.5" strokeWidth="1"/>
+        )}
+
+        {hover && !sel && (
           <g>
             <line x1={xOf(hover)} x2={xOf(hover)} y1={padT} y2={H - padB}
               stroke="var(--fg)" strokeOpacity="0.2" strokeWidth="1"/>
@@ -290,14 +324,25 @@ function WegPeersCard({ data, metric = 'price' }) {
   const [chartStyle, setChartStyle] = React.useState('line');
   const [selected, setSelected] = React.useState(() => new Set(['weg', 'abb', 'nidec', 'regal']));
   const [pinnedKey, setPinnedKey] = React.useState(null);
+  const [zoom, setZoom] = React.useState(null); // { t0, t1 } | null — brush zoom (sobrepõe o range)
 
+  const tOf = r => r.year + (r.month - 1) / 12 + (r.day - 0.5) / 365.25;
   const rangeNum = range === 'all' ? 'all' : parseInt(range);
   const filtered = React.useMemo(() => {
-    if (!allRows.length || rangeNum === 'all') return allRows;
+    if (!allRows.length) return allRows;
+    if (zoom) return allRows.filter(r => { const t = tOf(r); return t >= zoom.t0 && t <= zoom.t1; });
+    if (rangeNum === 'all') return allRows;
     const last = allRows[allRows.length - 1];
     const cutOrd = last.year * 12 + last.month - rangeNum * 12;
     return allRows.filter(r => r.year * 12 + r.month > cutOrd);
-  }, [allRows, rangeNum]);
+  }, [allRows, rangeNum, zoom]);
+
+  // Aplica o zoom só se houver pelo menos 2 pontos na janela (evita zoom vazio).
+  const applyZoom = z => {
+    let cnt = 0;
+    for (const r of allRows) { const t = tOf(r); if (t >= z.t0 && t <= z.t1) cnt++; if (cnt >= 2) break; }
+    if (cnt >= 2) setZoom(z);
+  };
 
   // Cada série é lida da coluna certa (suffix) e — só no gráfico de preço —
   // rebaseada ao seu 1º valor dentro da janela visível. O chart sempre lê p.key.
@@ -350,10 +395,15 @@ function WegPeersCard({ data, metric = 'price' }) {
           <div className="card-ctrl-row">
             <div className="year-seg">
               {[['3a', 3], ['5a', 5], ['10a', 10], ['Todos', 'all']].map(([label, val]) => (
-                <button key={label} className={`year-seg-btn ${range === String(val) ? 'is-on' : ''}`}
-                  onClick={() => setRange(String(val))}>{label}</button>
+                <button key={label} className={`year-seg-btn ${!zoom && range === String(val) ? 'is-on' : ''}`}
+                  onClick={() => { setZoom(null); setRange(String(val)); }}>{label}</button>
               ))}
             </div>
+            {zoom && (
+              <button className="seg-btn weg-zoom-reset" onClick={() => setZoom(null)} title="Duplo-clique no gráfico também reseta">
+                ⤢ Reset zoom
+              </button>
+            )}
             <div className="seg">
               {[['line', 'Linha'], ['area', 'Área']].map(([v, l]) => (
                 <button key={v} className={`seg-btn ${chartStyle === v ? 'is-on' : ''}`}
@@ -388,7 +438,8 @@ function WegPeersCard({ data, metric = 'price' }) {
 
       <WegPeersChart rows={rows} peers={peers} chartStyle={chartStyle}
         pinnedKey={pinnedKey} setPinnedKey={setPinnedKey}
-        chartId={m.chartId} decimals={m.decimals}/>
+        chartId={m.chartId} decimals={m.decimals}
+        onZoom={applyZoom} onResetZoom={() => setZoom(null)}/>
     </section>
   );
 }

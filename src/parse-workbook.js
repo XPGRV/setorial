@@ -938,9 +938,12 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
   //   M=GE Vernova N=Hitachi O=Hyosung. A coluna de data é autodetectada (A..E).
   if (findSheet('Peers')) {
     const pRaw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('Peers')], { header: 1, raw: true });
+    // Preço: F..O (5..14). P/E: Q..Z (16..25). Mesma ordem de empresas.
     const PEER_COLS = {
       weg: 5, abb: 6, nidec: 7, regal: 8, eaton: 9,
       siemens: 10, schneider: 11, gevernova: 12, hitachi: 13, hyosung: 14,
+      weg_pe: 16, abb_pe: 17, nidec_pe: 18, regal_pe: 19, eaton_pe: 20,
+      siemens_pe: 21, schneider_pe: 22, gevernova_pe: 23, hitachi_pe: 24, hyosung_pe: 25,
     };
     // Autodetecta a coluna de data entre A..E (a que mais parseia como data)
     let dateCol = -1, bestHits = 0;

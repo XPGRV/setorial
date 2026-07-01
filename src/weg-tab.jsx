@@ -64,7 +64,7 @@ function Dropdown({ label, children, width = 200 }) {
 }
 
 // ── Gráfico multi-linha diário contínuo ──────────────────────────────────────
-function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey }) {
+function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey, chartId = 'weg', decimals = 1 }) {
   const W = 1000, H = 340;
   const padL = 56, padR = 24, padT = 18, padB = 32;
   const chartW = W - padL - padR;
@@ -153,7 +153,8 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey }) {
     setHover(best || null); setMouseY(py);
   };
 
-  const clipId = 'weg-peers-clip';
+  const clipId = `weg-peers-clip-${chartId}`;
+  const gradId = key => `weg-grad-${chartId}-${key}`;
   const visForTip = pinnedKey ? peers.filter(p => p.key === pinnedKey) : peers;
 
   return (
@@ -163,7 +164,7 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey }) {
         <defs>
           <clipPath id={clipId}><rect x={padL} y={padT} width={chartW} height={chartH + 4}/></clipPath>
           {peers.map(p => (
-            <linearGradient key={p.key} id={`weg-grad-${p.key}`} x1="0" y1="0" x2="0" y2="1">
+            <linearGradient key={p.key} id={gradId(p.key)} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={p.color} stopOpacity="0.22"/>
               <stop offset="100%" stopColor={p.color} stopOpacity="0.01"/>
             </linearGradient>
@@ -174,7 +175,7 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey }) {
           <g key={v}>
             <line x1={padL} x2={W - padR} y1={yOf(v)} y2={yOf(v)} className="grid-line"/>
             <text x={padL - 6} y={yOf(v)} className="tick-label" textAnchor="end" dominantBaseline="middle">
-              {window.fmt(v, { decimals: v >= 100 ? 0 : 1 })}
+              {window.fmt(v, { decimals: Math.abs(v) >= 100 ? 0 : decimals })}
             </text>
           </g>
         ))}
@@ -187,7 +188,7 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey }) {
 
         {showAreaRender && peers.map(p => (
           areaPaths[p.key] ? (
-            <path key={p.key} d={areaPaths[p.key]} fill={`url(#weg-grad-${p.key})`}
+            <path key={p.key} d={areaPaths[p.key]} fill={`url(#${gradId(p.key)})`}
               opacity={pinnedKey && pinnedKey !== p.key ? 0 : 1}
               style={{ transition: 'opacity 0.25s ease' }}
               className={`rx-area${areaLeaving ? ' rx-area-leaving' : ''}`} clipPath={`url(#${clipId})`}/>
@@ -239,7 +240,7 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey }) {
               {visForTip.map(p => hover[p.key] == null ? null : (
                 <div key={p.key} className="hover-row">
                   <span className="hover-year" style={{ color: p.color }}>{p.label}</span>
-                  <span className="hover-val">{window.fmt(hover[p.key], { decimals: 1 })}</span>
+                  <span className="hover-val">{window.fmt(hover[p.key], { decimals })}</span>
                 </div>
               ))}
             </div>
@@ -266,7 +267,24 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey }) {
 }
 
 // ── Card do gráfico de peers ──────────────────────────────────────────────────
-function WegPeersCard({ data }) {
+// Reutilizado para dois gráficos: 'price' (rebaseado em Base 100, pois preços
+// absolutos não são comparáveis) e 'pe' (valor absoluto, pois o múltiplo P/E já
+// é diretamente comparável entre empresas).
+const PEER_METRICS = {
+  price: {
+    chartId: 'price', suffix: '', rebase: true, decimals: 1,
+    cardId: 'card-weg-peers', title: 'Peers · Comparação de Preço',
+    eyebrow: 'Bloomberg · Preço das ações · Base 100 (início da janela)',
+  },
+  pe: {
+    chartId: 'pe', suffix: '_pe', rebase: false, decimals: 1,
+    cardId: 'card-weg-peers-pe', title: 'Peers · Comparação de P/E',
+    eyebrow: 'Bloomberg · Múltiplo Preço/Lucro (P/E)',
+  },
+};
+
+function WegPeersCard({ data, metric = 'price' }) {
+  const m = PEER_METRICS[metric];
   const allRows = React.useMemo(() => data.weg_peers || [], [data]);
   const [range, setRange] = React.useState('5');
   const [chartStyle, setChartStyle] = React.useState('line');
@@ -281,22 +299,25 @@ function WegPeersCard({ data }) {
     return allRows.filter(r => r.year * 12 + r.month > cutOrd);
   }, [allRows, rangeNum]);
 
-  // Base 100: cada série é rebaseada ao seu 1º valor dentro da janela visível.
-  // Assim dá pra comparar a performance relativa, e empresas que começam mais
-  // tarde (ex: GE Vernova) partem de 100 na sua própria data de início.
+  // Cada série é lida da coluna certa (suffix) e — só no gráfico de preço —
+  // rebaseada ao seu 1º valor dentro da janela visível. O chart sempre lê p.key.
   const rows = React.useMemo(() => {
     const firsts = {};
     return filtered.map(r => {
       const nr = { year: r.year, month: r.month, day: r.day };
       for (const p of WEG_PEERS) {
-        const v = r[p.key];
+        const v = r[p.key + m.suffix];
         if (v == null) continue;
-        if (firsts[p.key] == null && v !== 0) firsts[p.key] = v;
-        if (firsts[p.key] != null) nr[p.key] = (v / firsts[p.key]) * 100;
+        if (m.rebase) {
+          if (firsts[p.key] == null && v !== 0) firsts[p.key] = v;
+          if (firsts[p.key] != null) nr[p.key] = (v / firsts[p.key]) * 100;
+        } else {
+          nr[p.key] = v;
+        }
       }
       return nr;
     });
-  }, [filtered]);
+  }, [filtered, m]);
 
   const peers = React.useMemo(() => WEG_PEERS.filter(p => selected.has(p.key)), [selected]);
   const curGroup = groupOf(selected);
@@ -318,11 +339,11 @@ function WegPeersCard({ data }) {
     : PEER_GROUPS.find(g => g.key === curGroup)?.label;
 
   return (
-    <section className="card card-full" data-card-id="card-weg-peers">
+    <section className="card card-full" data-card-id={m.cardId}>
       <div className="card-head">
         <div>
-          <div className="card-eyebrow">Bloomberg · Preço das ações · Base 100 (início da janela)</div>
-          <h3 className="card-title">Peers · Comparação de Preço</h3>
+          <div className="card-eyebrow">{m.eyebrow}</div>
+          <h3 className="card-title">{m.title}</h3>
         </div>
 
         <div className="card-controls">
@@ -366,7 +387,8 @@ function WegPeersCard({ data }) {
       </div>
 
       <WegPeersChart rows={rows} peers={peers} chartStyle={chartStyle}
-        pinnedKey={pinnedKey} setPinnedKey={setPinnedKey}/>
+        pinnedKey={pinnedKey} setPinnedKey={setPinnedKey}
+        chartId={m.chartId} decimals={m.decimals}/>
     </section>
   );
 }
@@ -398,7 +420,8 @@ const WegTab = ({ data, accent }) => {
           field="value" unit="Base 100" decimals={2}
         />
       )}
-      {hasPeers && <WegPeersCard data={data}/>}
+      {hasPeers && <WegPeersCard data={data} metric="price"/>}
+      {hasPeers && <WegPeersCard data={data} metric="pe"/>}
     </main>
   );
 };

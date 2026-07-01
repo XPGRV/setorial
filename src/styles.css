@@ -404,6 +404,44 @@ body {
   font-weight: 500;
 }
 .sidebar-group-header .sidebar-item-icon { color: var(--accent); opacity: 1; }
+.sidebar-item-icon.is-cow-grazing {
+  position: relative;
+  overflow: visible;
+}
+.sidebar-item-icon.is-cow-grazing svg {
+  position: relative;
+  z-index: 1;
+  transform-origin: 32% 72%;
+  animation: cow-graze 4.8s ease-in-out infinite;
+}
+.sidebar-item-icon.is-cow-grazing::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  left: -1px;
+  bottom: -1px;
+  width: 8px;
+  height: 6px;
+  background:
+    linear-gradient(70deg, transparent 43%, currentColor 44% 55%, transparent 56%) 0 0 / 4px 6px no-repeat,
+    linear-gradient(108deg, transparent 43%, currentColor 44% 55%, transparent 56%) 4px 1px / 4px 5px no-repeat;
+  color: oklch(0.76 0.17 145);
+  transform-origin: 50% 100%;
+  animation: grass-nibble 4.8s ease-in-out infinite;
+}
+@keyframes cow-graze {
+  0%, 28%, 72%, 100% { transform: translateY(0) rotate(0deg); }
+  39%, 59% { transform: translate(-1px, 2px) rotate(-7deg); }
+  47% { transform: translate(-1px, 2.5px) rotate(-9deg); }
+}
+@keyframes grass-nibble {
+  0%, 38%, 63%, 100% { transform: scaleY(1) rotate(0deg); opacity: 0.85; }
+  46%, 56% { transform: scaleY(0.65) rotate(-5deg); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-item-icon.is-cow-grazing svg,
+  .sidebar-item-icon.is-cow-grazing::after { animation: none; }
+}
 .sidebar-group .sidebar-item {
   font-size: 12px;
   padding: 8px 10px 8px 36px;

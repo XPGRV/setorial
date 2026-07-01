@@ -321,7 +321,10 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload }) {
     <div className="sidebar-group-header" onClick={() => toggleGroup(groupId)}
       style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span className="sidebar-item-icon" style={isActive ? undefined : { color: 'var(--fg-dim)', opacity: 0.6 }}>{icon}</span>
+        <span
+          className={`sidebar-item-icon${isActive && groupId === 'beef_br' ? ' is-cow-grazing' : ''}`}
+          style={isActive ? undefined : { color: 'var(--fg-dim)', opacity: 0.6 }}
+        >{icon}</span>
         <span style={labelStyle}>{label}</span>
       </div>
       <Chevron open={openGroup.has(groupId)}/>

@@ -14,7 +14,7 @@ const hex2rgb = (h) => {
 const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t)
 const rgba = (c, a) => `rgba(${Math.round(c[0])},${Math.round(c[1])},${Math.round(c[2])},${a})`
 
-function TopbarMesh({ accent = '#2f8fc4', spacing = 12, intensity = 0.6, speed = 1, children }) {
+function TopbarMesh({ accent = '#2f8fc4', spacing = 12, intensity = 0.3, speed = 1, children }) {
   const canvasRef = React.useRef(null)
   const barRef = React.useRef(null)
 
@@ -72,15 +72,15 @@ function TopbarMesh({ accent = '#2f8fc4', spacing = 12, intensity = 0.6, speed =
       g.pres += (g.tpres - g.pres) * 0.08
 
       const bg = ctx.createLinearGradient(0, 0, w, 0)
-      bg.addColorStop(0, rgba(mix(navy, acc, 0.28), 1))
-      bg.addColorStop(0.4, rgba(mix(navy, acc, 0.06), 1))
+      bg.addColorStop(0, rgba(mix(navy, acc, 0.13), 1))
+      bg.addColorStop(0.4, rgba(mix(navy, acc, 0.03), 1))
       bg.addColorStop(1, rgba(navy, 1))
       ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h)
 
       for (const d of g.dots) {
         const dx = d.bx - g.mx, dy = d.by - g.my, dist = Math.hypot(dx, dy)
         let act = g.pres * Math.max(0, 1 - dist / R); act = act * act
-        const idle = 0.1 + 0.06 * Math.sin(d.bx * 0.045 + d.by * 0.03 + t * 1.4)
+        const idle = 0.05 + 0.03 * Math.sin(d.bx * 0.045 + d.by * 0.03 + t * 1.4)
         d.act = Math.max(act, 0)
         const push = act * 14 * k
         const ux = dist > 0.001 ? dx / dist : 0, uy = dist > 0.001 ? dy / dist : 0

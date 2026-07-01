@@ -148,17 +148,6 @@ const MACRO = [
 ]
 
 // ── Ticker (topo) ─────────────────────────────────────────────────────────────
-const TICKER = [
-  { k: 'BOI',     v: '259,32',  u: '¢/lb',  d: +10.66 },
-  { k: 'USD/BRL', v: '5,16',    u: 'R$',    d: -0.45 },
-  { k: 'IBOV',    v: '129.842', u: '',      d: +0.72 },
-  { k: 'MILHO',   v: '68,40',   u: 'R$/sc', d: -0.90 },
-  { k: 'BRENT',   v: '84,20',   u: 'US$',   d: +0.84 },
-  { k: 'SOJA',    v: '132,10',  u: 'R$/sc', d: +0.42 },
-  { k: 'S&P 500', v: '5.431',   u: '',      d: +0.31 },
-  { k: 'DXY',     v: '105,3',   u: '',      d: +0.22 },
-]
-
 // ── News Hunter (centro) — estático ───────────────────────────────────────────
 const NEWS = [
   { src: 'XP',        time: '09:42', cat: 'Proteínas',   tone: 'alta',   title: 'Exportações de carne bovina sobem 8% em junho, puxadas pela China', summary: 'Volumes embarcados atingem recorde mensal; preço médio da tonelada avança com demanda asiática aquecida.' },

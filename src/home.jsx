@@ -1,15 +1,15 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Beef, Car, Factory, Landmark, Sun, Moon, Clock3, Search, ChevronRight } from 'lucide-react'
+import { Beef, Car, Factory, Landmark, Clock3, Search, ChevronRight, SlidersHorizontal } from 'lucide-react'
 
 // ── Setores (esquerda) ────────────────────────────────────────────────────────
 const SECTORS = [
-  { label: 'Proteínas',       sub: 'Beef US · Beef BR · Poultry', icon: Beef,    tint: 'is-red',  route: '/proteinas', active: true },
-  { label: 'Rental',          sub: 'Locadoras & mobilidade',      icon: Car,     tint: 'is-cyan' },
-  { label: 'Bens de Capital', sub: 'Máquinas & equipamentos',     icon: Factory, tint: 'is-amber' },
+  { label: 'Proteínas',       sub: 'Dados setoriais de Beef US, Beef BR, Poultry US e Poultry BR.', icon: Beef, route: '/proteinas', active: true },
+  { label: 'Rental',          sub: 'Dados de locadoras, frotas, preços e mobilidade.', icon: Car },
+  { label: 'Bens de Capital', sub: 'Indicadores de máquinas, equipamentos e companhias industriais.', icon: Factory },
 ]
-const OUTROS = [
-  { label: 'Macro', sub: 'Juros, câmbio & atividade', icon: Landmark, tint: 'is-blue', route: '/proteinas?dataset=macro', active: true },
+const MACRO = [
+  { label: 'Macro', sub: 'Juros, câmbio, inflação e indicadores de atividade.', icon: Landmark, route: '/proteinas?dataset=macro', active: true },
 ]
 
 // ── Ticker (topo) ─────────────────────────────────────────────────────────────
@@ -25,11 +25,6 @@ const TICKER = [
 ]
 
 // ── News Hunter (centro) — estático ───────────────────────────────────────────
-const SRC_COLOR = {
-  XP: 'oklch(0.70 0.15 245)', BLOOMBERG: 'oklch(0.76 0.15 70)', BCB: 'oklch(0.72 0.16 155)',
-  REUTERS: 'oklch(0.66 0.19 25)', BROADCAST: 'oklch(0.68 0.16 300)', USDA: 'oklch(0.72 0.12 200)',
-  VALOR: 'oklch(0.74 0.15 120)', IBGE: 'oklch(0.72 0.13 220)',
-}
 const NEWS = [
   { src: 'XP',        time: '09:42', cat: 'Proteínas',   tone: 'alta',   title: 'Exportações de carne bovina sobem 8% em junho, puxadas pela China', summary: 'Volumes embarcados atingem recorde mensal; preço médio da tonelada avança com demanda asiática aquecida.' },
   { src: 'BLOOMBERG', time: '09:18', cat: 'Commodities', tone: 'alta',   title: 'Boi gordo renova máxima do ano com oferta restrita no Centro-Oeste', summary: 'Arroba negociada acima de R$ 258 em São Paulo; confinamentos seguram animais e pressionam a escala das plantas.' },
@@ -39,8 +34,6 @@ const NEWS = [
   { src: 'USDA',      time: '07:50', cat: 'Commodities', tone: 'baixa',  title: 'USDA reduz estimativa de abates e pressiona spreads de margem', summary: 'Relatório aponta rebanho americano em ciclo de baixa; margem dos frigoríficos segue negativa no acumulado.' },
   { src: 'VALOR',     time: '07:35', cat: 'Macro',       tone: 'neutro', title: 'Bancos ampliam provisões para o agro diante de clima adverso', summary: 'Carteira rural cresce, mas inadimplência preocupa; instituições reforçam colchão de perdas esperadas.' },
 ]
-const NEWS_FILTERS = ['Tudo', 'Proteínas', 'Macro', 'Commodities']
-const TONE_LABEL = { alta: 'Alta', baixa: 'Baixa', neutro: 'Neutro' }
 
 // ── Market Overview (direita) — estático ──────────────────────────────────────
 const MARKET = {
@@ -91,36 +84,30 @@ function SectionTitle({ title, right }) {
 
 export default function HomePage() {
   const navigate = useNavigate()
-  const [mode, setMode] = React.useState(() => document.documentElement.dataset.mode === 'light' ? 'light' : 'dark')
-  const [newsFilter, setNewsFilter] = React.useState('Tudo')
   const [query, setQuery] = React.useState('')
   const [marketTab, setMarketTab] = React.useState('Commodities')
-
-  const toggleMode = () => {
-    const next = mode === 'dark' ? 'light' : 'dark'
-    setMode(next)
-    document.documentElement.dataset.mode = next
-    try { localStorage.setItem('rx-color-mode', next) } catch {}
-  }
 
   const go = s => { if (s.active && s.route) navigate(s.route) }
 
   const filteredNews = NEWS.filter(item => {
-    const matchesCat = newsFilter === 'Tudo' || item.cat === newsFilter
     const hay = `${item.title} ${item.summary} ${item.src} ${item.cat}`.toLowerCase()
-    return matchesCat && hay.includes(query.trim().toLowerCase())
+    return hay.includes(query.trim().toLowerCase())
   })
 
   const renderSector = s => (
     <button
       key={s.label}
-      className={`home-sector-item${s.active ? ' is-active' : ' is-soon'}`}
+      className={`home-sector-item${s.active ? ' is-available' : ' is-soon'}`}
       onClick={() => go(s)}
       aria-disabled={!s.active}
     >
-      <span className={`home-sector-icon ${s.tint}`}><s.icon size={18} /></span>
-      <span className="home-sector-copy"><strong>{s.label}</strong><small>{s.sub}</small></span>
-      {s.active ? <span className="home-abrir">Abrir</span> : <ChevronRight size={15} />}
+      <span className="home-sector-icon"><s.icon size={18} /></span>
+      <span className="home-sector-copy"><strong>{s.label}</strong></span>
+      {s.active ? <ChevronRight size={15} /> : <span className="home-soon">Em breve</span>}
+      <span className="home-sector-tooltip" role="tooltip">
+        <strong>{s.label}</strong>
+        <span>{s.sub}</span>
+      </span>
     </button>
   )
 
@@ -130,11 +117,6 @@ export default function HomePage() {
         <div className="home-brand">
           <div className="home-brand-logo"><img src="/xp-asset-logo.svg" alt="XP Asset Management" /></div>
         </div>
-        <button className="home-mode-btn" onClick={toggleMode}
-          title={mode === 'dark' ? 'Tema: Escuro · clique p/ Claro' : 'Tema: Claro · clique p/ Escuro'}
-          aria-label="Alternar tema claro/escuro">
-          {mode === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
-        </button>
       </header>
 
       <div className="home-ticker">
@@ -153,8 +135,8 @@ export default function HomePage() {
         <aside className="home-column home-sectors">
           <SectionTitle title="Setores" right={<span className="home-count">{SECTORS.length}</span>} />
           <div className="home-sector-list">{SECTORS.map(renderSector)}</div>
-          <SectionTitle title="Outros" right={<span className="home-count">{OUTROS.length}</span>} />
-          <div className="home-sector-list">{OUTROS.map(renderSector)}</div>
+          <SectionTitle title="Macro" right={<span className="home-count">{MACRO.length}</span>} />
+          <div className="home-sector-list">{MACRO.map(renderSector)}</div>
         </aside>
 
         {/* Centro — News Hunter */}
@@ -165,22 +147,16 @@ export default function HomePage() {
               <Search size={15} />
               <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar tema ou empresa" />
             </label>
-            <div className="home-news-tabs" aria-label="Filtrar notícias">
-              {NEWS_FILTERS.map(f => (
-                <button key={f} className={newsFilter === f ? 'is-on' : ''} onClick={() => setNewsFilter(f)}>{f}</button>
-              ))}
-            </div>
+            <button className="home-news-filter-btn" type="button"><SlidersHorizontal size={14} />Filtros</button>
           </div>
           <div className="home-news-feed">
             {filteredNews.length ? filteredNews.map((item, i) => {
-              const c = SRC_COLOR[item.src] || 'var(--accent)'
               return (
                 <article className={`home-news-item${i === 0 ? ' is-lead' : ''}`} key={item.title}>
                   <div className="home-news-meta">
-                    <span className="home-news-source" style={{ color: c, background: `color-mix(in oklch, ${c} 16%, transparent)` }}>{item.src}</span>
+                    <span className="home-news-source">{item.src}</span>
                     <span><Clock3 size={11} />{item.time}</span>
                     <span>· {item.cat}</span>
-                    <span className={`home-news-tone is-${item.tone}`}>{TONE_LABEL[item.tone]}</span>
                   </div>
                   <h2>{item.title}</h2>
                   <p>{item.summary}</p>

@@ -89,6 +89,11 @@ export default function HomePage() {
 
   const go = s => { if (s.active && s.route) navigate(s.route) }
 
+  const trackTopbarLight = event => {
+    const rect = event.currentTarget.getBoundingClientRect()
+    event.currentTarget.style.setProperty('--topbar-light-x', `${event.clientX - rect.left}px`)
+  }
+
   const filteredNews = NEWS.filter(item => {
     const hay = `${item.title} ${item.summary} ${item.src} ${item.cat}`.toLowerCase()
     return hay.includes(query.trim().toLowerCase())
@@ -113,13 +118,11 @@ export default function HomePage() {
 
   return (
     <div className="home-page">
-      <header className="home-topbar">
+      <header className="home-topbar" onPointerMove={trackTopbarLight}>
+        <span className="home-topbar-reactive" aria-hidden="true" />
+        <span className="home-topbar-sheen" aria-hidden="true" />
         <div className="home-brand">
-          <div className="home-brand-logo sidebar-brand-logobox">
-            <div className="sidebar-brand-logo-surface">
-              <img src="/xp-asset-logo.svg" alt="XP Asset Management" className="sidebar-brand-logo" />
-            </div>
-          </div>
+          <div className="home-brand-logo"><img src="/xp-asset-logo.svg" alt="XP Asset Management" /></div>
         </div>
       </header>
 

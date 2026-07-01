@@ -136,12 +136,12 @@ function TopbarMesh({ accent = '#2f8fc4', spacing = 12, intensity = 0.3, speed =
 
 // ── Setores (esquerda) ────────────────────────────────────────────────────────
 const SECTORS = [
-  { label: 'Proteínas',       sub: 'Dados setoriais de Beef US, Beef BR, Poultry US e Poultry BR.', icon: Beef, route: '/proteinas', active: true },
+  { label: 'Proteínas',       sub: 'Dados setoriais de preço e produção de Carne Bovina, Frango e Processados, no Brasil e EUA.', icon: Beef, route: '/proteinas', active: true },
   { label: 'Rental',          sub: 'Dados de locadoras, frotas, preços e mobilidade.', icon: Car },
-  { label: 'Bens de Capital', sub: 'Indicadores de máquinas, equipamentos e companhias industriais.', icon: Factory, route: '/capitalgoods', active: true },
+  { label: 'Bens de Capital', sub: 'Acompanhamento setorial de empresas como: WEG, Marcopolo, Embraer, etc.', icon: Factory, route: '/capitalgoods', active: true },
 ]
 const MACRO = [
-  { label: 'Macro', sub: 'Juros, câmbio, inflação e indicadores de atividade.', icon: Landmark, route: '/macro', active: true },
+  { label: 'Macro', sub: 'Estimativas da taxa de juros.', icon: Landmark, route: '/macro', active: true },
 ]
 
 // ── Ticker (topo) ─────────────────────────────────────────────────────────────

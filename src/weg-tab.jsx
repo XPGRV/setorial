@@ -239,7 +239,7 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey }) {
               {visForTip.map(p => hover[p.key] == null ? null : (
                 <div key={p.key} className="hover-row">
                   <span className="hover-year" style={{ color: p.color }}>{p.label}</span>
-                  <span className="hover-val">{window.fmt(hover[p.key], { decimals: 2 })}<span className="hover-unit"> USD</span></span>
+                  <span className="hover-val">{window.fmt(hover[p.key], { decimals: 1 })}</span>
                 </div>
               ))}
             </div>
@@ -274,12 +274,29 @@ function WegPeersCard({ data }) {
   const [pinnedKey, setPinnedKey] = React.useState(null);
 
   const rangeNum = range === 'all' ? 'all' : parseInt(range);
-  const rows = React.useMemo(() => {
+  const filtered = React.useMemo(() => {
     if (!allRows.length || rangeNum === 'all') return allRows;
     const last = allRows[allRows.length - 1];
     const cutOrd = last.year * 12 + last.month - rangeNum * 12;
     return allRows.filter(r => r.year * 12 + r.month > cutOrd);
   }, [allRows, rangeNum]);
+
+  // Base 100: cada série é rebaseada ao seu 1º valor dentro da janela visível.
+  // Assim dá pra comparar a performance relativa, e empresas que começam mais
+  // tarde (ex: GE Vernova) partem de 100 na sua própria data de início.
+  const rows = React.useMemo(() => {
+    const firsts = {};
+    return filtered.map(r => {
+      const nr = { year: r.year, month: r.month, day: r.day };
+      for (const p of WEG_PEERS) {
+        const v = r[p.key];
+        if (v == null) continue;
+        if (firsts[p.key] == null && v !== 0) firsts[p.key] = v;
+        if (firsts[p.key] != null) nr[p.key] = (v / firsts[p.key]) * 100;
+      }
+      return nr;
+    });
+  }, [filtered]);
 
   const peers = React.useMemo(() => WEG_PEERS.filter(p => selected.has(p.key)), [selected]);
   const curGroup = groupOf(selected);
@@ -304,7 +321,7 @@ function WegPeersCard({ data }) {
     <section className="card card-full" data-card-id="card-weg-peers">
       <div className="card-head">
         <div>
-          <div className="card-eyebrow">Bloomberg · Preço das ações (USD)</div>
+          <div className="card-eyebrow">Bloomberg · Preço das ações · Base 100 (início da janela)</div>
           <h3 className="card-title">Peers · Comparação de Preço</h3>
         </div>
 

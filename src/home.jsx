@@ -89,6 +89,8 @@ export default function HomePage() {
     return matchesCategory && haystack.includes(query.trim().toLowerCase())
   })
 
+  const scrollTo = id => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
   return (
     <div className="home-page">
       <header className="home-topbar">
@@ -99,6 +101,12 @@ export default function HomePage() {
             <div className="home-brand-sub">Research workspace</div>
           </div>
         </div>
+        <nav className="home-nav" aria-label="Navegação da Home">
+          <button className="is-active">Home</button>
+          <button onClick={() => scrollTo('home-sectors')}>Setores</button>
+          <button onClick={() => scrollTo('news-hunter')}>News Hunter</button>
+          <button onClick={() => scrollTo('market-overview')}>Market Overview</button>
+        </nav>
         <div className="home-topbar-status">
           <span className="home-status-dot" />
           Estrutura visual
@@ -106,7 +114,7 @@ export default function HomePage() {
       </header>
 
       <main className="home-workspace">
-        <aside className="home-column home-sectors">
+        <aside className="home-column home-sectors" id="home-sectors">
           <SectionTitle icon={Globe2} title="Setores" detail={`${SECTORS.length} áreas`} />
           <div className="home-sector-list">
             {SECTORS.map(({ route, label, detail, icon: Icon, active, color }) => (
@@ -134,7 +142,7 @@ export default function HomePage() {
           </div>
         </aside>
 
-        <section className="home-column home-news">
+        <section className="home-column home-news" id="news-hunter">
           <SectionTitle icon={Newspaper} title="News Hunter" detail="Feed demonstrativo" />
           <div className="home-news-tools">
             <label className="home-news-search">
@@ -166,7 +174,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <aside className="home-column home-market">
+        <aside className="home-column home-market" id="market-overview">
           <SectionTitle icon={TrendingUp} title="Market Overview" detail="Dados ilustrativos" />
           <div className="home-market-periods" aria-label="Período do mercado">
             {['1D', '5D', '1M'].map(value => (

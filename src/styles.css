@@ -1640,9 +1640,9 @@ body {
 [data-mode="light"] .home-topbar {
   background: linear-gradient(118deg,
     color-mix(in oklch, var(--accent) 32%, white) 0%,
-    color-mix(in oklch, var(--accent) 15%, #f4f7fb) 32%,
-    #f4f7fb 64%,
-    #ffffff 100%);
+    color-mix(in oklch, var(--accent) 15%, #edf1f5) 32%,
+    #edf1f5 64%,
+    #e5eaf0 100%);
   border-bottom-color: color-mix(in oklch, var(--accent) 34%, var(--border));
 }
 [data-mode="light"] .home-topbar-canvas {

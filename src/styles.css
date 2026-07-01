@@ -1543,8 +1543,8 @@ body {
   --home-strip: var(--bg-inset);
 }
 .home-topbar {
-  --mesh-x: 0px;
-  --mesh-y: 0px;
+  --bubble-x: 180px;
+  --bubble-y: 46px;
   position: relative;
   isolation: isolate;
   height: 92px;
@@ -1560,20 +1560,23 @@ body {
     var(--bg) 88%);
   overflow: hidden;
 }
-.home-topbar-mesh {
+.home-topbar-bubble {
   position: absolute;
   z-index: 1;
-  inset: -30px 42% -55px -50px;
-  background-image:
-    linear-gradient(color-mix(in oklch, var(--accent) 20%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in oklch, var(--accent) 20%, transparent) 1px, transparent 1px);
-  background-size: 28px 28px;
-  mask-image: linear-gradient(90deg, #000 0%, #000 55%, transparent 100%);
-  transform: perspective(320px) rotateX(54deg) translate3d(var(--mesh-x), var(--mesh-y), 0) scale(1.08);
-  transform-origin: 20% 50%;
-  opacity: 0.42;
+  top: calc(var(--bubble-y) - 110px);
+  left: calc(var(--bubble-x) - 110px);
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    oklch(1 0 0 / 0.13) 0%,
+    color-mix(in oklch, var(--accent) 20%, transparent) 34%,
+    transparent 70%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 48%, transparent 72%);
+  mix-blend-mode: screen;
+  opacity: 0.58;
   pointer-events: none;
-  transition: transform 130ms ease-out;
+  transition: top 150ms ease-out, left 150ms ease-out;
 }
 .home-topbar::after {
   content: '';
@@ -1589,8 +1592,8 @@ body {
 .home-topbar-sheen {
   position: absolute;
   z-index: 2;
-  top: -30%;
-  bottom: -30%;
+  top: 0;
+  bottom: 0;
   left: -100px;
   width: 90px;
   background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.12), transparent);
@@ -1599,21 +1602,18 @@ body {
   opacity: 0;
   animation: home-topbar-sheen 10s linear infinite;
 }
-.home-topbar-line-sheen {
+.home-topbar-sheen::after {
+  content: '';
   position: absolute;
-  z-index: 5;
+  right: 0;
   bottom: 0;
-  left: -100px;
-  width: 90px;
+  left: 0;
   height: 2px;
   border-radius: 999px;
   background: linear-gradient(90deg, transparent, oklch(0.92 0.05 240), transparent);
   box-shadow:
     0 0 5px color-mix(in oklch, var(--accent) 85%, transparent),
     0 0 12px color-mix(in oklch, var(--accent) 55%, transparent);
-  pointer-events: none;
-  opacity: 0;
-  animation: home-topbar-sheen 10s linear infinite;
 }
 @keyframes home-topbar-sheen {
   0%, 70% { transform: translateX(0) skewX(-18deg); opacity: 0; }
@@ -2007,9 +2007,8 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-topbar-mesh { transition: none; }
-  .home-topbar-sheen,
-  .home-topbar-line-sheen { animation: none; }
+  .home-topbar-bubble { transition: none; }
+  .home-topbar-sheen { animation: none; }
 }
 .home-news-tone {
   margin-left: auto; padding: 3px 8px; border-radius: 4px;

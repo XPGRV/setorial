@@ -1590,9 +1590,7 @@ body {
   grid-template-columns: minmax(300px, 330px) minmax(390px, 1fr) minmax(300px, 330px);
   gap: 16px;
   align-items: start;
-  background:
-    radial-gradient(1000px 650px at 76% 110%, color-mix(in oklch, var(--accent) 7%, transparent), transparent 72%),
-    var(--bg);
+  background: transparent;
 }
 .home-column {
   min-width: 0;

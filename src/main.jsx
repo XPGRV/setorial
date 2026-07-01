@@ -75,7 +75,7 @@ document.documentElement.style.setProperty('--accent',
     return { data, meta: meta || {} }
   }
 
-  async function fetchCloudDashboardData(timeoutMs = 8000) {
+  async function fetchCloudDashboardData(timeoutMs = 30000) {
     const ctrl = new AbortController()
     const tid  = setTimeout(() => ctrl.abort(), timeoutMs)
     try {
@@ -109,7 +109,7 @@ document.documentElement.style.setProperty('--accent',
   let data = null, meta = null
 
   try {
-    const payload = await fetchCloudDashboardData(15000)
+    const payload = await fetchCloudDashboardData(30000)
     data = payload.data
     meta = payload.meta
   } catch {}

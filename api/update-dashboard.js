@@ -173,7 +173,6 @@ export default async function handler(req, res) {
       dataset,
       fileName: cfg.fileName,
       parsedKeys: Object.keys(parsed),
-      data,
       meta,
     });
   } catch (e) {

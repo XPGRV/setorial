@@ -19,18 +19,30 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch(`${SB_URL}/storage/v1/object/dashboard/data.json`, {
-      headers: { Authorization: `Bearer ${SB_KEY}` },
-      cache: 'no-store',
+    const response = await fetch(`${SB_URL}/storage/v1/object/sign/dashboard/data.json`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${SB_KEY}`,
+        apikey: SB_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ expiresIn: 60 }),
     });
 
     if (!response.ok) {
-      throw new Error(`Falha ao ler Supabase: HTTP ${response.status} ${await response.text()}`);
+      throw new Error(`Falha ao assinar dados do Supabase: HTTP ${response.status} ${await response.text()}`);
     }
 
     const payload = await response.json();
-    if (!payload?.data) throw new Error('data.json sem dados.');
-    return sendJson(res, 200, payload);
+    if (!payload?.signedURL) throw new Error('Supabase nao retornou a URL assinada.');
+    const location = payload.signedURL.startsWith('http')
+      ? payload.signedURL
+      : `${SB_URL}/storage/v1${payload.signedURL}`;
+
+    res.statusCode = 307;
+    res.setHeader('Cache-Control', 'no-store, max-age=0');
+    res.setHeader('Location', location);
+    return res.end();
   } catch (error) {
     console.error(error);
     return sendJson(res, 500, { error: error.message || 'Falha ao carregar dashboard.' });

@@ -19,17 +19,10 @@ async function refreshDashboard(onLoad, dataset) {
     cache: 'no-store',
   });
   const json = await res.json().catch(() => ({}));
-  if (!res.ok || !json?.data) {
+  if (!res.ok || !json?.ok) {
     throw new Error(json?.error || `Falha ao atualizar (${res.status})`);
   }
-  const { data, meta } = json;
-  window.__dashboardData = data;
-  window.__dashboardMeta = meta || {};
-  try {
-    localStorage.setItem('dashboard_data', JSON.stringify(data));
-    localStorage.setItem('dashboard_meta', JSON.stringify(meta || {}));
-    localStorage.setItem('dashboard_version', '5');
-  } catch (_) {}
+  const { data, meta } = await window.refreshDashboardData();
   if (onLoad) onLoad(data, meta);
   return { data, meta };
 }

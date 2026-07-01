@@ -57,14 +57,14 @@ function flagsFor(nome) {
 
 // Busca o data.json atual pra MESCLAR (assim um arquivo ausente não apaga a seção)
 async function fetchExisting() {
-  try {
-    const res = await fetch(`${SB_URL}/storage/v1/object/public/dashboard/data.json?t=${Date.now()}`, { cache: 'no-store' });
-    if (res.ok) {
-      const json = await res.json();
-      if (json && json.data) return { data: json.data, meta: json.meta || {} };
-    }
-  } catch (_) {}
-  return { data: {}, meta: {} };
+  const res = await fetch(`${SB_URL}/storage/v1/object/dashboard/data.json`, {
+    headers: { Authorization: `Bearer ${SB_KEY}` },
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`Falha ao ler dados atuais do Supabase: HTTP ${res.status} ${await res.text()}`);
+  const json = await res.json();
+  if (!json?.data) throw new Error('data.json atual sem dados; upload abortado por seguranca.');
+  return { data: json.data, meta: json.meta || {} };
 }
 
 async function main() {

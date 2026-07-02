@@ -53,6 +53,7 @@ const RAW_ITEMS = [
   ['poultry_br','precos','card-frango-mi','Preço Frango · Mercado Interno','frango mercado interno mi'],
   ['poultry_br','precos','card-frango-me','Preço Frango · Mercado Externo','frango mercado externo me exportacao secex'],
   ['poultry_br','precos','card-feed-grain','Feed Grain','feed grain racao milho soja corn soybean custo'],
+  ['poultry_br','precos','card-porco-mi','Preço Porco · Mercado Interno','porco suino suinos carne suina pork hog swine mercado interno preco'],
   ['poultry_br','precos','card-spread-mi-frango','Spread MI','spread mercado interno mi'],
   ['poultry_br','precos','card-spread-me-frango','Spread ME','spread mercado externo me'],
   ['poultry_br','abates','card-abates-frango','Abates de Frango','abate abates slaughter sidra sif'],

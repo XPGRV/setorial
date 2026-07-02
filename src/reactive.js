@@ -39,29 +39,64 @@ import React from 'react'
     obs.observe(node, { childList: true, characterData: true, subtree: true });
     valueObservers.set(node, obs);
   }
-  // scan periodically (cheap; values render lazily after data load)
-  const scan = () => document.querySelectorAll('.card-value').forEach(attachValueWatcher);
-  setInterval(scan, 1000);
-  setTimeout(scan, 200);
+  // --- Stroke length (--len) for chart line draw-on ----------------------
+  // Sem polling: um MutationObserver único mede apenas paths novos (childList)
+  // ou cujo `d` mudou (attributeFilter) — getTotalLength() força layout, então
+  // só roda quando o gráfico realmente muda, agrupado num requestAnimationFrame.
+  function measurePath(p) {
+    p.__rxLenMeasured = true;
+    try {
+      const len = p.getTotalLength();
+      if (len > 0) p.style.setProperty('--len', len);
+    } catch {}
+  }
 
-  // --- Stroke length for chart line draw-on ------------------------------
-  function setStrokeLengths() {
-    document.querySelectorAll('.chart-svg path[stroke]:not([stroke="transparent"])').forEach(p => {
-      try {
-        const len = p.getTotalLength();
-        if (len > 0) p.style.setProperty('--len', len);
-      } catch {}
+  const dirtyPaths = new Set();
+  let scanScheduled = false;
+  function scheduleScan() {
+    if (scanScheduled) return;
+    scanScheduled = true;
+    requestAnimationFrame(() => {
+      scanScheduled = false;
+      document.querySelectorAll('.card-value').forEach(attachValueWatcher);
+      document.querySelectorAll('.chart-svg path[stroke]:not([stroke="transparent"])').forEach(p => {
+        if (!p.__rxLenMeasured) measurePath(p);
+      });
+      dirtyPaths.forEach(p => { if (p.isConnected) measurePath(p); });
+      dirtyPaths.clear();
     });
   }
-  setInterval(setStrokeLengths, 600);
+
+  const rootObs = new MutationObserver(muts => {
+    for (const m of muts) {
+      if (m.type === 'attributes') dirtyPaths.add(m.target);
+    }
+    scheduleScan();
+  });
+  const startObserver = () => {
+    rootObs.observe(document.body, {
+      childList: true, subtree: true,
+      attributes: true, attributeFilter: ['d'],
+    });
+    scheduleScan();
+  };
+  if (document.body) startObserver();
+  else document.addEventListener('DOMContentLoaded', startObserver);
 
   // --- Crosshair on chart hover -----------------------------------------
+  let crosshairSvg = null; // svg com crosshair ativo — evita query em todo mousemove
+  const hideCrosshair = (svg) => {
+    const v = svg && svg.querySelector('.rx-crosshair');
+    if (v) v.style.opacity = 0;
+  };
   document.addEventListener('mousemove', (e) => {
     const svg = e.target.closest('.chart-svg');
     if (!svg) {
-      document.querySelectorAll('.rx-crosshair').forEach(n => n.style.opacity = 0);
+      if (crosshairSvg) { hideCrosshair(crosshairSvg); crosshairSvg = null; }
       return;
     }
+    if (crosshairSvg && crosshairSvg !== svg) hideCrosshair(crosshairSvg);
+    crosshairSvg = svg;
     const rect = svg.getBoundingClientRect();
     const vb = svg.viewBox?.baseVal;
     if (!vb) return;

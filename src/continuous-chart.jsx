@@ -121,7 +121,13 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
       const d = Math.abs(r.year * 12 + r.month - 1 - ord);
       if (d < bestD) { bestD = d; best = r; }
     }
-    if (best) setHovered({ x: xOf(best), y: yOf(best[field]), row: best, mouseY: e.clientY - rect.top });
+    if (best) {
+      const my = e.clientY - rect.top;
+      // Reusa o objeto anterior se nada relevante mudou — evita re-render por pixel
+      setHovered(prev => prev && prev.row === best && Math.abs(prev.mouseY - my) < 16
+        ? prev
+        : { x: xOf(best), y: yOf(best[field]), row: best, mouseY: my });
+    }
   };
 
   // Visible events
@@ -434,7 +440,12 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
       const d = Math.abs(r.year * 12 + r.month - 1 - ord);
       if (d < bestD) { bestD = d; best = r; }
     }
-    if (best) setHovered({ x: xOf(best), row: best, mouseY: e.clientY - rect.top });
+    if (best) {
+      const my = e.clientY - rect.top;
+      setHovered(prev => prev && prev.row === best && Math.abs(prev.mouseY - my) < 16
+        ? prev
+        : { x: xOf(best), row: best, mouseY: my });
+    }
   };
 
   const toggle = key => setPinnedSeries(p => p === key ? null : key);

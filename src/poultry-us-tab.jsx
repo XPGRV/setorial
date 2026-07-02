@@ -175,7 +175,7 @@ const FrangoUSChart = ({
     const py = (e.clientY - rect.top) * (H / rect.height);
     const doy = Math.round(1 + ((px - padL) / chartW) * 364);
     setHover(Math.max(1, Math.min(365, doy)));
-    setMouseY(py);
+    setMouseY(prev => Math.abs(prev - py) < 16 ? prev : py);
   };
 
   const gradId = `frango-us-grad-${chartId}`;
@@ -245,7 +245,6 @@ const FrangoUSChart = ({
             return (
               <g key={yr}>
                 <path
-                  ref={el => { if (el) { try { el.style.setProperty('--len', el.getTotalLength()); } catch(_){} } }}
                   d={buildPath(pts)} fill="none" stroke={yearColor(yr)}
                   strokeWidth={seriesWidth(yr)} strokeLinejoin="round" strokeLinecap="round"
                   opacity={seriesOpacity(yr)}
@@ -939,7 +938,7 @@ const PoultryBeefChart = ({ allRows, filteredRows, mean, chartStyle, prevFirstT 
     let best = null, bestD = Infinity;
     for (const r of rows) { const d = Math.abs(tOf(r) - t); if (d < bestD) { bestD = d; best = r; } }
     setHover(best || null);
-    setMouseY(py);
+    setMouseY(prev => Math.abs(prev - py) < 16 ? prev : py);
   };
 
   return (
@@ -1209,7 +1208,7 @@ function NcWeeklyChart({ rows, fields, chartStyle, pinnedSeries, setPinnedSeries
     let best = null, bestD = Infinity;
     for (const r of rows) { const d = Math.abs(tOf(r) - t); if (d < bestD) { bestD = d; best = r; } }
     setHover(best || null);
-    setMouseY(py);
+    setMouseY(prev => Math.abs(prev - py) < 16 ? prev : py);
   };
 
   return (

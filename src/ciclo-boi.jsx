@@ -60,7 +60,7 @@ const CicloDoBoi = ({ data, accent, events = [], showEvents = true }) => {
       if (d < bestDist) { bestDist = d; best = p; }
     }
     setHover(best);
-    setMouseY(py);
+    setMouseY(prev => Math.abs(prev - py) < 16 ? prev : py);
   };
 
   const latestMM = mm12[mm12.length - 1];

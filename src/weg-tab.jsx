@@ -178,7 +178,7 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey, chart
     const t = tAtPx(px);
     let best = null, bestD = Infinity;
     for (const r of rows) { const d = Math.abs(tOf(r) - t); if (d < bestD) { bestD = d; best = r; } }
-    setHover(best || null); setMouseY(py);
+    setHover(best || null); setMouseY(prev => Math.abs(prev - py) < 16 ? prev : py);
   };
   const onUp = e => {
     const start = dragRef.current;

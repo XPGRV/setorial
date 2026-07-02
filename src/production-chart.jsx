@@ -299,7 +299,7 @@ function ProductionChart({
     const py = (e.clientY - rect.top) * (H / rect.height);
     const pos = Math.round(((px - padL) / chartW) * 3);
     setHover(Math.max(0, Math.min(3, pos)));
-    setMouseY(py);
+    setMouseY(prev => Math.abs(prev - py) < 16 ? prev : py);
   };
   const onSvgClick = () => setSelYear(null);
 
@@ -395,7 +395,6 @@ function ProductionChart({
               )}
               {solidPath && (
                 <path
-                  ref={el => { if (el) { try { el.style.setProperty('--len', el.getTotalLength()); } catch(_){} } }}
                   d={solidPath} fill="none" stroke={clr}
                   strokeWidth={isSel ? 2.5 : (isLast ? 2 : 1.25)}
                   opacity={dimmed ? 0.15 : (isLast ? 1 : 0.8)}
@@ -1019,7 +1018,7 @@ function AnnualProductionChart({ annualB, annualA, compYears, allYears, showFore
     const py   = (e.clientY - rect.top)  * (H / rect.height);
     const xi   = Math.floor((px - padL) / slotW);
     setHover(xi >= 0 && xi < numYears ? xi : null);
-    setMouseY(py);
+    setMouseY(prev => Math.abs(prev - py) < 16 ? prev : py);
   };
 
   return (

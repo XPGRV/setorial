@@ -140,7 +140,7 @@ const SeasonalChart = ({
     const py = (e.clientY - rect.top) * (H / rect.height);
     const pos = Math.round(((px - padL) / chartW) * 11);
     setHover(Math.max(0, Math.min(11, pos)));
-    setMouseY(py);
+    setMouseY(prev => Math.abs(prev - py) < 16 ? prev : py);
   };
 
   const EVENT_COLOR = 'oklch(0.85 0.18 80)'; // amber — distinct from any year series color
@@ -258,7 +258,6 @@ const SeasonalChart = ({
                       className={`rx-area ${leaving ? 'rx-leaving' : ''} ${areaLeaving ? 'rx-area-leaving' : ''}`}/>
                   )}
                   <path
-                    ref={el => { if (el) { try { el.style.setProperty('--len', el.getTotalLength()); } catch(_){} } }}
                     d={buildPath(values)}
                     stroke={stroke}
                     strokeWidth={seriesWidth(yr)}

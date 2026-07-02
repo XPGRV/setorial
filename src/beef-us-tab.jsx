@@ -150,7 +150,7 @@ const EdgebeeefChart = ({
     const py = (e.clientY - rect.top) * (H / rect.height);
     const doy = Math.round(1 + ((px - padL) / chartW) * 364);
     setHover(Math.max(1, Math.min(365, doy)));
-    setMouseY(py);
+    setMouseY(prev => Math.abs(prev - py) < 16 ? prev : py);
   };
 
   const gradId = `edge-grad-${chartId}`;
@@ -228,7 +228,6 @@ const EdgebeeefChart = ({
           return (
             <g key={yr}>
               <path
-                ref={el => { if (el) { try { el.style.setProperty('--len', el.getTotalLength()); } catch(_){} } }}
                 d={buildPath(pts)} fill="none" stroke={stroke}
                 strokeWidth={seriesWidth(yr)} strokeLinejoin="round" strokeLinecap="round"
                 opacity={seriesOpacity(yr)}
@@ -655,7 +654,7 @@ const CicloBoiUS = ({ data, accent, events = [], showEvents = true }) => {
       if (d < bestDist) { bestDist = d; best = p; }
     }
     setHover(best);
-    setMouseY(py);
+    setMouseY(prev => Math.abs(prev - py) < 16 ? prev : py);
   };
 
   const hoverBoi = hover ? boiPoints.find(p => p.year === hover.year && p.month === hover.month) : null;
@@ -693,11 +692,9 @@ const CicloBoiUS = ({ data, accent, events = [], showEvents = true }) => {
 
         {/* %Fêmeas — fino, muted (igual rawPath do CicloDoBoi) */}
         <path
-          ref={el => { if (el) { try { el.style.setProperty('--len', el.getTotalLength()); } catch(_){} } }}
           d={femPath} fill="none" stroke={rawColor} strokeWidth="1" strokeOpacity="0.5" strokeLinejoin="round"/>
         {/* Boi/Bezerro MM12M — grosso, accent (igual mmPath do CicloDoBoi) */}
         <path
-          ref={el => { if (el) { try { el.style.setProperty('--len', el.getTotalLength()); } catch(_){} } }}
           d={boiPath} fill="none" stroke={accent} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round"/>
 
         {hover && (

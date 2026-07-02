@@ -133,7 +133,7 @@ function BimonthlySeasonalChart({ bmRows, fieldKey, accent, selectedYears, chart
     const py = (e.clientY - rect.top) * (H / rect.height);
     const bm = Math.round(((px - padL) / chartW) * 5) + 1;
     if (bm >= 1 && bm <= 6) {
-      setHoverBm(bm); setMouseX(px); setMouseY(py);
+      setHoverBm(bm); setMouseX(prev => Math.abs(prev - px) < 16 ? prev : px); setMouseY(prev => Math.abs(prev - py) < 16 ? prev : py);
     }
   };
 
@@ -542,7 +542,12 @@ function BimonthlyContChart({ bmRows, fields, rangeYears, chartStyle = 'line', h
       const d = Math.abs(r.year * 6 + r.bimonth - 1 - ord);
       if (d < bestD) { bestD = d; best = r; }
     }
-    if (best) setHovered({ x: xOf(best), row: best, mouseY: e.clientY - rect.top });
+    if (best) {
+      const my = e.clientY - rect.top;
+      setHovered(prev => prev && prev.row === best && Math.abs(prev.mouseY - my) < 16
+        ? prev
+        : { x: xOf(best), row: best, mouseY: my });
+    }
   }, [filtered, firstOrd, totalBms, chartW]);
 
   return (

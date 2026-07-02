@@ -183,6 +183,9 @@ const MARKET_TABS = ['Índices', 'Commodities', 'Moedas']
 
 const HOME_SEARCH_ITEMS = [
   ['beef_us', null, null, 'Beef US', 'beef carne bovina estados unidos eua forecast ciclo edgebeef'],
+  ['beef_br', 'precos', null, 'Beef BR', 'beef carne bovina brasil br precos producao abates'],
+  ['poultry_br', 'precos', null, 'Poultry BR', 'poultry frango aves chicken brasil br precos producao processados'],
+  ['poultry_us', 'precos', null, 'Poultry US', 'poultry frango aves chicken estados unidos eua usa us precos producao'],
   ['beef_br', 'precos', 'card-cattle', 'Preço Boi Gordo', 'beef brasil carne bovina arroba cattle'],
   ['beef_br', 'precos', 'card-carne-mi', 'Preço Carne · Mercado Interno', 'beef brasil carne preco'],
   ['beef_br', 'precos', 'card-carne-me', 'Preço Carne · Mercado Externo', 'beef brasil carne exportacao'],
@@ -206,7 +209,12 @@ const HOME_SEARCH_ITEMS = [
 
 const homeSearchNorm = value => (value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 const homeSearchSection = dataset => dataset === 'macro' ? 'macro' : dataset === 'weg' ? 'capitalgoods' : 'proteinas'
-const homeSearchCrumb = item => item.dataset === 'macro' ? 'Macro' : item.dataset === 'weg' ? 'Capital Goods · WEG' : item.dataset.includes('poultry') ? 'Proteínas · Poultry' : 'Proteínas · Beef'
+const homeSearchCrumb = item => {
+  if (item.dataset === 'macro') return 'Macro'
+  if (item.dataset === 'weg') return 'Capital Goods · WEG'
+  const region = item.dataset.endsWith('_br') ? 'BR' : 'US'
+  return item.dataset.includes('poultry') ? `Proteínas · Poultry ${region}` : `Proteínas · Beef ${region}`
+}
 
 function HomeGlobalSearch({ navigate }) {
   const [value, setValue] = React.useState('')

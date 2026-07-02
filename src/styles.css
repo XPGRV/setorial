@@ -1547,6 +1547,7 @@ body {
   --bubble-x: 180px;
   --bubble-y: 46px;
   position: relative;
+  z-index: 100;
   isolation: isolate;
   height: 92px;
   padding: 0 32px;

@@ -52,8 +52,21 @@ const RefreshIcon = ({ size = 14 }) => (
   </svg>
 );
 
+// Tempo relativo "vivo": re-renderiza a cada 30s para o rótulo acompanhar o
+// relógio ("agora" → "1 min atrás" → ...), só enquanto o widget está montado.
+function useRelativeTime(iso) {
+  const [, tick] = React.useReducer(n => n + 1, 0);
+  React.useEffect(() => {
+    if (!iso) return;
+    const id = setInterval(tick, 30000);
+    return () => clearInterval(id);
+  }, [iso]);
+  return iso ? formatRelative(iso) : '';
+}
+
 const RefreshWidget = ({ onLoad, dataset, lastUpdate, currentSource }) => {
   const [status, setStatus] = React.useState(null);
+  const relativeTime = useRelativeTime(lastUpdate);
 
   const handleRefresh = async () => {
     setStatus({ kind: 'loading', msg: 'Buscando planilha...' });
@@ -80,7 +93,7 @@ const RefreshWidget = ({ onLoad, dataset, lastUpdate, currentSource }) => {
         ) : lastUpdate ? (
           <span className="upload-last">
             <span className="upload-last-src">{currentSource || 'data.json'}</span>
-            <span className="upload-last-time">atualizado {formatRelative(lastUpdate)}</span>
+            <span className="upload-last-time">atualizado {relativeTime}</span>
           </span>
         ) : (
           <span className="upload-hint">buscar Drive</span>

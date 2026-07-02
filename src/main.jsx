@@ -159,6 +159,10 @@ async function ensureSectionData(section) {
     } catch {}
   }
 
+  // Modo offline: algum dataset da seção não veio fresco da rede — a UI mostra
+  // um aviso de que os dados exibidos são os últimos salvos localmente
+  window.__dashboardOffline = wanted.some(ds => !freshDatasets.has(ds))
+
   return currentPayload()
 }
 
@@ -170,6 +174,7 @@ window.refreshDashboardData = async (dataset) => {
   if (!targets.length) targets.push('beef_us')
   let payload = currentPayload()
   for (const ds of targets) payload = await fetchDatasetPayload(ds)
+  window.__dashboardOffline = false
   notifyDataUpdated()
   return payload
 }

@@ -52,6 +52,23 @@ function TopbarMesh({ accent = '#2f8fc4', spacing = 12, intensity = 0.3, speed =
     const ro = new ResizeObserver(size)
     ro.observe(cv)
 
+    // Menos movimento: pinta a malha uma vez, estática, e não anima
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const paintStatic = () => {
+        const { w, h } = g
+        ctx.clearRect(0, 0, w, h)
+        for (const d of g.dots) {
+          ctx.beginPath(); ctx.arc(d.bx, d.by, Math.max(0.5, g.sp / 26), 0, 6.283)
+          ctx.fillStyle = rgba(dim, 0.07); ctx.fill()
+        }
+        ctx.fillStyle = rgba(hi, 0.5); ctx.fillRect(0, h - 1.5, w, 1.5)
+      }
+      paintStatic()
+      const roStatic = new ResizeObserver(() => { size(); paintStatic() })
+      roStatic.observe(cv)
+      return () => { ro.disconnect(); roStatic.disconnect() }
+    }
+
     const move = (e) => {
       const r = bar.getBoundingClientRect()
       g.tmx = e.clientX - r.left; g.tmy = e.clientY - r.top; g.tpres = 1
@@ -199,6 +216,7 @@ function HomeGlobalSearch({ navigate }) {
     <div className="rx-search home-global-search" ref={ref}>
       <Search className="rx-search-icon" size={14} />
       <input className="rx-search-input" value={value} placeholder="Buscar dashboard ou gráfico…"
+        aria-label="Buscar dashboard ou gráfico"
         onChange={event => { setValue(event.target.value); setOpen(true) }} onFocus={() => setOpen(true)}
         onKeyDown={event => {
           if (event.key === 'ArrowDown') { event.preventDefault(); setActive(i => Math.min(i + 1, results.length - 1)) }
@@ -219,6 +237,16 @@ function HomeGlobalSearch({ navigate }) {
 }
 
 const fmtDelta = d => `${d >= 0 ? '+' : ''}${d.toFixed(2).replace('.', ',')}%`
+
+// Relógio real do Market Overview — atualiza a cada 30s
+function useClock() {
+  const [now, setNow] = React.useState(() => new Date())
+  React.useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30000)
+    return () => clearInterval(id)
+  }, [])
+  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+}
 
 function Sparkline({ points, up }) {
   const w = 64, h = 26, pad = 2
@@ -246,6 +274,7 @@ export default function HomePage() {
   const navigate = useNavigate()
   const [mode, setMode] = React.useState(() => document.documentElement.dataset.mode === 'light' ? 'light' : 'dark')
   const [marketTab, setMarketTab] = React.useState('Commodities')
+  const clock = useClock()
 
   const go = s => {
     if (s.active && s.route) runRouteTransition(() => navigate(s.route))
@@ -304,7 +333,12 @@ export default function HomePage() {
 
         {/* Direita — Market Overview */}
         <aside className="home-column home-market">
-          <SectionTitle title="Market Overview" right={<span className="home-clock">15:42</span>} />
+          <SectionTitle title="Market Overview" right={
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <span className="home-demo-badge" title="Cotações de exemplo — ainda sem feed de mercado">ilustrativo</span>
+              <span className="home-clock">{clock}</span>
+            </span>
+          } />
           <div className="home-market-periods">
             {MARKET_TABS.map(t => (
               <button key={t} className={marketTab === t ? 'is-on' : ''} onClick={() => setMarketTab(t)}>{t}</button>

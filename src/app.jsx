@@ -95,9 +95,13 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
     try { localStorage.setItem('rx-color-mode', colorMode); } catch {}
   }, [colorMode]);
 
+  // Aviso de dados offline (rede falhou → exibindo cache local)
+  const [offline, setOffline] = useState(() => !!window.__dashboardOffline);
+
   useEffect(() => {
     const onUpload = (e) => {
       if (e.detail?.data) { setData(e.detail.data); setMeta(e.detail.meta || null); }
+      setOffline(!!window.__dashboardOffline);
     };
     window.addEventListener('dashboard-data-updated', onUpload);
     // Sincroniza com o store global caso uma revalidação em background tenha
@@ -292,6 +296,14 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
         <TopBar meta={meta} onUpload={onUpload} activeDataset={activeDataset}
           colorMode={colorMode} onCycleMode={cycleMode} onNavigate={navigateTo}
           dashboardSection={dashboardSection}/>
+        {offline && (
+          <div className="rx-offline-banner" role="status">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/>
+            </svg>
+            Sem conexão com a base de dados — exibindo os últimos dados salvos neste navegador.
+          </div>
+        )}
         <TickerBar data={data} activeDataset={activeDataset}/>
         {activeDataset === 'beef_us' ? (
           <BeefUSTab data={data} accent={accent}/>
@@ -402,6 +414,8 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
 
   const GroupHeader = ({ groupId, icon, label, labelStyle, isActive }) => (
     <div className="sidebar-group-header" onClick={() => toggleGroup(groupId)}
+      role="button" tabIndex={0} aria-expanded={openGroup.has(groupId)}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGroup(groupId); } }}
       style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <span
@@ -424,7 +438,7 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
           </div>
         </div>
         <div className="sidebar-brand-row">
-          <button className="sidebar-back-btn" onClick={goHome} title="Voltar ao início">
+          <button className="sidebar-back-btn" onClick={goHome} title="Voltar ao início" aria-label="Voltar ao início">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M2.5 7.2 8 2.5l5.5 4.7M4 6v6.5a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5V6"
                 stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
@@ -927,6 +941,8 @@ function TickerBar({ data, activeDataset }) {
   }, []);
 
   useEffect(() => {
+    // Usuário pediu menos movimento → ticker fica parado (conteúdo continua visível)
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     requestRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(requestRef.current);
   }, [animate]);

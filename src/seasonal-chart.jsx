@@ -1,4 +1,5 @@
 import React from 'react'
+import { EventDot, MONTHS_PT, buildSeasonal, buildStats, fmt, fmtCompact, useFadeOut, useTrackedYears } from './data-utils.jsx'
 
 // Seasonal chart — futuristic dark style: one current year line, others faded, area fill under current
 
@@ -22,7 +23,7 @@ const SeasonalChart = ({
   }, [data, dataset, field]);
 
   const seasonal = React.useMemo(
-    () => window.buildSeasonal(data, dataset, field, years),
+    () => buildSeasonal(data, dataset, field, years),
     [data, dataset, field, years.join(',')]
   );
 
@@ -32,7 +33,7 @@ const SeasonalChart = ({
   }, [years]);
 
   const stats = React.useMemo(
-    () => window.buildStats(data, dataset, field, statsRange.from, statsRange.to),
+    () => buildStats(data, dataset, field, statsRange.from, statsRange.to),
     [data, dataset, field, statsRange.from, statsRange.to]
   );
 
@@ -117,7 +118,7 @@ const SeasonalChart = ({
   const [hover, setHover] = React.useState(null);
   const [pinnedYear, setPinnedYear] = React.useState(null);
   const [dotHoverYear, setDotHoverYear] = React.useState(null);
-  const { shouldRender: showLabels, isLeaving: labelsLeaving } = window.useFadeOut(!!pinnedYear, 150);
+  const { shouldRender: showLabels, isLeaving: labelsLeaving } = useFadeOut(!!pinnedYear, 150);
   const lastPinnedRef = React.useRef(pinnedYear);
   if (pinnedYear) lastPinnedRef.current = pinnedYear;
 
@@ -150,11 +151,11 @@ const SeasonalChart = ({
   const sortedAsc = [...selectedYears].sort((a,b) => a-b);
   const latestYear = Math.max(...selectedYears);
   // Anos visualmente exibidos (inclui anos saindo para animação de undraw)
-  const { displayYears, isLeaving } = window.useTrackedYears(selectedYears);
-  const { shouldRender: showEventsRender, isLeaving: eventsLeaving } = window.useFadeOut(showEvents, 400);
-  const { shouldRender: showAreaRender, isLeaving: areaLeaving } = window.useFadeOut(chartStyle === 'area', 400);
-  const { shouldRender: showBarsRender, isLeaving: barsLeaving } = window.useFadeOut(chartStyle === 'bars', 280);
-  const { shouldRender: showStatsRender, isLeaving: statsLeaving } = window.useFadeOut(showStats && !hideAvg, 500);
+  const { displayYears, isLeaving } = useTrackedYears(selectedYears);
+  const { shouldRender: showEventsRender, isLeaving: eventsLeaving } = useFadeOut(showEvents, 400);
+  const { shouldRender: showAreaRender, isLeaving: areaLeaving } = useFadeOut(chartStyle === 'area', 400);
+  const { shouldRender: showBarsRender, isLeaving: barsLeaving } = useFadeOut(chartStyle === 'bars', 280);
+  const { shouldRender: showStatsRender, isLeaving: statsLeaving } = useFadeOut(showStats && !hideAvg, 500);
 
   return (
     <div className="chart-wrap">
@@ -178,7 +179,7 @@ const SeasonalChart = ({
             <g key={i}>
               <line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} className="grid-line"/>
               <text x={W - padR + 6} y={y(t)} className="tick-label" textAnchor="start" dominantBaseline="middle">
-                {window.fmtCompact(t, fmtOpts)}
+                {fmtCompact(t, fmtOpts)}
               </text>
             </g>
           ))}
@@ -186,7 +187,7 @@ const SeasonalChart = ({
 
         {/* X ticks */}
         <g className="x-ticks">
-          {window.MONTHS_PT.map((m, i) => (
+          {MONTHS_PT.map((m, i) => (
             <text key={m} x={chartStyle === 'bars' ? xBar(i) : x(i)} y={H - padB + 18} className="tick-label" textAnchor="middle">{m}</text>
           ))}
         </g>
@@ -341,7 +342,7 @@ const SeasonalChart = ({
             return (
               <g key={`ev-${yr}-${i}-${chartStyle === 'bars' ? 'bars' : 'line'}`}
                  className={eventsLeaving ? 'rx-events-leaving' : ''}>
-                <window.EventDot cx={cx} cy={cy}
+                <EventDot cx={cx} cy={cy}
                   r={isPinned ? 5 : 3}
                   fill={isPinned ? 'var(--bg)' : EVENT_COLOR}
                   stroke={EVENT_COLOR} strokeWidth={1.5}
@@ -369,7 +370,7 @@ const SeasonalChart = ({
             <g style={{animation: labelsLeaving ? 'rx-fade-in 0.15s ease-out reverse forwards' : 'rx-fade-in 0.15s ease-out'}}>
             {seasonal[yr].map((v, mi) => {
           if (v == null) return null;
-          const label = window.fmtCompact(v, fmtOpts);
+          const label = fmtCompact(v, fmtOpts);
           const color = yearColor(yr);
 
           if (chartStyle === 'bars') {
@@ -530,7 +531,7 @@ const HoverCard = ({ month, years, seasonal, stats, events, fmtOpts, unit, xPos,
   };
   return (
     <div className="hover-card" style={style}>
-      <div className="hover-month">{window.MONTHS_PT[month]}</div>
+      <div className="hover-month">{MONTHS_PT[month]}</div>
       <div className="hover-rows">
         {sorted.map(yr => {
           const v = seasonal[yr]?.[month];
@@ -538,14 +539,14 @@ const HoverCard = ({ month, years, seasonal, stats, events, fmtOpts, unit, xPos,
           return (
             <div key={yr} className="hover-row">
               <span className="hover-year" style={{color}}>{yr}</span>
-              <span className="hover-val">{window.fmt(v, fmtOpts)}<span className="hover-unit"> {unit}</span></span>
+              <span className="hover-val">{fmt(v, fmtOpts)}<span className="hover-unit"> {unit}</span></span>
             </div>
           );
         })}
         {stats && (
           <div className="hover-row hover-stat">
             <span className="hover-year">média {stats.n}a</span>
-            <span className="hover-val">{window.fmt(stats.mean, fmtOpts)}</span>
+            <span className="hover-val">{fmt(stats.mean, fmtOpts)}</span>
           </div>
         )}
       </div>
@@ -563,4 +564,4 @@ const HoverCard = ({ month, years, seasonal, stats, events, fmtOpts, unit, xPos,
   );
 };
 
-Object.assign(window, { SeasonalChart });
+export { SeasonalChart };

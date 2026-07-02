@@ -1,4 +1,5 @@
 import React from 'react'
+import { useFadeOut } from './data-utils.jsx'
 
 // ContinuousChart — série contínua (não sazonal) com controles simplificados
 
@@ -43,7 +44,7 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
     return () => obs.disconnect();
   }, []);
 
-  const { shouldRender: showAreaRender, isLeaving: areaLeaving } = window.useFadeOut(chartStyle === 'area', 450);
+  const { shouldRender: showAreaRender, isLeaving: areaLeaving } = useFadeOut(chartStyle === 'area', 450);
 
   const W = svgW, H = height;
   const padL = 58, padR = 48, padT = 14, padB = 32;
@@ -336,15 +337,14 @@ function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit
   );
 }
 
-window.ContinuousCard  = ContinuousCard;
-window.ContinuousChart = ContinuousChart;
+
 
 // ── MultiContinuousChart ──────────────────────────────────────────────────────
 function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 260, chartId = 'mc', chartStyle = 'line', pinnedSeries, setPinnedSeries }) {
   const svgRef = React.useRef(null);
   const [hovered, setHovered] = React.useState(null);
   const [svgW, setSvgW] = React.useState(760);
-  const { shouldRender: showLabels, isLeaving: labelsLeaving } = window.useFadeOut(!!pinnedSeries, 150);
+  const { shouldRender: showLabels, isLeaving: labelsLeaving } = useFadeOut(!!pinnedSeries, 150);
   const lastPinnedRef = React.useRef(pinnedSeries);
   if (pinnedSeries) lastPinnedRef.current = pinnedSeries;
 
@@ -687,5 +687,4 @@ function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', deci
   );
 }
 
-window.MultiContinuousCard  = MultiContinuousCard;
-window.MultiContinuousChart = MultiContinuousChart;
+export { ContinuousCard, ContinuousChart, MultiContinuousCard, MultiContinuousChart };

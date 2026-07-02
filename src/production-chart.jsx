@@ -1,4 +1,5 @@
 import React from 'react'
+import { EventDot, useFadeOut, useTrackedYears } from './data-utils.jsx'
 
 // Production USDA — quarterly forecast comparison chart
 
@@ -155,9 +156,9 @@ function ProductionChart({
   const padL = 72, padR = 24, padT = 20, padB = 32;
   const chartW = W - padL - padR;
   const chartH = H - padT - padB;
-  const { shouldRender: showEventsRender, isLeaving: eventsLeaving } = window.useFadeOut(showEvents, 400);
-  const { shouldRender: showAreaRender, isLeaving: areaLeaving } = window.useFadeOut(chartStyle === 'area', 400);
-  const { shouldRender: showStatsRender, isLeaving: statsLeaving } = window.useFadeOut(showStats, 500);
+  const { shouldRender: showEventsRender, isLeaving: eventsLeaving } = useFadeOut(showEvents, 400);
+  const { shouldRender: showAreaRender, isLeaving: areaLeaving } = useFadeOut(chartStyle === 'area', 400);
+  const { shouldRender: showStatsRender, isLeaving: statsLeaving } = useFadeOut(showStats, 500);
   // (i) Center each quarter in its slot instead of pinning Q1/Q4 to the axes
   const SEG = chartW / 4;
   const x = qi => padL + (qi + 0.5) * SEG;
@@ -214,7 +215,7 @@ function ProductionChart({
   // ── ALL hooks must come before any early return ──────────────────────────────
   const sortedHist = [...selectedHistYears].sort((a,b) => a-b).filter(yr => histSeries[yr]);
   // Anos saindo: rastreia para animação reversa de undraw
-  const { displayYears: displayHistYears, isLeaving } = window.useTrackedYears(sortedHist);
+  const { displayYears: displayHistYears, isLeaving } = useTrackedYears(sortedHist);
 
   if (!allVals.length) {
     return (
@@ -535,7 +536,7 @@ function ProductionChart({
               const dotDelay = `${(qi / 3 * 1.1).toFixed(2)}s`;
               return [(
                 <g key={`ev-${yr}-${i}`} className={eventsLeaving ? 'rx-events-leaving' : ''}>
-                  <window.EventDot cx={cx} cy={cy}
+                  <EventDot cx={cx} cy={cy}
                     r={isPinned ? 5 : 3}
                     fill={isPinned ? 'none' : EVENT_COLOR}
                     stroke={EVENT_COLOR} strokeWidth={1.5}
@@ -1339,4 +1340,4 @@ function AnnualProductionCard({
   );
 }
 
-Object.assign(window, { ProductionCard, AnnualProductionCard });
+export { ProductionCard, AnnualProductionCard };

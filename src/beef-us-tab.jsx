@@ -1,4 +1,6 @@
 import React from 'react'
+import { EVENTS_US, EventDot, MONTHS_PT, useFadeOut, useTrackedYears } from './data-utils.jsx'
+import { AnnualProductionCard, ProductionCard } from './production-chart.jsx'
 
 // Beef US Tab — Edgebeef sazonal diário + Ciclo do Boi US
 
@@ -41,9 +43,9 @@ const EdgebeeefChart = ({
 
   const latestYear = Math.max(...selectedYears);
   const sortedAsc  = [...selectedYears].sort((a, b) => a - b);
-  const { displayYears, isLeaving } = window.useTrackedYears(selectedYears);
-  const { shouldRender: showAreaRender, isLeaving: areaLeaving } = window.useFadeOut(chartStyle === 'area', 400);
-  const { shouldRender: showStatsRender, isLeaving: statsLeaving } = window.useFadeOut(showStats, 500);
+  const { displayYears, isLeaving } = useTrackedYears(selectedYears);
+  const { shouldRender: showAreaRender, isLeaving: areaLeaving } = useFadeOut(chartStyle === 'area', 400);
+  const { shouldRender: showStatsRender, isLeaving: statsLeaving } = useFadeOut(showStats, 500);
 
   const [hover, setHover] = React.useState(null);
   React.useEffect(() => { setHover(null); }, [selectedYears.join(',')]);
@@ -118,7 +120,7 @@ const EdgebeeefChart = ({
   const statsMeanPath = statsDoys.map((d,i) => `${i===0?'M':'L'}${x(d).toFixed(1)},${y(stats[d].mean).toFixed(1)}`).join(' ');
 
   // Events: position at mid-month doy
-  const { shouldRender: showEventsRender, isLeaving: eventsLeaving } = window.useFadeOut(showEvents, 400);
+  const { shouldRender: showEventsRender, isLeaving: eventsLeaving } = useFadeOut(showEvents, 400);
   const eventsInView = React.useMemo(() => {
     if (!showEventsRender) return [];
     return (events || []).filter(e => selectedYears.includes(e.year) && (!pinnedYear || e.year === pinnedYear));
@@ -139,7 +141,7 @@ const EdgebeeefChart = ({
   const doyToLabel = doy => {
     let mo = 0;
     for (let m = 11; m >= 0; m--) { if (doy > MONTH_DOY[m]) { mo = m; break; } }
-    return `${doy - MONTH_DOY[mo]} ${window.MONTHS_PT[mo]}`;
+    return `${doy - MONTH_DOY[mo]} ${MONTHS_PT[mo]}`;
   };
 
   const [mouseY, setMouseY] = React.useState(0);
@@ -195,7 +197,7 @@ const EdgebeeefChart = ({
         {MONTH_DOY.map((doy, mi) => (
           <g key={mi}>
             <line x1={x(doy+1)} x2={x(doy+1)} y1={padT} y2={H-padB} className="grid-line" opacity="0.3"/>
-            <text x={x(doy+16)} y={H-padB+16} className="tick-label" textAnchor="middle">{window.MONTHS_PT[mi]}</text>
+            <text x={x(doy+16)} y={H-padB+16} className="tick-label" textAnchor="middle">{MONTHS_PT[mi]}</text>
           </g>
         ))}
 
@@ -261,7 +263,7 @@ const EdgebeeefChart = ({
           const dotDelay = `${((best.doy - 1) / 364 * 1.1).toFixed(2)}s`;
           return (
             <g key={`ev-${ev.year}-${ev.month}`} className={eventsLeaving ? 'rx-events-leaving' : ''}>
-              <window.EventDot cx={cx} cy={cy} r={isPinned ? 5 : 3}
+              <EventDot cx={cx} cy={cy} r={isPinned ? 5 : 3}
                 fill={isPinned ? 'var(--bg)' : EVENT_COLOR} stroke={EVENT_COLOR} strokeWidth={1.5}
                 delaySec={parseFloat(dotDelay)}/>
               {isPinned && <line className="rx-event-beam" x1={cx} y1={labelY+12} x2={cx} y2={cy-6} stroke={EVENT_COLOR} strokeWidth={1} strokeDasharray="2 3" strokeOpacity={0.6}/>}
@@ -543,7 +545,7 @@ const EdgebeeefCard = ({ data, accent, events }) => {
                 {fmtPct(yoy)}<span className="card-delta-label"> YoY</span>
               </span>
               <span className="card-date">
-                {window.MONTHS_PT[latestRaw.month - 1]}/{String(latestRaw.year).slice(-2)}
+                {MONTHS_PT[latestRaw.month - 1]}/{String(latestRaw.year).slice(-2)}
               </span>
             </>)}
           </div>
@@ -601,7 +603,7 @@ const CicloBoiUS = ({ data, accent, events = [], showEvents = true }) => {
   }, [data]);
 
   const [hover, setHover] = React.useState(null);
-  const { shouldRender: showEventsRender, isLeaving: eventsLeaving } = window.useFadeOut(showEvents, 400);
+  const { shouldRender: showEventsRender, isLeaving: eventsLeaving } = useFadeOut(showEvents, 400);
 
   const tMin = femPoints.length ? femPoints[0].t : 2000;
   const tMax = femPoints.length ? femPoints[femPoints.length - 1].t : 2026;
@@ -749,7 +751,7 @@ const CicloBoiUS = ({ data, accent, events = [], showEvents = true }) => {
 
         return (
           <div className="hover-card" style={style}>
-            <div className="hover-month">{window.MONTHS_PT[hover.month-1]}/{hover.year}</div>
+            <div className="hover-month">{MONTHS_PT[hover.month-1]}/{hover.year}</div>
             <div className="hover-rows">
               <div className="hover-row">
                 <span className="hover-year" style={{color:rawColor}}>%Fêmeas</span>
@@ -795,7 +797,7 @@ function BeefUSTab({ data, accent }) {
   const [prodPairIdx, setProdPairIdx] = React.useState(0);
   return (
     <main className="main">
-      <EdgebeeefCard data={data} accent={chartAccent} events={window.EVENTS_US || []}/>
+      <EdgebeeefCard data={data} accent={chartAccent} events={EVENTS_US || []}/>
       <section className="card card-full" data-card-id="us-ciclo">
         <div className="card-head">
           <div>
@@ -809,13 +811,13 @@ function BeefUSTab({ data, accent }) {
             </div>
           </div>
         </div>
-        <CicloBoiUS data={data} accent={chartAccent} events={window.EVENTS_US || []} showEvents={showEventsCiclo}/>
+        <CicloBoiUS data={data} accent={chartAccent} events={EVENTS_US || []} showEvents={showEventsCiclo}/>
       </section>
-      <window.ProductionCard data={data} accent={chartAccent} events={window.EVENTS_US || []}
+      <ProductionCard data={data} accent={chartAccent} events={EVENTS_US || []}
         pairIdx={prodPairIdx} onPairChange={setProdPairIdx}/>
-      <window.AnnualProductionCard data={data} accent={chartAccent} pairIdx={prodPairIdx}/>
+      <AnnualProductionCard data={data} accent={chartAccent} pairIdx={prodPairIdx}/>
     </main>
   );
 }
 
-Object.assign(window, { BeefUSTab, EdgebeeefChart, EdgebeeefControls, buildDailyStats });
+export { BeefUSTab, EdgebeeefChart, EdgebeeefControls, buildDailyStats };

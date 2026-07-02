@@ -1,4 +1,9 @@
 import React from 'react'
+import { EventDot, MONTHS_PT, fmt, useFadeOut, useTrackedYears } from './data-utils.jsx'
+import { SeasonalChart } from './seasonal-chart.jsx'
+import { PriceCard } from './price-card.jsx'
+import { AnnualProductionCard, ProductionCard } from './production-chart.jsx'
+import { MultiContinuousCard } from './continuous-chart.jsx'
 
 // Poultry US Tab — FrangoUS.xlsm · BBG_Dados
 
@@ -80,10 +85,10 @@ const FrangoUSChart = ({
 
   const latestYear = Math.max(...selectedYears);
   const sortedAsc  = [...selectedYears].sort((a, b) => a - b);
-  const { displayYears, isLeaving } = window.useTrackedYears(selectedYears);
-  const { shouldRender: showAreaRender, isLeaving: areaLeaving } = window.useFadeOut(chartStyle === 'area', 400);
-  const { shouldRender: showStatsRender, isLeaving: statsLeaving } = window.useFadeOut(showStats, 500);
-  const { shouldRender: showEventsRender, isLeaving: eventsLeaving } = window.useFadeOut(showEvents, 400);
+  const { displayYears, isLeaving } = useTrackedYears(selectedYears);
+  const { shouldRender: showAreaRender, isLeaving: areaLeaving } = useFadeOut(chartStyle === 'area', 400);
+  const { shouldRender: showStatsRender, isLeaving: statsLeaving } = useFadeOut(showStats, 500);
+  const { shouldRender: showEventsRender, isLeaving: eventsLeaving } = useFadeOut(showEvents, 400);
 
   const [hover, setHover] = React.useState(null);
   const [mouseY, setMouseY] = React.useState(0);
@@ -166,7 +171,7 @@ const FrangoUSChart = ({
   const doyToLabel = doy => {
     let mo = 0;
     for (let m = 11; m >= 0; m--) { if (doy > MONTH_DOY_US[m]) { mo = m; break; } }
-    return `${doy - MONTH_DOY_US[mo]} ${window.MONTHS_PT[mo]}`;
+    return `${doy - MONTH_DOY_US[mo]} ${MONTHS_PT[mo]}`;
   };
 
   const onMove = e => {
@@ -209,7 +214,7 @@ const FrangoUSChart = ({
           <g key={v}>
             <line x1={padL} x2={W-padR} y1={yFn(v)} y2={yFn(v)} className="grid-line"/>
             <text x={padL-6} y={yFn(v)} className="tick-label" textAnchor="end" dominantBaseline="middle">
-              {window.fmt(v, {decimals})}
+              {fmt(v, {decimals})}
             </text>
           </g>
         ))}
@@ -217,7 +222,7 @@ const FrangoUSChart = ({
         {MONTH_DOY_US.map((doy, mi) => (
           <g key={mi}>
             <line x1={xFn(doy+1)} x2={xFn(doy+1)} y1={padT} y2={H-padB} className="grid-line" opacity="0.3"/>
-            <text x={xFn(doy+16)} y={H-padB+16} className="tick-label" textAnchor="middle">{window.MONTHS_PT[mi]}</text>
+            <text x={xFn(doy+16)} y={H-padB+16} className="tick-label" textAnchor="middle">{MONTHS_PT[mi]}</text>
           </g>
         ))}
 
@@ -290,7 +295,7 @@ const FrangoUSChart = ({
 
           return (
             <g key={i} className={eventsLeaving ? 'rx-events-leaving' : ''}>
-              <window.EventDot cx={cx} cy={cy} r={isPinned ? 5 : 3}
+              <EventDot cx={cx} cy={cy} r={isPinned ? 5 : 3}
                 fill={isPinned ? 'var(--bg)' : EVENT_COLOR} stroke={EVENT_COLOR} strokeWidth={1.5}
                 delaySec={0}/>
               {isPinned && <line className="rx-event-beam" x1={cx} y1={padT + wrapLines.length * 13 + 4} x2={cx} y2={cy-6} stroke={EVENT_COLOR} strokeWidth={1} strokeDasharray="2 3" strokeOpacity={0.6}/>}
@@ -348,13 +353,13 @@ const FrangoUSChart = ({
               {rows.map(({yr, pt}) => (
                 <div key={yr} className="hover-row">
                   <span className="hover-year" style={{color: yearColor(yr)}}>{yr}</span>
-                  <span className="hover-val">{window.fmt(pt.value, {decimals})}<span className="hover-unit"> {unit}</span></span>
+                  <span className="hover-val">{fmt(pt.value, {decimals})}<span className="hover-unit"> {unit}</span></span>
                 </div>
               ))}
               {showStats && statEntry && (
                 <div className="hover-row hover-stat">
                   <span className="hover-year">média {statEntry.n}a</span>
-                  <span className="hover-val">{window.fmt(statEntry.mean, {decimals})}</span>
+                  <span className="hover-val">{fmt(statEntry.mean, {decimals})}</span>
                 </div>
               )}
             </div>
@@ -662,13 +667,13 @@ const FrangoUSPriceCard = ({ data, accent }) => {
           <h3 className="card-title">{seriesMeta.label}</h3>
           <div className="card-price">
             {latestRaw && (<>
-              <span className="card-value">{window.fmt(latestRaw[activeSeries], {decimals:3})}</span>
+              <span className="card-value">{fmt(latestRaw[activeSeries], {decimals:3})}</span>
               <span className="card-unit">{seriesMeta.unit}</span>
               <span className={`card-delta ${yoy == null ? '' : yoy >= 0 ? 'is-up' : 'is-down'}`}>
                 {fmtPct(yoy)}<span className="card-delta-label"> YoY</span>
               </span>
               <span className="card-date" style={{marginLeft:0}}>
-                {window.MONTHS_PT[latestRaw.month - 1]}/{String(latestRaw.year).slice(-2)}
+                {MONTHS_PT[latestRaw.month - 1]}/{String(latestRaw.year).slice(-2)}
               </span>
             </>)}
           </div>
@@ -783,13 +788,13 @@ const FrangoUSSimpleCard = ({ data, seriesKey, cardId, title, eyebrow, unit, eve
           <h3 className="card-title">{title}</h3>
           <div className="card-price">
             {latestRaw && (<>
-              <span className="card-value">{window.fmt(latestRaw[seriesKey] * scale, {decimals})}</span>
+              <span className="card-value">{fmt(latestRaw[seriesKey] * scale, {decimals})}</span>
               <span className="card-unit">{unit}</span>
               <span className={`card-delta ${yoy == null ? '' : yoy >= 0 ? 'is-up' : 'is-down'}`}>
                 {fmtPct(yoy)}<span className="card-delta-label"> YoY</span>
               </span>
               <span className="card-date" style={{marginLeft:0}}>
-                {window.MONTHS_PT[latestRaw.month - 1]}/{String(latestRaw.year).slice(-2)}
+                {MONTHS_PT[latestRaw.month - 1]}/{String(latestRaw.year).slice(-2)}
               </span>
             </>)}
           </div>
@@ -803,7 +808,7 @@ const FrangoUSSimpleCard = ({ data, seriesKey, cardId, title, eyebrow, unit, eve
         />
       </div>
       {monthly ? (
-        <window.SeasonalChart
+        <SeasonalChart
           data={scaledData}
           dataset="frango_us_monthly"
           field={seriesKey}
@@ -859,7 +864,7 @@ const PoultryBeefChart = ({ allRows, filteredRows, mean, chartStyle, prevFirstT 
   const rows = filteredRows;
   const [hover, setHover] = React.useState(null);
   const [mouseY, setMouseY] = React.useState(0);
-  const { shouldRender: showAreaRender, isLeaving: areaLeaving } = window.useFadeOut(chartStyle === 'area', 400);
+  const { shouldRender: showAreaRender, isLeaving: areaLeaving } = useFadeOut(chartStyle === 'area', 400);
 
   if (!rows.length) return null;
 
@@ -909,7 +914,7 @@ const PoultryBeefChart = ({ allRows, filteredRows, mean, chartStyle, prevFirstT 
     const t     = yr + (mo - 1) / 12;
     const xx    = padL + ((t - tFirst) / span) * chartW;
     const label = stepMons === 6
-      ? `${window.MONTHS_PT[mo - 1]}/${String(yr).slice(-2)}`
+      ? `${MONTHS_PT[mo - 1]}/${String(yr).slice(-2)}`
       : String(yr);
     xTicks.push({ x: xx, label });
   }
@@ -961,7 +966,7 @@ const PoultryBeefChart = ({ allRows, filteredRows, mean, chartStyle, prevFirstT 
           <g key={v}>
             <line x1={padL} x2={W - padR} y1={yOf(v)} y2={yOf(v)} className="grid-line"/>
             <text x={padL - 6} y={yOf(v)} className="tick-label" textAnchor="end" dominantBaseline="middle">
-              {window.fmt(v, {decimals: 2})}
+              {fmt(v, {decimals: 2})}
             </text>
           </g>
         ))}
@@ -1008,15 +1013,15 @@ const PoultryBeefChart = ({ allRows, filteredRows, mean, chartStyle, prevFirstT 
             top: Math.max(10, Math.min(H - 120, mouseY - 40)),
             transform: isRight ? 'translateX(calc(-100% - 16px))' : 'translateX(16px)',
           }}>
-            <div className="hover-month">{window.MONTHS_PT[hover.month - 1]}/{hover.year}</div>
+            <div className="hover-month">{MONTHS_PT[hover.month - 1]}/{hover.year}</div>
             <div className="hover-rows">
               <div className="hover-row">
                 <span className="hover-year" style={{color: RATIO_ACCENT}}>Ratio</span>
-                <span className="hover-val">{window.fmt(hover.poultry_beef_ratio, {decimals: 3})}</span>
+                <span className="hover-val">{fmt(hover.poultry_beef_ratio, {decimals: 3})}</span>
               </div>
               <div className="hover-row hover-stat">
                 <span className="hover-year">Média hist.</span>
-                <span className="hover-val">{window.fmt(mean, {decimals: 3})}</span>
+                <span className="hover-val">{fmt(mean, {decimals: 3})}</span>
               </div>
             </div>
           </div>
@@ -1082,12 +1087,12 @@ const PoultryBeefCard = ({ data }) => {
           <div className="card-eyebrow">Bloomberg · Relação de Preços Diária</div>
           <h3 className="card-title">Poultry / Beef Ratio</h3>
           <div className="card-price">
-            <span className="card-value">{window.fmt(last.poultry_beef_ratio, {decimals: 3})}</span>
+            <span className="card-value">{fmt(last.poultry_beef_ratio, {decimals: 3})}</span>
             <span className={`card-delta ${yoy == null ? '' : yoy >= 0 ? 'is-up' : 'is-down'}`}>
               {fmtPct(yoy)}<span className="card-delta-label"> YoY</span>
             </span>
             <span className="card-date">
-              {window.MONTHS_PT[last.month - 1]}/{String(last.year).slice(-2)}
+              {MONTHS_PT[last.month - 1]}/{String(last.year).slice(-2)}
             </span>
           </div>
         </div>
@@ -1173,7 +1178,7 @@ function NcWeeklyChart({ rows, fields, chartStyle, pinnedSeries, setPinnedSeries
     const yr = Math.floor(ord / 12), mo = (ord % 12) + 1;
     const xx = padL + ((yr + (mo - 1) / 12 - tFirst) / span) * chartW;
     const label = stepMons === 6
-      ? `${window.MONTHS_PT[mo - 1]}/${String(yr).slice(-2)}`
+      ? `${MONTHS_PT[mo - 1]}/${String(yr).slice(-2)}`
       : String(yr);
     xTicks.push({ x: xx, label });
   }
@@ -1232,7 +1237,7 @@ function NcWeeklyChart({ rows, fields, chartStyle, pinnedSeries, setPinnedSeries
           <g key={i}>
             <line x1={padL} x2={W - padR} y1={yOf(v)} y2={yOf(v)} className="grid-line"/>
             <text x={padL - 6} y={yOf(v)} className="tick-label" textAnchor="end" dominantBaseline="middle">
-              {window.fmt(v, {decimals: 2})}
+              {fmt(v, {decimals: 2})}
             </text>
           </g>
         ))}
@@ -1295,7 +1300,7 @@ function NcWeeklyChart({ rows, fields, chartStyle, pinnedSeries, setPinnedSeries
             transform: isRight ? 'translateX(calc(-100% - 16px))' : 'translateX(16px)',
           }}>
             <div className="hover-month">
-              {String(hover.day).padStart(2,'0')}/{window.MONTHS_PT[hover.month - 1]}/{hover.year}
+              {String(hover.day).padStart(2,'0')}/{MONTHS_PT[hover.month - 1]}/{hover.year}
             </div>
             <div className="hover-rows">
               {fields.map(f => {
@@ -1304,7 +1309,7 @@ function NcWeeklyChart({ rows, fields, chartStyle, pinnedSeries, setPinnedSeries
                 return (
                   <div key={f.key} className="hover-row">
                     <span className="hover-year" style={{color: f.color}}>{f.label}</span>
-                    <span className="hover-val">{window.fmt(v, {decimals: 2})}<span className="hover-unit"> USDc/lb</span></span>
+                    <span className="hover-val">{fmt(v, {decimals: 2})}<span className="hover-unit"> USDc/lb</span></span>
                   </div>
                 );
               })}
@@ -1370,7 +1375,7 @@ function NcWeeklyCard({ data, modeToggle }) {
               <span key={f.key} style={{display:'inline-flex', alignItems:'center', gap:4}}>
                 <span style={{width:8, height:8, borderRadius:'50%', background:f.color, display:'inline-block', flexShrink:0}}/>
                 <span className="card-value" style={{color: f.color}}>
-                  {lastRow?.[f.key] != null ? window.fmt(lastRow[f.key], {decimals:2}) : '—'}
+                  {lastRow?.[f.key] != null ? fmt(lastRow[f.key], {decimals:2}) : '—'}
                 </span>
                 <span className="card-unit">USDc/lb</span>
                 <span style={{fontSize:11, color:'var(--fg-dim)', marginLeft:2}}>{f.label}</span>
@@ -1422,7 +1427,7 @@ function NationalCompositeSection({ data, accent }) {
   }
 
   return (
-    <window.PriceCard
+    <PriceCard
       cardId="us-national-composite"
       title="National Composite"
       sub="USDA · National Composite Price"
@@ -1458,7 +1463,7 @@ function BroilerProductionSection({ data }) {
   }
   return (
     <main className="main">
-      <window.ProductionCard
+      <ProductionCard
         data={data}
         accent={chartAccent}
         productionKey="broiler_production"
@@ -1470,7 +1475,7 @@ function BroilerProductionSection({ data }) {
         onPairChange={setPairIdx}
         events={EVENTS_FRANGO_US}
       />
-      <window.AnnualProductionCard
+      <AnnualProductionCard
         data={data}
         accent={chartAccent}
         productionKey="broiler_production"
@@ -1479,7 +1484,7 @@ function BroilerProductionSection({ data }) {
         cardId="us-broiler-annual"
         pairIdx={pairIdx}
       />
-      <window.PriceCard
+      <PriceCard
         cardId="us-plantel-matrizes"
         title="Plantel de Matrizes"
         sub="USDA · Broiler Breeders"
@@ -1493,7 +1498,7 @@ function BroilerProductionSection({ data }) {
         events={EVENTS_FRANGO_US}
         footerNote={'OBS: O plantel de matrizes representa o número de galinhas "mães" que existem nas granjas. São esses animais que botam os ovos férteis que, depois de chocados, vão originar os pintinhos destinados ao abate. Quanto maior o plantel de matrizes, maior tende a ser a produção de frangos no futuro.'}
       />
-      <window.PriceCard
+      <PriceCard
         cardId="us-produtividade-matrizes"
         title="Produtividade das Matrizes"
         sub="USDA · Broiler Breeders · Rate of Lay"
@@ -1695,7 +1700,7 @@ const PoultryUSTab = ({ data, accent, tab }) => {
         />
         <PoultryBeefCard data={data}/>
         {hasUsda && <>
-          <window.PriceCard
+          <PriceCard
             cardId="us-usda-price"
             title="Broilers · Preço"
             sub="USDA · Broilers Composite Wholesale Price"
@@ -1708,7 +1713,7 @@ const PoultryUSTab = ({ data, accent, tab }) => {
             fullWidth
             events={EVENTS_FRANGO_US}
           />
-          <window.PriceCard
+          <PriceCard
             cardId="us-usda-feed"
             title="Broilers · Feed Costs"
             sub="USDA · Broilers Feed Costs per Lb"
@@ -1721,7 +1726,7 @@ const PoultryUSTab = ({ data, accent, tab }) => {
             fullWidth
             events={EVENTS_FEED_GRAIN}
           />
-          <window.PriceCard
+          <PriceCard
             cardId="us-usda-spread"
             title="Broilers · Spread · Frango - Ração"
             sub="USDA · Composite Wholesale Price − Feed Costs"
@@ -1736,7 +1741,7 @@ const PoultryUSTab = ({ data, accent, tab }) => {
           />
           <NationalCompositeSection data={data} accent={accent}/>
           {combinedPriceRows.length > 0 && (
-            <window.MultiContinuousCard
+            <MultiContinuousCard
               cardId="us-price-comparison"
               title="Preços · Comparativo"
               sub="Bloomberg · USDA · Proxy XPG · Wholesale · National Composite · USD/Kg"
@@ -1757,4 +1762,4 @@ const PoultryUSTab = ({ data, accent, tab }) => {
   return null;
 };
 
-window.PoultryUSTab = PoultryUSTab;
+export { PoultryUSTab };

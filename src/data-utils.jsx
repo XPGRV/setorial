@@ -200,4 +200,4 @@ function buildBimonthlyStats(bmRows, fieldKey, fromYear, toYear) {
   });
 }
 
-Object.assign(window, { MONTHS_PT, EVENTS, EVENTS_US, fmt, fmtCompact, availableYears, buildSeasonal, buildStats, buildBimonthlyStats, latestNonNull, getValue, useTrackedYears, useFadeOut, EventDot });
+export { MONTHS_PT, EVENTS, EVENTS_US, fmt, fmtCompact, availableYears, buildSeasonal, buildStats, buildBimonthlyStats, latestNonNull, getValue, useTrackedYears, useFadeOut, EventDot };

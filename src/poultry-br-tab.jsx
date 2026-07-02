@@ -1,4 +1,7 @@
 import React from 'react'
+import { DailySeasonalCard, PriceCard } from './price-card.jsx'
+import { ContinuousCard } from './continuous-chart.jsx'
+import { BimonthlyCard } from './bimonthly-chart.jsx'
 
 // Poultry BR Tab — FrangoBR sheet data
 const FRANGO_EVENTS = [
@@ -35,7 +38,7 @@ const PoultryProducaoTab = ({ data, accent }) => {
 
   return (
     <main className="main">
-      <window.PriceCard
+      <PriceCard
         key={`abates-frango-${source}`}
         cardId="card-abates-frango"
         title="Abates de Frango" sub={sub}
@@ -51,7 +54,7 @@ const PoultryProducaoTab = ({ data, accent }) => {
         }
       />
 
-      <window.PriceCard
+      <PriceCard
         cardId="card-chick-placed"
         title="Chick Placed" sub="APINCO · Pintos destinados ao abate"
         accent={accent} data={data}
@@ -110,7 +113,7 @@ const PoultryIpcaTab = ({ data, accent }) => {
 
   return (
     <main className="main">
-      <window.DailySeasonalCard
+      <DailySeasonalCard
         data={data} accent={accent}
         dailyKey="porco_mi_daily"
         cardId="card-porco-mi"
@@ -118,7 +121,7 @@ const PoultryIpcaTab = ({ data, accent }) => {
         sub="Bloomberg · WPPKHACA Index"
         unit="R$/kg" decimals={2}
       />
-      <window.ContinuousCard
+      <ContinuousCard
         cardId="card-ipca-processados"
         title="IPCA Processados"
         sub="Cálculo próprio · Subitens ponderados (Ham = 15,8%, Hot Dog = 7,2%, Sausage = 52,3%, Mortadella = 8,4%, Salami = 1,4%, Margarine = 14,9%)"
@@ -126,7 +129,7 @@ const PoultryIpcaTab = ({ data, accent }) => {
         field="ipca_base100" unit="Base 100" decimals={1}
       />
 
-      <window.BimonthlyCard
+      <BimonthlyCard
         cardId="card-growth-px"
         title="Growth Like-for-Like Pricing"
         sub="NIELSEN · Crescimento bimestral, YoY%, de preço."
@@ -142,7 +145,7 @@ const PoultryIpcaTab = ({ data, accent }) => {
         }
       />
 
-      <window.BimonthlyCard
+      <BimonthlyCard
         cardId="card-growth-vol"
         title="Growth Volume"
         sub="NIELSEN · Crescimento bimestral, YoY%, de volume."
@@ -164,7 +167,7 @@ const PoultryBRTab = ({ data, accent, tab }) => {
 
   return (
     <main className="main">
-      <window.DailySeasonalCard
+      <DailySeasonalCard
         data={data} accent={accent}
         dailyKey="frango_mi_daily"
         cardId="card-frango-mi"
@@ -172,7 +175,7 @@ const PoultryBRTab = ({ data, accent, tab }) => {
         sub="Bloomberg · BACHSP Index"
         unit="R$/kg" decimals={2}
       />
-      <window.PriceCard
+      <PriceCard
         cardId="card-frango-me"
         title="Preço Frango · Mercado Externo"
         sub="SECEX · Preço Frango Exportação"
@@ -180,7 +183,7 @@ const PoultryBRTab = ({ data, accent, tab }) => {
         field="frango_me_brl_kg" unit="R$/kg" decimals={2}
         events={FRANGO_EVENTS} fullWidth
       />
-      <window.DailySeasonalCard
+      <DailySeasonalCard
         data={data} accent={accent}
         dailyKey="feed_grain_daily"
         cardId="card-feed-grain"
@@ -191,7 +194,7 @@ const PoultryBRTab = ({ data, accent, tab }) => {
 
       <div className="section-header"><h2>Spreads</h2></div>
 
-      <window.DailySeasonalCard
+      <DailySeasonalCard
         data={data} accent={accent}
         dailyKey="frango_spread_mi_daily"
         cardId="card-spread-mi-frango"
@@ -199,7 +202,7 @@ const PoultryBRTab = ({ data, accent, tab }) => {
         sub="Cálculo próprio · Preço Frango MI - Feed Grain"
         unit="R$/kg" decimals={2}
       />
-      <window.PriceCard
+      <PriceCard
         cardId="card-spread-me-frango"
         title="Spread ME"
         sub="Cálculo próprio · Preço Frango ME - Feed Grain"
@@ -211,4 +214,4 @@ const PoultryBRTab = ({ data, accent, tab }) => {
   );
 };
 
-window.PoultryBRTab = PoultryBRTab;
+export { PoultryBRTab };

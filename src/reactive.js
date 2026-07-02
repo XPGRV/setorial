@@ -118,7 +118,7 @@ import React from 'react'
 // =========================================================================
 // THEMES list & React component (consumed by TweaksPanel)
 // =========================================================================
-window.THEMES = {
+const THEMES = {
   flux:      { name: 'Obsidian Flux', sub: 'Design base · Claro/Escuro', accent: 'oklch(0.82 0.18 155)' },
   refined:   { name: 'Refined',      sub: 'Linear · Vercel',         accent: 'oklch(0.82 0.18 155)' },
   terminal:  { name: 'Terminal',     sub: 'Bloomberg · Mono',        accent: 'oklch(0.86 0.20 95)'  },
@@ -130,8 +130,8 @@ window.THEMES = {
 };
 
 // Mini SVG preview for each theme card
-window.ThemePreview = function ThemePreview({ theme }) {
-  const t = window.THEMES[theme];
+const ThemePreview = function ThemePreview({ theme }) {
+  const t = THEMES[theme];
   const styles = {
     flux: {
       background: 'linear-gradient(135deg, #121316, #1f1f23)',
@@ -203,15 +203,15 @@ window.ThemePreview = function ThemePreview({ theme }) {
 };
 
 // Theme picker React component (used inside the TweaksPanel)
-window.ThemePicker = function ThemePicker({ value, onChange }) {
+const ThemePicker = function ThemePicker({ value, onChange }) {
   return React.createElement('div', { className: 'rx-theme-grid' },
-    Object.entries(window.THEMES).map(([k, t]) =>
+    Object.entries(THEMES).map(([k, t]) =>
       React.createElement('button', {
         key: k,
         className: `rx-theme-card ${value === k ? 'is-on' : ''}`,
         onClick: () => onChange(k)
       },
-        React.createElement(window.ThemePreview, { theme: k }),
+        React.createElement(ThemePreview, { theme: k }),
         React.createElement('div', null,
           React.createElement('div', { className: 'rx-theme-name' }, t.name),
           React.createElement('div', { className: 'rx-theme-sub' }, t.sub)
@@ -220,3 +220,5 @@ window.ThemePicker = function ThemePicker({ value, onChange }) {
     )
   );
 };
+
+export { THEMES, ThemePreview, ThemePicker };

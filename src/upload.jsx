@@ -141,4 +141,4 @@ const SidebarRefresh = ({ onLoad }) => {
   );
 };
 
-Object.assign(window, { RefreshWidget, SidebarRefresh });
+export { RefreshWidget, SidebarRefresh };

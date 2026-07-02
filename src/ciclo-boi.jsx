@@ -1,4 +1,5 @@
 import React from 'react'
+import { MONTHS_PT, useFadeOut } from './data-utils.jsx'
 
 // Ciclo do Boi — série temporal contínua: %Fêmeas no abate + MM12
 
@@ -74,7 +75,7 @@ const CicloDoBoi = ({ data, accent, events = [], showEvents = true }) => {
   }
   const rawColor = `oklch(0.60 0.07 ${accentHue(accent) + 200})`;
   const EVENT_COLOR = 'oklch(0.85 0.18 80)';
-  const { shouldRender: showEventsRender, isLeaving: eventsLeaving } = window.useFadeOut(showEvents, 400);
+  const { shouldRender: showEventsRender, isLeaving: eventsLeaving } = useFadeOut(showEvents, 400);
   const nearEvent = hover && showEvents
     ? events.find(ev => { const evT = ev.year + (ev.month - 1) / 12; return Math.abs(hover.t - evT) < 0.09; })
     : null;
@@ -172,7 +173,7 @@ const CicloDoBoi = ({ data, accent, events = [], showEvents = true }) => {
         };
         return (
           <div className="hover-card" style={style}>
-            <div className="hover-month">{window.MONTHS_PT[hover.month - 1]}/{hover.year}</div>
+            <div className="hover-month">{MONTHS_PT[hover.month - 1]}/{hover.year}</div>
             <div className="hover-rows">
               <div className="hover-row">
                 <span className="hover-year" style={{color: rawColor}}>%Fêmeas</span>
@@ -215,4 +216,4 @@ const CicloDoBoi = ({ data, accent, events = [], showEvents = true }) => {
   );
 };
 
-Object.assign(window, { CicloDoBoi });
+export { CicloDoBoi };

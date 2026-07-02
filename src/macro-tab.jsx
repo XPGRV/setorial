@@ -1,4 +1,5 @@
 import React from 'react'
+import { useFadeOut } from './data-utils.jsx'
 
 const { useState, useEffect, useMemo, useRef, useLayoutEffect } = React;
 
@@ -52,7 +53,7 @@ function SelicSnapshotChart({ series, height = 320 }) {
   const [hovOrd, setHovOrd] = useState(null);
   const [hovMouse, setHovMouse] = useState({ x: 0, y: 0 });
   const [pinnedSnap, setPinnedSnap] = useState(null);
-  const { shouldRender: showLabels, isLeaving: labelsLeaving } = window.useFadeOut(!!pinnedSnap, 150);
+  const { shouldRender: showLabels, isLeaving: labelsLeaving } = useFadeOut(!!pinnedSnap, 150);
   const lastPinnedRef = useRef(pinnedSnap);
   if (pinnedSnap) lastPinnedRef.current = pinnedSnap;
 
@@ -478,4 +479,4 @@ function MacroTab({ data: propData, accent }) {
   );
 }
 
-window.MacroTab = MacroTab;
+export { MacroTab };

@@ -1,4 +1,6 @@
 import React from 'react'
+import { MONTHS_PT, fmt, useFadeOut } from './data-utils.jsx'
+import { ContinuousCard } from './continuous-chart.jsx'
 
 // Aba WEG (provisória) — dados da planilha WEG - Setorial.xlsm
 
@@ -74,7 +76,7 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey, chart
   const [mouseY, setMouseY] = React.useState(0);
   const dragRef = React.useRef(null); // px inicial do arraste (ou null)
   const selRef  = React.useRef(null); // <rect> da seleção, atualizado imperativamente (sem re-render)
-  const { shouldRender: showAreaRender, isLeaving: areaLeaving } = window.useFadeOut(chartStyle === 'area', 400);
+  const { shouldRender: showAreaRender, isLeaving: areaLeaving } = useFadeOut(chartStyle === 'area', 400);
 
   const tOf = React.useCallback(r => r.year + (r.month - 1) / 12 + (r.day - 0.5) / 365.25, []);
 
@@ -110,7 +112,7 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey, chart
       const yr = Math.floor(ord / 12), mo = (ord % 12) + 1;
       const t = yr + (mo - 1) / 12;
       const x = padL + ((t - tFirst) / span) * chartW;
-      const label = stepMons === 6 ? `${window.MONTHS_PT[mo - 1]}/${String(yr).slice(-2)}` : String(yr);
+      const label = stepMons === 6 ? `${MONTHS_PT[mo - 1]}/${String(yr).slice(-2)}` : String(yr);
       xTicks.push({ x, label });
     }
 
@@ -216,7 +218,7 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey, chart
           <g key={v}>
             <line x1={padL} x2={W - padR} y1={yOf(v)} y2={yOf(v)} className="grid-line"/>
             <text x={padL - 6} y={yOf(v)} className="tick-label" textAnchor="end" dominantBaseline="middle">
-              {window.fmt(v, { decimals: Math.abs(v) >= 100 ? 0 : decimals })}
+              {fmt(v, { decimals: Math.abs(v) >= 100 ? 0 : decimals })}
             </text>
           </g>
         ))}
@@ -276,12 +278,12 @@ function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey, chart
             top: Math.max(10, Math.min(H - 150, mouseY - 40)),
             transform: isRight ? 'translateX(calc(-100% - 16px))' : 'translateX(16px)',
           }}>
-            <div className="hover-month">{String(hover.day).padStart(2, '0')}/{window.MONTHS_PT[hover.month - 1]}/{hover.year}</div>
+            <div className="hover-month">{String(hover.day).padStart(2, '0')}/{MONTHS_PT[hover.month - 1]}/{hover.year}</div>
             <div className="hover-rows">
               {visForTip.map(p => hover[p.key] == null ? null : (
                 <div key={p.key} className="hover-row">
                   <span className="hover-year" style={{ color: p.color }}>{p.label}</span>
-                  <span className="hover-val">{window.fmt(hover[p.key], { decimals })}</span>
+                  <span className="hover-val">{fmt(hover[p.key], { decimals })}</span>
                 </div>
               ))}
             </div>
@@ -470,7 +472,7 @@ const WegTab = ({ data, accent }) => {
   return (
     <main className="main">
       {hasTransf && (
-        <window.ContinuousCard
+        <ContinuousCard
           cardId="card-weg-transformadores"
           title="Preço Transformadores"
           sub="PPI · Electric Power and Specialty Transformer Manufacturing"
@@ -484,4 +486,4 @@ const WegTab = ({ data, accent }) => {
   );
 };
 
-window.WegTab = WegTab;
+export { WegTab };

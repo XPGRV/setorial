@@ -1,4 +1,6 @@
 import React from 'react'
+import { buildBimonthlyStats, useFadeOut, useTrackedYears } from './data-utils.jsx'
+import { MultiContinuousChart } from './continuous-chart.jsx'
 
 // BimonthlyCard — Sazonal (empresa + anos) e Contínuo (3 linhas simultâneas)
 
@@ -59,10 +61,10 @@ function BimonthlySeasonalChart({ bmRows, fieldKey, accent, selectedYears, chart
   const sortedYears  = [...selectedYears].sort((a, b) => a - b);
   const latestYear   = sortedYears[sortedYears.length - 1];
 
-  const { displayYears, isLeaving } = window.useTrackedYears(selectedYears);
-  const { shouldRender: showStatsRender, isLeaving: statsLeaving } = window.useFadeOut(showStats && chartStyle !== 'bars', 500);
-  const { shouldRender: showAreaRender, isLeaving: areaLeaving } = window.useFadeOut(chartStyle === 'area', 450);
-  const { shouldRender: showBarsRender, isLeaving: barsLeaving } = window.useFadeOut(chartStyle === 'bars', 300);
+  const { displayYears, isLeaving } = useTrackedYears(selectedYears);
+  const { shouldRender: showStatsRender, isLeaving: statsLeaving } = useFadeOut(showStats && chartStyle !== 'bars', 500);
+  const { shouldRender: showAreaRender, isLeaving: areaLeaving } = useFadeOut(chartStyle === 'area', 450);
+  const { shouldRender: showBarsRender, isLeaving: barsLeaving } = useFadeOut(chartStyle === 'bars', 300);
 
   const [pinnedYear, setPinnedYear] = React.useState(null);
   const [hoverBm, setHoverBm] = React.useState(null);
@@ -429,8 +431,8 @@ function BimonthlyContChart({ bmRows, fields, rangeYears, chartStyle = 'line', h
   const [hovered, setHovered]             = React.useState(null);
   const [pinnedCompany, setPinnedCompany] = React.useState(null);
 
-  const { shouldRender: showAreaRender,  isLeaving: areaLeaving   } = window.useFadeOut(chartStyle === 'area', 450);
-  const { shouldRender: showLabels,      isLeaving: labelsLeaving  } = window.useFadeOut(!!pinnedCompany, 150);
+  const { shouldRender: showAreaRender,  isLeaving: areaLeaving   } = useFadeOut(chartStyle === 'area', 450);
+  const { shouldRender: showLabels,      isLeaving: labelsLeaving  } = useFadeOut(!!pinnedCompany, 150);
   const lastPinnedRef = React.useRef(pinnedCompany);
   if (pinnedCompany) lastPinnedRef.current = pinnedCompany;
 
@@ -811,7 +813,7 @@ function BimonthlyCard({ cardId, title, sub, data, dataset, fields, accent, heig
 
   const stats = React.useMemo(() => {
     const latest = years[years.length - 1];
-    return window.buildBimonthlyStats(bmRows, fields[activeFieldIdx].key, Math.max(2015, latest - 10), latest - 1);
+    return buildBimonthlyStats(bmRows, fields[activeFieldIdx].key, Math.max(2015, latest - 10), latest - 1);
   }, [bmRows, activeFieldIdx, fields, years]);
 
   if (!bmRows.length) {
@@ -917,7 +919,7 @@ function BimonthlyCard({ cardId, title, sub, data, dataset, fields, accent, heig
           chartId={`${cardId}-sea`}
         />
       ) : mode === 'base100' ? (
-        <window.MultiContinuousChart
+        <MultiContinuousChart
           key={`base100-${range}`}
           rows={base100Rows}
           fields={base100Fields}
@@ -971,4 +973,4 @@ function BimonthlyCard({ cardId, title, sub, data, dataset, fields, accent, heig
   );
 }
 
-window.BimonthlyCard = BimonthlyCard;
+export { BimonthlyCard };

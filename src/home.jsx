@@ -2,6 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Beef, Car, Factory, Landmark, Clock3, Search, ChevronRight, SlidersHorizontal, Sun, Moon, Sprout, Utensils } from 'lucide-react'
 import { dashboardPathForDataset, searchDestinations } from './search-catalog.js'
+import { runRouteTransition } from './route-transition.js'
 
 // ── Mesh reativo da topbar (canvas) ───────────────────────────────────────────
 // Malha de pontos que reage ao cursor: fundo navy + accent, constelação e glow.
@@ -201,7 +202,7 @@ function HomeGlobalSearch({ navigate }) {
   const choose = item => {
     if (!item) return
     try { sessionStorage.setItem('dashboard-search-destination', JSON.stringify(item)) } catch {}
-    navigate(dashboardPathForDataset(item.dataset))
+    runRouteTransition(() => navigate(dashboardPathForDataset(item.dataset)))
   }
 
   return (
@@ -257,7 +258,9 @@ export default function HomePage() {
   const [query, setQuery] = React.useState('')
   const [marketTab, setMarketTab] = React.useState('Commodities')
 
-  const go = s => { if (s.active && s.route) navigate(s.route) }
+  const go = s => {
+    if (s.active && s.route) runRouteTransition(() => navigate(s.route))
+  }
   const toggleMode = () => {
     const next = mode === 'dark' ? 'light' : 'dark'
     setMode(next)

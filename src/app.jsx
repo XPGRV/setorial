@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { searchDestinations as searchCatalog } from './search-catalog.js'
+import { runRouteTransition } from './route-transition.js'
 import { THEMES, ThemePicker } from './reactive.js'
 import { RefreshWidget, SidebarRefresh } from './upload.jsx'
 import { BeefUSTab, EdgebeeefChart, EdgebeeefControls } from './beef-us-tab.jsx'
@@ -221,7 +222,7 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
       : 'proteinas';
     if (targetSection !== dashboardSection) {
       try { sessionStorage.setItem('dashboard-search-destination', JSON.stringify(dest)); } catch {}
-      routeNavigate(targetSection === 'proteinas' ? '/proteinas' : `/${targetSection}`);
+      runRouteTransition(() => routeNavigate(targetSection === 'proteinas' ? '/proteinas' : `/${targetSection}`));
       return;
     }
     setActiveDataset(dest.dataset);
@@ -345,17 +346,7 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
     };
   }, []);
 
-  // Fade-out da dash antes de voltar pra home (transição suave de saída)
-  const goHome = () => {
-    const appEl = document.querySelector('.app');
-    if (appEl) {
-      appEl.style.transition = 'opacity 0.22s ease';
-      appEl.style.opacity = '0';
-      setTimeout(() => navigate('/home'), 200);
-    } else {
-      navigate('/home');
-    }
-  };
+  const goHome = () => runRouteTransition(() => navigate('/home'));
 
   const onPick = (ds, sub) => {
     const targetPath = ds === 'macro'
@@ -363,9 +354,17 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
       : ds === 'weg'
       ? '/capitalgoods'
       : `/proteinas${ds === 'beef_us' ? '' : `?dataset=${ds}`}`;
-    if (`${window.location.pathname}${window.location.search}` !== targetPath) navigate(targetPath);
-    setActiveDataset(ds);
-    if (sub) setTab(sub);
+    const applyDestination = () => {
+      navigate(targetPath);
+      setActiveDataset(ds);
+      if (sub) setTab(sub);
+    };
+    if (`${window.location.pathname}${window.location.search}` !== targetPath) {
+      runRouteTransition(applyDestination);
+    } else {
+      setActiveDataset(ds);
+      if (sub) setTab(sub);
+    }
   };
 
   const toggleGroup = (groupId) => {

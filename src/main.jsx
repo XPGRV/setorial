@@ -20,7 +20,9 @@ function ProteinasLoading({ label = 'Proteinas' }) {
 }
 
 // ============================================================================
-// Store global de dados — mesclado por dataset (stale-while-revalidate).
+// Store global de dados — mesclado por dataset (network-first).
+// Ao abrir uma seção, os datasets dela são SEMPRE buscados frescos na rede;
+// o cache local (localStorage) só entra como fallback se a rede falhar.
 // Cada planilha vive em dashboard/data-<dataset>.json no Storage; enquanto o
 // arquivo separado não existir, o backend cai para o data.json combinado.
 // ============================================================================
@@ -87,6 +89,9 @@ function notifyDataUpdated() {
   window.dispatchEvent(new CustomEvent('dashboard-data-updated', { detail: currentPayload() }))
 }
 
+// Datasets já buscados frescos na rede nesta sessão
+const freshDatasets = new Set()
+
 async function fetchDatasetPayload(dataset, timeoutMs = 30000) {
   const ctrl = new AbortController()
   const tid  = setTimeout(() => ctrl.abort(), timeoutMs)
@@ -98,6 +103,12 @@ async function fetchDatasetPayload(dataset, timeoutMs = 30000) {
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
     const json = await resp.json()
     if (!json?.data) throw new Error('payload sem dados')
+    // Marca como frescos todos os datasets cobertos pela resposta — o fallback
+    // combinado do backend pode trazer vários de uma vez
+    freshDatasets.add(dataset)
+    for (const [ds, keys] of Object.entries(DATASET_PROBE_KEYS)) {
+      if (keys.some(k => json.data[k] != null)) freshDatasets.add(ds)
+    }
     return mergePayload(json.data, json.meta || null)
   } finally {
     clearTimeout(tid)
@@ -113,31 +124,23 @@ function fetchDatasetOnce(ds) {
   return inflight.get(ds)
 }
 
-// Datasets já revalidados na rede nesta sessão (evita refetch a cada navegação)
-const revalidated = new Set()
-
-// Garante os dados de uma seção antes de renderizar:
-//  - dataset nunca carregado → bloqueia até baixar (1º o ativo; o backend pode
-//    responder com o data.json combinado e suprir os demais de uma vez)
-//  - dataset já em cache → resolve imediatamente e revalida em background
+// Garante dados FRESCOS de uma seção antes de renderizar (network-first):
+// busca cada dataset na rede uma vez por sessão, bloqueando o render até
+// chegar. Se a rede falhar, o que estiver no cache local segura a tela.
 async function ensureSectionData(section, initialDataset) {
   const wanted = SECTION_DATASETS[section] || []
-  const loadedBefore = new Set(Object.keys(DATASET_PROBE_KEYS).filter(isDatasetLoaded))
-  const missing = wanted.filter(ds => !loadedBefore.has(ds))
+  let pending = wanted.filter(ds => !freshDatasets.has(ds))
 
-  if (missing.length) {
-    const first = missing.includes(initialDataset) ? initialDataset : missing[0]
+  if (pending.length) {
+    // 1º o dataset ativo — o fallback combinado do backend pode suprir os demais
+    const first = pending.includes(initialDataset) ? initialDataset : pending[0]
     try { await fetchDatasetOnce(first) } catch {}
-    const stillMissing = wanted.filter(ds => !isDatasetLoaded(ds))
-    if (stillMissing.length) await Promise.allSettled(stillMissing.map(fetchDatasetOnce))
-    // Tudo que carregou nesta chamada veio fresco da rede
-    for (const ds of Object.keys(DATASET_PROBE_KEYS)) {
-      if (!loadedBefore.has(ds) && isDatasetLoaded(ds)) revalidated.add(ds)
-    }
+    pending = wanted.filter(ds => !freshDatasets.has(ds))
+    if (pending.length) await Promise.allSettled(pending.map(fetchDatasetOnce))
   }
 
-  // Fallback final — data.json embutido no build (primeira visita sem rede)
-  if (!window.__dashboardData && !wanted.every(isDatasetLoaded)) {
+  // Fallback final — data.json embutido no build (sem rede e sem cache)
+  if (!window.__dashboardData) {
     try {
       const resp = await fetch('./data.json')
       if (resp.ok) {
@@ -145,15 +148,6 @@ async function ensureSectionData(section, initialDataset) {
         if (json) mergePayload(json, { source: 'planilha inicial', updated: null })
       }
     } catch {}
-  }
-
-  // Revalidação em background do que veio do cache local
-  const stale = wanted.filter(ds => loadedBefore.has(ds) && !revalidated.has(ds))
-  stale.forEach(ds => revalidated.add(ds))
-  if (stale.length) {
-    Promise.allSettled(stale.map(fetchDatasetOnce)).then(results => {
-      if (results.some(r => r.status === 'fulfilled')) notifyDataUpdated()
-    })
   }
 
   return currentPayload()
@@ -184,7 +178,7 @@ document.documentElement.dataset.mode = resolved
 document.documentElement.style.setProperty('--accent',
   resolved === 'light' ? 'oklch(0.55 0.18 155)' : 'oklch(0.82 0.18 155)')
 
-// Cache local → primeiro paint instantâneo; a revalidação acontece por seção
+// Cache local → apenas fallback offline; a abertura sempre busca dados frescos
 try {
   const cached        = localStorage.getItem('dashboard_data')
   const cachedVersion = localStorage.getItem('dashboard_version')

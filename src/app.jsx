@@ -512,6 +512,10 @@ const SEARCH_RAW = [
   ['poultry_us','producao',null,'Produção','producao production broiler matrizes ovos pintos'],
   ['macro',null,null,'Macro · CDI','cdi selic juros taxa banco central bcb cenario macro'],
   ['weg',null,null,'WEG','bens de capital industria equipamentos transformadores motores peers'],
+  // Capital Goods · WEG
+  ['weg',null,'card-weg-transformadores','Preço de Transformadores','transformador transformadores transformer ppi electric power specialty manufacturing'],
+  ['weg',null,'card-weg-peers','Peers · Comparação de Preço','peers cotacao preco price weg abb nidec regal rexnord eaton siemens schneider ge vernova hitachi hyosung eie gtd'],
+  ['weg',null,'card-weg-peers-pe','Peers · Comparação de P/E','peers pe price earnings valuation multiplo weg abb nidec regal rexnord eaton siemens schneider ge vernova hitachi hyosung eie gtd'],
   // Beef BR · Preços
   ['beef_br','precos','card-carne-mi','Preço Carne · Mercado Interno','carne mercado interno mi domestic price'],
   ['beef_br','precos','card-carne-me','Preço Carne · Mercado Externo','carne mercado externo me exportacao export'],

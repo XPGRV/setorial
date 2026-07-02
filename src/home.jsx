@@ -181,6 +181,84 @@ const MARKET = {
 }
 const MARKET_TABS = ['Índices', 'Commodities', 'Moedas']
 
+const HOME_SEARCH_ITEMS = [
+  ['beef_us', null, null, 'Beef US', 'beef carne bovina estados unidos eua forecast ciclo edgebeef'],
+  ['beef_br', 'precos', 'card-cattle', 'Preço Boi Gordo', 'beef brasil carne bovina arroba cattle'],
+  ['beef_br', 'precos', 'card-carne-mi', 'Preço Carne · Mercado Interno', 'beef brasil carne preco'],
+  ['beef_br', 'precos', 'card-carne-me', 'Preço Carne · Mercado Externo', 'beef brasil carne exportacao'],
+  ['beef_br', 'abates', 'card-abates', 'Abates Totais', 'beef brasil producao slaughter'],
+  ['beef_br', 'abates', 'card-ciclo', 'Ciclo do Boi', 'beef brasil femeas bezerro'],
+  ['poultry_br', 'precos', 'card-frango-mi', 'Preço Frango · Mercado Interno', 'poultry brasil aves chicken'],
+  ['poultry_br', 'precos', 'card-frango-me', 'Preço Frango · Mercado Externo', 'poultry brasil aves exportacao'],
+  ['poultry_br', 'precos', 'card-feed-grain', 'Feed Grain', 'frango racao milho soja custo'],
+  ['poultry_br', 'abates', 'card-abates-frango', 'Abates de Frango', 'poultry brasil producao'],
+  ['poultry_br', 'ipca', 'card-ipca-processados', 'IPCA Processados', 'poultry brasil inflacao industrializados'],
+  ['poultry_us', 'precos', 'us-frango-price', 'Preço Frango · US', 'poultry estados unidos eua chicken'],
+  ['poultry_us', 'precos', 'us-usda-spread', 'Broilers · Spread', 'poultry usda racao margem'],
+  ['poultry_us', 'producao', 'us-broiler-production', 'Forecast de Produção · Poultry US', 'usda broiler forecast'],
+  ['poultry_us', 'producao', 'us-chicks-placed', 'Chicks Placed', 'pintos alojados poultry us'],
+  ['macro', null, null, 'Macro · CDI', 'selic juros taxa banco central bcb cenario'],
+  ['weg', null, null, 'WEG', 'capital goods bens de capital industria motores'],
+  ['weg', null, 'card-weg-transformadores', 'Preço de Transformadores', 'transformer ppi electric power'],
+  ['weg', null, 'card-weg-peers', 'Peers · Comparação de Preço', 'abb nidec regal eaton siemens schneider ge vernova hitachi hyosung'],
+  ['weg', null, 'card-weg-peers-pe', 'Peers · Comparação de P/E', 'valuation multiplo abb nidec regal eaton siemens schneider ge vernova hitachi hyosung'],
+].map(([dataset, tab, cardId, label, keywords]) => ({ dataset, tab, cardId, label, keywords }))
+
+const homeSearchNorm = value => (value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+const homeSearchSection = dataset => dataset === 'macro' ? 'macro' : dataset === 'weg' ? 'capitalgoods' : 'proteinas'
+const homeSearchCrumb = item => item.dataset === 'macro' ? 'Macro' : item.dataset === 'weg' ? 'Capital Goods · WEG' : item.dataset.includes('poultry') ? 'Proteínas · Poultry' : 'Proteínas · Beef'
+
+function HomeGlobalSearch({ navigate }) {
+  const [value, setValue] = React.useState('')
+  const [open, setOpen] = React.useState(false)
+  const [active, setActive] = React.useState(0)
+  const ref = React.useRef(null)
+  const results = React.useMemo(() => {
+    const terms = homeSearchNorm(value).trim().split(/\s+/).filter(Boolean)
+    if (!terms.length) return []
+    return HOME_SEARCH_ITEMS.filter(item => {
+      const text = homeSearchNorm(`${item.label} ${item.keywords} ${homeSearchCrumb(item)}`)
+      return terms.every(term => text.includes(term))
+    }).slice(0, 8)
+  }, [value])
+
+  React.useEffect(() => { setActive(0) }, [value])
+  React.useEffect(() => {
+    const close = event => { if (ref.current && !ref.current.contains(event.target)) setOpen(false) }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [])
+
+  const choose = item => {
+    if (!item) return
+    try { sessionStorage.setItem('dashboard-search-destination', JSON.stringify(item)) } catch {}
+    const section = homeSearchSection(item.dataset)
+    navigate(section === 'proteinas' ? '/proteinas' : `/${section}`)
+  }
+
+  return (
+    <div className="rx-search home-global-search" ref={ref}>
+      <Search className="rx-search-icon" size={14} />
+      <input className="rx-search-input" value={value} placeholder="Buscar dashboard ou gráfico…"
+        onChange={event => { setValue(event.target.value); setOpen(true) }} onFocus={() => setOpen(true)}
+        onKeyDown={event => {
+          if (event.key === 'ArrowDown') { event.preventDefault(); setActive(i => Math.min(i + 1, results.length - 1)) }
+          if (event.key === 'ArrowUp') { event.preventDefault(); setActive(i => Math.max(i - 1, 0)) }
+          if (event.key === 'Enter') { event.preventDefault(); choose(results[active]) }
+          if (event.key === 'Escape') setOpen(false)
+        }} />
+      {open && value.trim() && <div className="rx-search-results">
+        {results.length ? results.map((item, index) => <button key={`${item.dataset}-${item.cardId || item.label}`}
+          className={`rx-search-item${active === index ? ' is-active' : ''}`}
+          onMouseEnter={() => setActive(index)} onMouseDown={event => { event.preventDefault(); choose(item) }}>
+          <span className="rx-search-item-label">{item.label}</span>
+          <span className="rx-search-item-crumb">{homeSearchCrumb(item)}</span>
+        </button>) : <div className="rx-search-empty">Nada encontrado</div>}
+      </div>}
+    </div>
+  )
+}
+
 const fmtDelta = d => `${d >= 0 ? '+' : ''}${d.toFixed(2).replace('.', ',')}%`
 
 function Sparkline({ points, up }) {
@@ -247,11 +325,14 @@ export default function HomePage() {
         <div className="home-brand">
           <div className="home-brand-logo"><img src="/xp-asset-logo.svg" alt="XP Asset Management" /></div>
         </div>
-        <button className="topbar-mode-btn" onClick={toggleMode}
-          title={mode === 'dark' ? 'Tema: Escuro · clique p/ Claro' : 'Tema: Claro · clique p/ Escuro'}
-          aria-label="Alternar tema claro/escuro">
-          {mode === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
-        </button>
+        <div className="home-topbar-actions">
+          <HomeGlobalSearch navigate={navigate} />
+          <button className="topbar-mode-btn" onClick={toggleMode}
+            title={mode === 'dark' ? 'Tema: Escuro · clique p/ Claro' : 'Tema: Claro · clique p/ Escuro'}
+            aria-label="Alternar tema claro/escuro">
+            {mode === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
+          </button>
+        </div>
       </TopbarMesh>
 
       <main className="home-workspace">

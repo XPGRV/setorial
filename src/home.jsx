@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Beef, Car, Factory, Landmark, Clock3, Search, ChevronRight, SlidersHorizontal, Sun, Moon, Sprout, Utensils } from 'lucide-react'
+import { Beef, Car, Factory, Landmark, Search, ChevronRight, Sun, Moon, Sprout, Utensils } from 'lucide-react'
 import { dashboardPathForDataset, searchDestinations } from './search-catalog.js'
 import { runRouteTransition } from './route-transition.js'
 
@@ -149,17 +149,7 @@ const MACRO = [
 ]
 
 // ── Ticker (topo) ─────────────────────────────────────────────────────────────
-// ── News Hunter (centro) — estático ───────────────────────────────────────────
-const NEWS = [
-  { src: 'XP',        time: '09:42', cat: 'Proteínas',   tone: 'alta',   title: 'Exportações de carne bovina sobem 8% em junho, puxadas pela China', summary: 'Volumes embarcados atingem recorde mensal; preço médio da tonelada avança com demanda asiática aquecida.' },
-  { src: 'BLOOMBERG', time: '09:18', cat: 'Commodities', tone: 'alta',   title: 'Boi gordo renova máxima do ano com oferta restrita no Centro-Oeste', summary: 'Arroba negociada acima de R$ 258 em São Paulo; confinamentos seguram animais e pressionam a escala das plantas.' },
-  { src: 'BCB',       time: '08:55', cat: 'Macro',       tone: 'neutro', title: 'Copom sinaliza manutenção da Selic e mercado revisa curva de juros', summary: 'Ata reforça cautela com inflação de serviços; DIs curtos operam praticamente estáveis após o comunicado.' },
-  { src: 'REUTERS',   time: '08:30', cat: 'Proteínas',   tone: 'alta',   title: 'JBS anuncia expansão de capacidade em planta de frango nos EUA', summary: 'Investimento amplia processamento em 12% e mira exportação para o mercado asiático a partir de 2027.' },
-  { src: 'BROADCAST', time: '08:12', cat: 'Macro',       tone: 'baixa',  title: 'Dólar recua para R$ 5,16 com fluxo estrangeiro positivo na B3', summary: 'Entrada líquida em renda variável e commodities firmes sustentam o real entre as moedas emergentes.' },
-  { src: 'USDA',      time: '07:50', cat: 'Commodities', tone: 'baixa',  title: 'USDA reduz estimativa de abates e pressiona spreads de margem', summary: 'Relatório aponta rebanho americano em ciclo de baixa; margem dos frigoríficos segue negativa no acumulado.' },
-  { src: 'VALOR',     time: '07:35', cat: 'Macro',       tone: 'neutro', title: 'Bancos ampliam provisões para o agro diante de clima adverso', summary: 'Carteira rural cresce, mas inadimplência preocupa; instituições reforçam colchão de perdas esperadas.' },
-]
-
+// ── Notícias (centro) ─────────────────────────────────────────────────────────
 // ── Market Overview (direita) — estático ──────────────────────────────────────
 const MARKET = {
   'Índices': [
@@ -255,7 +245,6 @@ function SectionTitle({ title, right }) {
 export default function HomePage() {
   const navigate = useNavigate()
   const [mode, setMode] = React.useState(() => document.documentElement.dataset.mode === 'light' ? 'light' : 'dark')
-  const [query, setQuery] = React.useState('')
   const [marketTab, setMarketTab] = React.useState('Commodities')
 
   const go = s => {
@@ -267,11 +256,6 @@ export default function HomePage() {
     document.documentElement.dataset.mode = next
     try { localStorage.setItem('rx-color-mode', next) } catch {}
   }
-
-  const filteredNews = NEWS.filter(item => {
-    const hay = `${item.title} ${item.summary} ${item.src} ${item.cat}`.toLowerCase()
-    return hay.includes(query.trim().toLowerCase())
-  })
 
   const renderSector = s => (
     <button
@@ -313,33 +297,9 @@ export default function HomePage() {
           <div className="home-sector-list">{[...SECTORS, ...MACRO].map(renderSector)}</div>
         </aside>
 
-        {/* Centro — News Hunter */}
+        {/* Centro — Notícias */}
         <section className="home-column home-news">
-          <SectionTitle title="News Hunter" right={<span className="home-live"><i />AO VIVO</span>} />
-          <div className="home-news-tools">
-            <label className="home-news-search">
-              <Search size={15} />
-              <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar tema ou empresa" />
-            </label>
-            <button className="home-news-filter-btn" type="button"><SlidersHorizontal size={14} />Filtros</button>
-          </div>
-          <div className="home-news-feed">
-            {filteredNews.length ? filteredNews.map((item, i) => {
-              return (
-                <article className={`home-news-item${i === 0 ? ' is-lead' : ''}`} key={item.title}>
-                  <div className="home-news-meta">
-                    <span className="home-news-source">{item.src}</span>
-                    <span><Clock3 size={11} />{item.time}</span>
-                    <span>· {item.cat}</span>
-                  </div>
-                  <h2>{item.title}</h2>
-                  <p>{item.summary}</p>
-                </article>
-              )
-            }) : (
-              <div className="home-news-empty">Nenhuma notícia encontrada.</div>
-            )}
-          </div>
+          <SectionTitle title="Notícias" />
         </section>
 
         {/* Direita — Market Overview */}

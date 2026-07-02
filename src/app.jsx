@@ -818,10 +818,21 @@ function TickerBar({ data, activeDataset }) {
     const ds = activeDataset === 'beef_us'    ? 'beef_us'
              : activeDataset === 'poultry_br'  ? 'frango'
              : activeDataset === 'poultry_us'  ? 'frango_us_daily'
+             : activeDataset === 'weg'         ? 'weg_peers'
              : 'beef';
     if (!data[ds] || !data[ds].length) return [];
     // [sym, field, unit, cardTarget, dsOverride?]
-    const fields = activeDataset === 'beef_us'
+    const fields = activeDataset === 'weg'
+      ? [
+          ['WEG',           'weg',          'USD',    'card-weg-peers'],
+          ['WEG·P/E',       'weg_pe',       'x',      'card-weg-peers-pe'],
+          ['TRANSFORM.',    'value',        'Índice', 'card-weg-transformadores', 'weg_transformadores'],
+          ['ABB',           'abb',          'USD',    'card-weg-peers'],
+          ['EATON',         'eaton',        'USD',    'card-weg-peers'],
+          ['SIEMENS',       'siemens',      'USD',    'card-weg-peers'],
+          ['SCHNEIDER',     'schneider',    'USD',    'card-weg-peers'],
+        ]
+      : activeDataset === 'beef_us'
       ? [
           ['EDGEBEEF',    'edgebeef_value',       '$/cwt',   'us-edgebeef'],
           ['%FÊMEAS',     'pct_femeas',           '%',       'us-ciclo'],

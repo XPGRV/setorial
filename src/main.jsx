@@ -30,14 +30,21 @@ const DATA_VERSION = '5'
 const SB_URL = 'https://wmxjdveucxbousoquwmc.supabase.co'
 window.__SB_URL = SB_URL
 
-// Basta UMA dessas chaves presente no data para considerar o dataset carregado
-const DATASET_PROBE_KEYS = {
+// Chaves do data.json que pertencem a cada dataset (espelha parse-workbook.js).
+// Usado p/ saber se um dataset está carregado e p/ recortar respostas do
+// data.json combinado legado — que está congelado e NÃO pode sobrescrever
+// os arquivos por-dataset frescos.
+const DATASET_DATA_KEYS = {
   beef_us:    ['beef_us', 'edgebeef_daily', 'production'],
-  beef_br:    ['beef', 'abates', 'secex'],
-  poultry_br: ['frango', 'processados'],
-  poultry_us: ['frango_us_daily', 'frango_us_monthly', 'broiler_production'],
+  beef_br:    ['beef', 'secex', 'abates', 'carne_mi_daily', 'carne_mi_usd_daily', 'boi_gordo_daily', 'spread_mi_daily'],
+  poultry_br: ['frango', 'frango_mi_daily', 'feed_grain_daily', 'frango_spread_mi_daily', 'porco_mi_daily', 'processados'],
+  poultry_us: ['broiler_production', 'frango_us_daily', 'frango_us_monthly', 'frango_us_nc_weekly', 'frango_us_nc_cols'],
   macro:      ['selic_snapshots'],
-  weg:        ['weg_peers', 'weg_transformadores'],
+  weg:        ['weg_transformadores', 'weg_peers'],
+}
+const DATASET_META_KEYS = {
+  beef_us: 'us', beef_br: 'br', poultry_br: 'poultry_br',
+  poultry_us: 'poultry_us', macro: 'selic', weg: 'weg',
 }
 const SECTION_DATASETS = {
   proteinas:    ['beef_us', 'beef_br', 'poultry_br', 'poultry_us'],
@@ -62,7 +69,7 @@ const normalizeDashboardPayload = (data, meta) => {
 function isDatasetLoaded(ds) {
   const data = window.__dashboardData
   if (!data) return false
-  return (DATASET_PROBE_KEYS[ds] || []).some(k => data[k] != null)
+  return (DATASET_DATA_KEYS[ds] || []).some(k => data[k] != null)
 }
 
 function persistCache() {
@@ -103,13 +110,22 @@ async function fetchDatasetPayload(dataset, timeoutMs = 30000) {
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
     const json = await resp.json()
     if (!json?.data) throw new Error('payload sem dados')
-    // Marca como frescos todos os datasets cobertos pela resposta — o fallback
-    // combinado do backend pode trazer vários de uma vez
-    freshDatasets.add(dataset)
-    for (const [ds, keys] of Object.entries(DATASET_PROBE_KEYS)) {
-      if (keys.some(k => json.data[k] != null)) freshDatasets.add(ds)
+    let data = json.data
+    let meta = json.meta || null
+    // Resposta contém chaves de OUTROS datasets? Então veio do data.json
+    // combinado legado (fallback de migração). Recorta só o dataset pedido:
+    // o combinado está congelado e não pode sobrescrever dados frescos.
+    const otherKeys = Object.entries(DATASET_DATA_KEYS)
+      .filter(([ds]) => ds !== dataset)
+      .flatMap(([, keys]) => keys)
+    if (otherKeys.some(k => data[k] != null)) {
+      const ownKeys = DATASET_DATA_KEYS[dataset] || []
+      data = Object.fromEntries(ownKeys.filter(k => json.data[k] != null).map(k => [k, json.data[k]]))
+      const mk = DATASET_META_KEYS[dataset]
+      meta = (mk && json.meta?.[mk]) ? { [mk]: json.meta[mk] } : {}
     }
-    return mergePayload(json.data, json.meta || null)
+    freshDatasets.add(dataset)
+    return mergePayload(data, meta)
   } finally {
     clearTimeout(tid)
   }
@@ -125,19 +141,12 @@ function fetchDatasetOnce(ds) {
 }
 
 // Garante dados FRESCOS de uma seção antes de renderizar (network-first):
-// busca cada dataset na rede uma vez por sessão, bloqueando o render até
-// chegar. Se a rede falhar, o que estiver no cache local segura a tela.
-async function ensureSectionData(section, initialDataset) {
+// busca cada dataset na rede uma vez por sessão (em paralelo), bloqueando o
+// render até chegar. Se a rede falhar, o cache local segura a tela.
+async function ensureSectionData(section) {
   const wanted = SECTION_DATASETS[section] || []
-  let pending = wanted.filter(ds => !freshDatasets.has(ds))
-
-  if (pending.length) {
-    // 1º o dataset ativo — o fallback combinado do backend pode suprir os demais
-    const first = pending.includes(initialDataset) ? initialDataset : pending[0]
-    try { await fetchDatasetOnce(first) } catch {}
-    pending = wanted.filter(ds => !freshDatasets.has(ds))
-    if (pending.length) await Promise.allSettled(pending.map(fetchDatasetOnce))
-  }
+  const pending = wanted.filter(ds => !freshDatasets.has(ds))
+  if (pending.length) await Promise.allSettled(pending.map(fetchDatasetOnce))
 
   // Fallback final — data.json embutido no build (sem rede e sem cache)
   if (!window.__dashboardData) {
@@ -157,7 +166,7 @@ async function ensureSectionData(section, initialDataset) {
 window.refreshDashboardData = async (dataset) => {
   const targets = dataset
     ? [dataset]
-    : Object.keys(DATASET_PROBE_KEYS).filter(isDatasetLoaded)
+    : Object.keys(DATASET_DATA_KEYS).filter(isDatasetLoaded)
   if (!targets.length) targets.push('beef_us')
   let payload = currentPayload()
   for (const ds of targets) payload = await fetchDatasetPayload(ds)
@@ -200,7 +209,7 @@ function ProteinasRoute({ initialDataset = 'beef_us', dashboardSection = 'protei
     let active = true
     Promise.all([
       import('./proteinas-entry.jsx'),
-      ensureSectionData(dashboardSection, initialDataset),
+      ensureSectionData(dashboardSection),
     ]).then(([module, payload]) => {
       if (active) setReady({ Component: module.default, ...payload })
     })

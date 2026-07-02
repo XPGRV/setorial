@@ -307,12 +307,10 @@ export default function HomePage() {
       </TopbarMesh>
 
       <main className="home-workspace">
-        {/* Esquerda — Setores */}
+        {/* Esquerda — Dashboards */}
         <aside className="home-column home-sectors">
-          <SectionTitle title="Setores" right={<span className="home-count">{SECTORS.length}</span>} />
-          <div className="home-sector-list">{SECTORS.map(renderSector)}</div>
-          <SectionTitle title="Macro" right={<span className="home-count">{MACRO.length}</span>} />
-          <div className="home-sector-list">{MACRO.map(renderSector)}</div>
+          <SectionTitle title="Dashboards" right={<span className="home-count">{SECTORS.length + MACRO.length}</span>} />
+          <div className="home-sector-list">{[...SECTORS, ...MACRO].map(renderSector)}</div>
         </aside>
 
         {/* Centro — News Hunter */}

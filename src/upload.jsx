@@ -33,7 +33,7 @@ async function refreshDashboard(onLoad, dataset) {
   // O Storage pode levar um instante para servir a nova versao do arquivo.
   // Confirma o timestamp antes de redesenhar os graficos.
   for (let attempt = 0; attempt < 6; attempt++) {
-    result = await window.refreshDashboardData();
+    result = await window.refreshDashboardData(dataset);
     if (!expectedUpdate || result.meta?.[metaKey]?.updated === expectedUpdate) break;
     await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)));
   }

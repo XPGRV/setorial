@@ -21,6 +21,25 @@ const TYPE_STACKS = {
   humanist:  { name: 'Humanista',  sans: '"Work Sans", system-ui, sans-serif',     mono: '"IBM Plex Mono", ui-monospace, monospace' },
 };
 
+// Fontes das tipografias alternativas — só o stack padrão (modern) vem no
+// index.html; os demais são injetados aqui quando o usuário os seleciona.
+const FONT_STACK_URLS = {
+  editorial: 'https://fonts.googleapis.com/css2?family=Instrument+Serif&family=JetBrains+Mono:wght@400;500&display=swap',
+  swiss:     'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400&display=swap',
+  humanist:  'https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap',
+};
+function ensureFontStack(key) {
+  const href = FONT_STACK_URLS[key];
+  if (!href) return;
+  const id = `rx-fonts-${key}`;
+  if (document.getElementById(id)) return;
+  const link = document.createElement('link');
+  link.id = id;
+  link.rel = 'stylesheet';
+  link.href = href;
+  document.head.appendChild(link);
+}
+
 // Escurece um accent oklch p/ garantir contraste sobre fundo claro (light mode).
 // Só afeta a cor de UI (--accent); as cores das linhas dos gráficos são separadas.
 const darkenAccent = (str, maxL = 0.55) => {
@@ -70,6 +89,12 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
       if (e.detail?.data) { setData(e.detail.data); setMeta(e.detail.meta || null); }
     };
     window.addEventListener('dashboard-data-updated', onUpload);
+    // Sincroniza com o store global caso uma revalidação em background tenha
+    // terminado entre o resolve da rota e o mount deste componente
+    if (window.__dashboardData && window.__dashboardData !== (propData || initialData)) {
+      setData(window.__dashboardData);
+      setMeta(window.__dashboardMeta || null);
+    }
     return () => window.removeEventListener('dashboard-data-updated', onUpload);
   }, []);
 
@@ -169,6 +194,7 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
     // No modo claro, escurece o accent de UI p/ contraste (gráficos não são afetados)
     if (colorMode === 'light') finalAccent = darkenAccent(finalAccent);
     document.documentElement.style.setProperty('--accent', finalAccent);
+    ensureFontStack(tweaks.typography);
     document.documentElement.style.setProperty('--font-sans', typeStack.sans);
     document.documentElement.style.setProperty('--font-mono', typeStack.mono);
   }, [uiAccent, typeStack, tweaks.density, tweaks.theme, activeDataset, colorMode]);
@@ -1068,6 +1094,8 @@ function Toggle({ label, value, onChange, disabled }) {
 
 // ---------------- TweaksPanel ----------------
 function TweaksPanel({ tweaks, updateTweak }) {
+  // Painel aberto → carrega as fontes alternativas p/ os previews de tipografia
+  useEffect(() => { Object.keys(FONT_STACK_URLS).forEach(ensureFontStack); }, []);
   return (
     <aside className="tweaks">
       <div className="tweaks-head">

@@ -1,6 +1,8 @@
 // Atualização diária da dashboard SEM navegador.
 // Lê as planilhas .xlsm, usa o MESMO parser do front (src/parse-workbook.js) e
-// sobe o data.json direto pro Supabase Storage com a chave service_role.
+// sobe um data-<dataset>.json por planilha direto pro Supabase Storage.
+// (O front lê esses arquivos separados; o data.json combinado antigo fica
+// apenas como fallback de leitura para datasets nunca atualizados.)
 //
 // Pré-requisitos:
 //   - Node 18+ (fetch global)
@@ -44,6 +46,9 @@ function flagsFor(nome) {
   const forcePoultry   = forcePoultryBR || forcePoultryUS;
   const forceSelic     = lc.includes('selic');
   const forceWeg       = lc.includes('weg');
+  const metaKey = forceWeg ? 'weg' : forceSelic ? 'selic' : forceUS ? 'us' : forcePoultryUS ? 'poultry_us' : forcePoultryBR ? 'poultry_br' : 'br';
+  // Nome do dataset = nome do arquivo no Storage (data-<dataset>.json)
+  const dataset = { weg: 'weg', selic: 'macro', us: 'beef_us', poultry_us: 'poultry_us', poultry_br: 'poultry_br', br: 'beef_br' }[metaKey];
   return {
     opts: {
       parseBR: !forceUS && !forcePoultry && !forceSelic && !forceWeg,
@@ -51,20 +56,24 @@ function flagsFor(nome) {
       parsePoultryUS: forcePoultryUS,
       parseSelic: forceSelic,
     },
-    metaKey: forceWeg ? 'weg' : forceSelic ? 'selic' : forceUS ? 'us' : forcePoultryUS ? 'poultry_us' : forcePoultryBR ? 'poultry_br' : 'br',
+    metaKey,
+    dataset,
   };
 }
 
-// Busca o data.json atual pra MESCLAR (assim um arquivo ausente não apaga a seção)
-async function fetchExisting() {
-  const res = await fetch(`${SB_URL}/storage/v1/object/dashboard/data.json`, {
-    headers: { Authorization: `Bearer ${SB_KEY}` },
-    cache: 'no-store',
+async function uploadObject(objectName, payload) {
+  const body = JSON.stringify(payload);
+  const res = await fetch(`${SB_URL}/storage/v1/object/dashboard/${objectName}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${SB_KEY}`,
+      'Content-Type': 'application/json',
+      'x-upsert': 'true',
+    },
+    body,
   });
-  if (!res.ok) throw new Error(`Falha ao ler dados atuais do Supabase: HTTP ${res.status} ${await res.text()}`);
-  const json = await res.json();
-  if (!json?.data) throw new Error('data.json atual sem dados; upload abortado por seguranca.');
-  return { data: json.data, meta: json.meta || {} };
+  if (!res.ok) throw new Error(`upload HTTP ${res.status} ${await res.text()}`);
+  return body.length;
 }
 
 async function main() {
@@ -73,9 +82,6 @@ async function main() {
     process.exit(1);
   }
 
-  const { data: baseData, meta: baseMeta } = await fetchExisting();
-  let data = { ...baseData };
-  let meta = { ...baseMeta };
   let okCount = 0;
 
   for (const { dir, nome } of ARQUIVOS) {
@@ -87,38 +93,22 @@ async function main() {
     try {
       const buf = fs.readFileSync(caminho);
       const wb = XLSX.read(buf, { type: 'buffer', cellDates: true, cellStyles: true });
-      const { opts, metaKey } = flagsFor(nome);
+      const { opts, metaKey, dataset } = flagsFor(nome);
       const parsed = parseWorkbookData(wb, XLSX, opts);
-      data = { ...data, ...parsed };
-      meta = { ...meta, [metaKey]: { source: nome, updated: new Date().toISOString() } };
+      const meta = { [metaKey]: { source: nome, updated: new Date().toISOString() } };
+      const bytes = await uploadObject(`data-${dataset}.json`, { data: parsed, meta });
       okCount++;
-      console.log(`✓ ${nome} → ${Object.keys(parsed).join(', ')}`);
+      console.log(`✓ ${nome} → data-${dataset}.json (${(bytes / 1024).toFixed(0)} KB · ${Object.keys(parsed).join(', ')})`);
     } catch (e) {
-      console.error(`✗ ${nome} — ERRO ao parsear: ${e.message} (mantendo dados anteriores)`);
+      console.error(`✗ ${nome} — ERRO: ${e.message} (mantendo dados anteriores)`);
     }
   }
 
   if (okCount === 0) {
-    console.error('Nenhuma planilha processada com sucesso — abortando upload.');
+    console.error('Nenhuma planilha processada com sucesso.');
     process.exit(1);
   }
-
-  const payload = JSON.stringify({ data, meta });
-  const res = await fetch(`${SB_URL}/storage/v1/object/dashboard/data.json`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${SB_KEY}`,
-      'Content-Type': 'application/json',
-      'x-upsert': 'true',
-    },
-    body: payload,
-  });
-
-  if (!res.ok) {
-    console.error('Falha no upload pro Supabase:', res.status, await res.text());
-    process.exit(1);
-  }
-  console.log(`\n☁ data.json atualizado (${(payload.length / 1024).toFixed(0)} KB · ${okCount}/${ARQUIVOS.length} planilhas).`);
+  console.log(`\n☁ ${okCount}/${ARQUIVOS.length} planilhas atualizadas no Supabase.`);
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

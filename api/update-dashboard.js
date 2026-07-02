@@ -104,28 +104,10 @@ async function downloadWorkbookBuffer(drive, fileId) {
   return Buffer.from(res.data);
 }
 
-async function fetchExisting() {
+async function uploadDataJson(objectName, payload) {
   if (!SB_KEY) throw new Error('SUPABASE_SERVICE_ROLE nao configurada.');
 
-  try {
-    const res = await fetch(`${SB_URL}/storage/v1/object/dashboard/data.json`, {
-      headers: { Authorization: `Bearer ${SB_KEY}` },
-      cache: 'no-store',
-    });
-    if (res.ok) {
-      const json = await res.json();
-      if (json?.data) return { data: json.data, meta: json.meta || {} };
-    }
-    throw new Error(`Falha ao ler dados atuais do Supabase: HTTP ${res.status} ${await res.text()}`);
-  } catch (error) {
-    throw new Error(`Nao foi possivel preservar as outras bases: ${error.message}`);
-  }
-}
-
-async function uploadDataJson(payload) {
-  if (!SB_KEY) throw new Error('SUPABASE_SERVICE_ROLE nao configurada.');
-
-  const res = await fetch(`${SB_URL}/storage/v1/object/dashboard/data.json`, {
+  const res = await fetch(`${SB_URL}/storage/v1/object/dashboard/${objectName}`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${SB_KEY}`,
@@ -159,14 +141,13 @@ export default async function handler(req, res) {
     const wb = XLSX.read(buffer, { type: 'buffer', cellDates: true, cellStyles: true });
     const parsed = parseWorkbookData(wb, XLSX, cfg.opts);
 
-    const { data: baseData, meta: baseMeta } = await fetchExisting();
-    const data = { ...baseData, ...parsed };
+    // Cada dataset vive no proprio arquivo — nada de ler/mesclar o combinado,
+    // o que tambem elimina a corrida entre atualizacoes simultaneas.
     const meta = {
-      ...baseMeta,
       [cfg.metaKey]: { source: cfg.fileName, updated: new Date().toISOString() },
     };
 
-    await uploadDataJson({ data, meta });
+    await uploadDataJson(`data-${dataset}.json`, { data: parsed, meta });
 
     return json(res, 200, {
       ok: true,

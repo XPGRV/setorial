@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Beef, Car, Factory, Landmark, Clock3, Search, ChevronRight, SlidersHorizontal, Sun, Moon, Sprout, Utensils } from 'lucide-react'
+import { dashboardPathForDataset, searchDestinations } from './search-catalog.js'
 
 // ── Mesh reativo da topbar (canvas) ───────────────────────────────────────────
 // Malha de pontos que reage ao cursor: fundo navy + accent, constelação e glow.
@@ -181,53 +182,13 @@ const MARKET = {
 }
 const MARKET_TABS = ['Índices', 'Commodities', 'Moedas']
 
-const HOME_SEARCH_ITEMS = [
-  ['beef_us', null, null, 'Beef US', 'beef carne bovina estados unidos eua forecast ciclo edgebeef'],
-  ['beef_br', 'precos', null, 'Beef BR', 'beef carne bovina brasil br precos producao abates'],
-  ['poultry_br', 'precos', null, 'Poultry BR', 'poultry frango aves chicken brasil br precos producao processados'],
-  ['poultry_us', 'precos', null, 'Poultry US', 'poultry frango aves chicken estados unidos eua usa us precos producao'],
-  ['beef_br', 'precos', 'card-cattle', 'Preço Boi Gordo', 'beef brasil carne bovina arroba cattle'],
-  ['beef_br', 'precos', 'card-carne-mi', 'Preço Carne · Mercado Interno', 'beef brasil carne preco'],
-  ['beef_br', 'precos', 'card-carne-me', 'Preço Carne · Mercado Externo', 'beef brasil carne exportacao'],
-  ['beef_br', 'abates', 'card-abates', 'Abates Totais', 'beef brasil producao slaughter'],
-  ['beef_br', 'abates', 'card-ciclo', 'Ciclo do Boi', 'beef brasil femeas bezerro'],
-  ['poultry_br', 'precos', 'card-frango-mi', 'Preço Frango · Mercado Interno', 'poultry brasil aves chicken'],
-  ['poultry_br', 'precos', 'card-frango-me', 'Preço Frango · Mercado Externo', 'poultry brasil aves exportacao'],
-  ['poultry_br', 'precos', 'card-feed-grain', 'Feed Grain', 'frango racao milho soja custo'],
-  ['poultry_br', 'abates', 'card-abates-frango', 'Abates de Frango', 'poultry brasil producao'],
-  ['poultry_br', 'ipca', 'card-ipca-processados', 'IPCA Processados', 'poultry brasil inflacao industrializados'],
-  ['poultry_us', 'precos', 'us-frango-price', 'Preço Frango · US', 'poultry estados unidos eua chicken'],
-  ['poultry_us', 'precos', 'us-usda-spread', 'Broilers · Spread', 'poultry usda racao margem'],
-  ['poultry_us', 'producao', 'us-broiler-production', 'Forecast de Produção · Poultry US', 'usda broiler forecast'],
-  ['poultry_us', 'producao', 'us-chicks-placed', 'Chicks Placed', 'pintos alojados poultry us'],
-  ['macro', null, null, 'Macro · CDI', 'selic juros taxa banco central bcb cenario'],
-  ['weg', null, null, 'WEG', 'capital goods bens de capital industria motores'],
-  ['weg', null, 'card-weg-transformadores', 'Preço de Transformadores', 'transformer ppi electric power'],
-  ['weg', null, 'card-weg-peers', 'Peers · Comparação de Preço', 'abb nidec regal eaton siemens schneider ge vernova hitachi hyosung'],
-  ['weg', null, 'card-weg-peers-pe', 'Peers · Comparação de P/E', 'valuation multiplo abb nidec regal eaton siemens schneider ge vernova hitachi hyosung'],
-].map(([dataset, tab, cardId, label, keywords]) => ({ dataset, tab, cardId, label, keywords }))
-
-const homeSearchNorm = value => (value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-const homeSearchSection = dataset => dataset === 'macro' ? 'macro' : dataset === 'weg' ? 'capitalgoods' : 'proteinas'
-const homeSearchCrumb = item => {
-  if (item.dataset === 'macro') return 'Macro'
-  if (item.dataset === 'weg') return 'Capital Goods · WEG'
-  const region = item.dataset.endsWith('_br') ? 'BR' : 'US'
-  return item.dataset.includes('poultry') ? `Proteínas · Poultry ${region}` : `Proteínas · Beef ${region}`
-}
-
 function HomeGlobalSearch({ navigate }) {
   const [value, setValue] = React.useState('')
   const [open, setOpen] = React.useState(false)
   const [active, setActive] = React.useState(0)
   const ref = React.useRef(null)
   const results = React.useMemo(() => {
-    const terms = homeSearchNorm(value).trim().split(/\s+/).filter(Boolean)
-    if (!terms.length) return []
-    return HOME_SEARCH_ITEMS.filter(item => {
-      const text = homeSearchNorm(`${item.label} ${item.keywords} ${homeSearchCrumb(item)}`)
-      return terms.every(term => text.includes(term))
-    }).slice(0, 8)
+    return searchDestinations(value).slice(0, 8)
   }, [value])
 
   React.useEffect(() => { setActive(0) }, [value])
@@ -240,8 +201,7 @@ function HomeGlobalSearch({ navigate }) {
   const choose = item => {
     if (!item) return
     try { sessionStorage.setItem('dashboard-search-destination', JSON.stringify(item)) } catch {}
-    const section = homeSearchSection(item.dataset)
-    navigate(section === 'proteinas' ? '/proteinas' : `/${section}`)
+    navigate(dashboardPathForDataset(item.dataset))
   }
 
   return (
@@ -260,7 +220,7 @@ function HomeGlobalSearch({ navigate }) {
           className={`rx-search-item${active === index ? ' is-active' : ''}`}
           onMouseEnter={() => setActive(index)} onMouseDown={event => { event.preventDefault(); choose(item) }}>
           <span className="rx-search-item-label">{item.label}</span>
-          <span className="rx-search-item-crumb">{homeSearchCrumb(item)}</span>
+          <span className="rx-search-item-crumb">{item.breadcrumb}</span>
         </button>) : <div className="rx-search-empty">Nada encontrado</div>}
       </div>}
     </div>

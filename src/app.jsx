@@ -1,5 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { searchDestinations as searchCatalog } from './search-catalog.js'
 
 // Main app — 2 tabs (Preços/Spreads, Abates)
 const { useState, useEffect, useMemo, useRef, useCallback } = React;
@@ -484,113 +485,6 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
 }
 
 // ============================ Busca global ============================
-// Normaliza: minúsculas, sem acento, espaços colapsados.
-const rxNorm = s => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
-
-const DS_LABEL  = { beef_br: 'Beef BR', beef_us: 'Beef US', poultry_br: 'Poultry BR', poultry_us: 'Poultry US', macro: 'Macro', weg: 'WEG' };
-const TAB_LABEL = { precos: 'Preços & Spreads', abates: 'Produção', ipca: 'Processados', producao: 'Produção' };
-// Sinônimos PT/EN herdados por todos os destinos de cada dataset.
-const DS_KW = {
-  beef_br:    'beef boi carne gado bovino brasil br',
-  beef_us:    'beef boi carne gado bovino eua usa us estados unidos america',
-  poultry_br: 'poultry frango chicken aves ave brasil br',
-  poultry_us: 'poultry frango chicken aves ave eua usa us estados unidos america',
-  macro:      'macro cenario',
-  weg:        'weg bens de capital industria equipamentos transformadores motores',
-};
-
-// [dataset, tab, cardId, label, sinônimos-extra]
-const SEARCH_RAW = [
-  // Abas
-  ['beef_br','precos',null,'Preços & Spreads','preco precos spread'],
-  ['beef_br','abates',null,'Produção','producao abate abates ciclo femeas slaughter'],
-  ['beef_us',null,null,'Beef US','producao abate edgebeef ciclo forecast preco'],
-  ['poultry_br','precos',null,'Preços & Spreads','preco precos spread'],
-  ['poultry_br','abates',null,'Produção','producao abate abates pintos chick'],
-  ['poultry_br','ipca',null,'Processados','processados ipca growth nielsen industrializados inflacao'],
-  ['poultry_us','precos',null,'Preços & Spreads','preco precos spread'],
-  ['poultry_us','producao',null,'Produção','producao production broiler matrizes ovos pintos'],
-  ['macro',null,null,'Macro · CDI','cdi selic juros taxa banco central bcb cenario macro'],
-  ['weg',null,null,'WEG','bens de capital industria equipamentos transformadores motores peers'],
-  // Capital Goods · WEG
-  ['weg',null,'card-weg-transformadores','Preço de Transformadores','transformador transformadores transformer ppi electric power specialty manufacturing'],
-  ['weg',null,'card-weg-peers','Peers · Comparação de Preço','peers cotacao preco price weg abb nidec regal rexnord eaton siemens schneider ge vernova hitachi hyosung eie gtd'],
-  ['weg',null,'card-weg-peers-pe','Peers · Comparação de P/E','peers pe price earnings valuation multiplo weg abb nidec regal rexnord eaton siemens schneider ge vernova hitachi hyosung eie gtd'],
-  // Beef BR · Preços
-  ['beef_br','precos','card-carne-mi','Preço Carne · Mercado Interno','carne mercado interno mi domestic price'],
-  ['beef_br','precos','card-carne-me','Preço Carne · Mercado Externo','carne mercado externo me exportacao export'],
-  ['beef_br','precos','card-cattle','Preço Boi Gordo','boi gordo arroba cattle live bacaindx'],
-  ['beef_br','precos','card-spread-mi','Spread MI','spread mercado interno mi'],
-  ['beef_br','precos','card-spread-me','Spread ME','spread mercado externo me'],
-  // Beef BR · Produção
-  ['beef_br','abates','card-abates','Abates Totais','abate abates totais slaughter cabecas sidra sif'],
-  ['beef_br','abates','card-ciclo','Ciclo do Boi','ciclo femeas boi bezerro cattle cycle'],
-  // Beef US
-  ['beef_us',null,'us-edgebeef','EdgeBeef','edgebeef edge margem frigorifico margin packer'],
-  ['beef_us',null,'us-ciclo','Ciclo do Boi','ciclo femeas boi bezerro cattle cycle'],
-  ['beef_us',null,'us-production','Revisão de Forecast','producao forecast revisao usda trimestral quarterly'],
-  ['beef_us',null,'us-annual','Revisão de Forecast · Anual','producao forecast anual annual usda'],
-  // Poultry BR · Preços
-  ['poultry_br','precos','card-frango-mi','Preço Frango · Mercado Interno','frango mercado interno mi'],
-  ['poultry_br','precos','card-frango-me','Preço Frango · Mercado Externo','frango mercado externo me exportacao secex'],
-  ['poultry_br','precos','card-feed-grain','Feed Grain','feed grain racao milho soja corn soybean custo'],
-  ['poultry_br','precos','card-spread-mi-frango','Spread MI','spread mercado interno mi'],
-  ['poultry_br','precos','card-spread-me-frango','Spread ME','spread mercado externo me'],
-  // Poultry BR · Produção
-  ['poultry_br','abates','card-abates-frango','Abates de Frango','abate abates slaughter sidra sif'],
-  ['poultry_br','abates','card-chick-placed','Chick Placed','chick placed pintos alojados apinco'],
-  // Poultry BR · Processados
-  ['poultry_br','ipca','card-ipca-processados','IPCA Processados','ipca processados industrializados inflacao'],
-  ['poultry_br','ipca','card-growth-px','Growth Like-for-Like Pricing','growth pricing preco nielsen brf seara'],
-  ['poultry_br','ipca','card-growth-vol','Growth Volume','growth volume nielsen brf seara'],
-  // Poultry US · Preços
-  ['poultry_us','precos','us-frango-price','Preço Frango','frango preco price'],
-  ['poultry_us','precos','us-feed-grain','Feed Grain','feed grain racao milho soja corn soybean custo'],
-  ['poultry_us','precos','us-spread','Spread · Frango - Ração','spread frango racao feed'],
-  ['poultry_us','precos','us-poultry-beef','Poultry / Beef','poultry beef ratio razao frango boi'],
-  ['poultry_us','precos','us-national-composite','National Composite','national composite whole bird wogs atacado wholesale'],
-  ['poultry_us','precos','us-usda-price','Broilers · Preço','broilers preco price usda'],
-  ['poultry_us','precos','us-usda-feed','Broilers · Feed Costs','broilers feed costs racao usda'],
-  ['poultry_us','precos','us-usda-spread','Broilers · Spread','broilers spread usda'],
-  // Poultry US · Produção
-  ['poultry_us','producao','us-broiler-production','Revisão de Forecast','producao forecast broiler usda trimestral'],
-  ['poultry_us','producao','us-broiler-annual','Revisão de Forecast · Anual','producao forecast anual broiler usda'],
-  ['poultry_us','producao','us-plantel-matrizes','Plantel de Matrizes','plantel matrizes breeder hatching layers'],
-  ['poultry_us','producao','us-produtividade-matrizes','Produtividade das Matrizes','produtividade matrizes eggs per layer'],
-  ['poultry_us','producao','us-ovos-incubados','Ovos Incubados','ovos incubados eggs set incubacao'],
-  ['poultry_us','producao','us-ovos-quebrados','Ovos Quebrados','ovos quebrados eggs broken'],
-  ['poultry_us','producao','us-hatchability','Hatchability','hatchability eclodibilidade eclosao'],
-  ['poultry_us','producao','us-chicks-placed','Chicks Placed','chicks placed pintos alojados'],
-  ['poultry_us','producao','us-mortality','Mortality','mortality mortalidade'],
-  ['poultry_us','producao','us-abates-frango','Abates de Frango','abate abates slaughter'],
-  ['poultry_us','producao','us-peso-medio','Peso Médio','peso medio average weight'],
-  ['poultry_us','producao','us-producao','Produção de Frango','producao production output'],
-];
-
-const SEARCH_INDEX = SEARCH_RAW.map(([dataset, tab, cardId, label, kw]) => {
-  const breadcrumb = DS_LABEL[dataset] + (tab && TAB_LABEL[tab] ? ' · ' + TAB_LABEL[tab] : '');
-  return { dataset, tab, cardId, label, breadcrumb, _text: rxNorm([label, breadcrumb, kw, DS_KW[dataset]].join(' ')) };
-});
-
-function searchDestinations(query) {
-  const tokens = rxNorm(query).split(' ').filter(Boolean);
-  if (!tokens.length) return [];
-  const scored = [];
-  for (const e of SEARCH_INDEX) {
-    let ok = true, score = 0;
-    for (const t of tokens) {
-      const idx = e._text.indexOf(t);
-      if (idx < 0) { ok = false; break; }
-      score += (e._text.startsWith(t) ? 3 : 1) + Math.max(0, 4 - idx / 12);
-    }
-    if (!ok) continue;
-    if (!e.cardId) score += 1.2; // abas levemente priorizadas
-    scored.push({ e, score });
-  }
-  scored.sort((a, b) => b.score - a.score);
-  return scored.map(s => s.e);
-}
-
 // Realça um card com pulso na cor de destaque (Web Animations API)
 function rxHighlightCard(el) {
   if (!el) return;
@@ -612,7 +506,7 @@ function GlobalSearch({ onNavigate }) {
 
   const results = useMemo(() => {
     if (!q.trim()) return [];
-    return searchDestinations(q).slice(0, 8);
+    return searchCatalog(q).slice(0, 8);
   }, [q]);
   useEffect(() => { setActive(0); }, [q]);
 

@@ -1,6 +1,7 @@
 # API de atualização por planilha
 
-O endpoint `POST /api/update-dashboard?dataset=...` atualiza apenas a planilha do dataset atual.
+O endpoint `POST /api/update-dashboard?dataset=...` atualiza apenas a planilha do
+dataset pedido, gravando `data-<dataset>.json` no Supabase Storage.
 
 Datasets aceitos:
 
@@ -9,6 +10,16 @@ Datasets aceitos:
 - `poultry_br` -> `FrangoBR.xlsm`
 - `poultry_us` -> `FrangoUS.xlsm`
 - `macro` -> `Planilha - Selic.xlsm`
+- `weg` -> `WEG - Setorial.xlsm`
+
+## Autorização
+
+Se a env `CRON_SECRET` estiver definida no Vercel, o endpoint aceita apenas:
+
+- `Authorization: Bearer <CRON_SECRET>` (usado pelo cron do GitHub Actions), ou
+- requisições same-origin do navegador (o botão "Atualizar" da dashboard).
+
+Sem `CRON_SECRET`, o endpoint fica aberto.
 
 ## Variáveis no Vercel
 
@@ -17,6 +28,10 @@ Obrigatórias:
 - `SUPABASE_SERVICE_ROLE`
 - `GOOGLE_SERVICE_ACCOUNT_EMAIL`
 - `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY`
+
+Recomendada:
+
+- `CRON_SECRET` — token do cron (ver seção Autorização)
 
 Escolha uma das duas formas para localizar as planilhas:
 

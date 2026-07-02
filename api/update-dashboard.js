@@ -51,6 +51,21 @@ function json(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
+// Autorizacao: o cron (GitHub Actions) manda `Authorization: Bearer CRON_SECRET`;
+// o botao da dashboard chega como requisicao same-origin do navegador.
+// Sem CRON_SECRET configurada no Vercel, o endpoint fica aberto (comportamento antigo).
+function isAuthorized(req) {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return true;
+  if ((req.headers.authorization || '') === `Bearer ${secret}`) return true;
+  const origin = req.headers.origin || req.headers.referer || '';
+  try {
+    return new URL(origin).host === req.headers.host;
+  } catch {
+    return false;
+  }
+}
+
 function getPrivateKey() {
   const raw = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY;
   return raw ? raw.replace(/\\n/g, '\n') : null;
@@ -126,6 +141,10 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return json(res, 405, { error: 'Metodo nao permitido.' });
+  }
+
+  if (!isAuthorized(req)) {
+    return json(res, 401, { error: 'Nao autorizado.' });
   }
 
   const dataset = String(req.query.dataset || '').trim();

@@ -1,55 +1,41 @@
-# Atualização diária da dashboard (sem navegador)
+# Atualização da dashboard
 
-`update-dashboard.mjs` substitui o antigo robô Playwright. Ele lê as planilhas
-`.xlsm`, usa o **mesmo parser do front-end** (`src/parse-workbook.js` — fonte da
-verdade única) e sobe o `data.json` direto pro Supabase Storage com a chave
-`service_role`. Sem Chrome headless, sem depender da UI.
+## Fluxo principal (automático)
 
-## Setup (uma vez)
+A atualização diária roda pelo **GitHub Actions** (`.github/workflows/update-data.yml`):
+dias úteis às 8h BRT, o workflow chama `POST /api/update-dashboard?dataset=...` no
+Vercel para cada uma das 6 planilhas. O endpoint baixa o `.xlsm` direto da API do
+Google Drive, parseia com `src/parse-workbook.js` e sobe o `data-<dataset>.json`
+no Supabase Storage. Também dá para disparar manualmente na aba Actions
+(`Run workflow`) ou pelo botão "Atualizar" na própria dashboard.
 
-1. **Node 18+** instalado na máquina que roda o job.
-2. Na pasta do projeto, instalar dependências (baixa o SheetJS):
-   ```
-   npm install
-   ```
-3. Ter a **chave `service_role`** do Supabase (painel: Project Settings → API →
-   `service_role`). ⚠️ **Nunca** commitar essa chave nem colocá-la no front-end.
+Secrets necessários no GitHub (Settings → Secrets and variables → Actions):
 
-## Rodar
+- `DASHBOARD_URL` — URL de produção no Vercel
+- `UPDATE_CRON_SECRET` — mesmo valor da env `CRON_SECRET` no Vercel
 
-Defina a env var `SUPABASE_SERVICE_ROLE` e rode:
+## Fluxo alternativo (local, legado)
 
-```bash
-# Linux/macOS
-SUPABASE_SERVICE_ROLE="cole_a_chave_aqui" npm run update
+`update-dashboard.mjs` faz o mesmo trabalho lendo as planilhas da pasta
+sincronizada do Google Drive na máquina local — útil como fallback se a API do
+Drive/Vercel estiver fora. Usa o **mesmo parser do front** (`src/parse-workbook.js`,
+fonte da verdade única) e grava um `data-<dataset>.json` por planilha.
 
-# Windows (PowerShell)
+```powershell
+# Windows (PowerShell) — NUNCA commitar a chave
 $env:SUPABASE_SERVICE_ROLE="cole_a_chave_aqui"; npm run update
 ```
 
 Variáveis opcionais:
-- `SETORIAL_DIR` — pasta das planilhas (default: `G:\Meu Drive\Arquivos\Setorial - Proteínas`)
+
+- `SETORIAL_DIR` — pasta das planilhas de proteínas
+- `DATABASE_DIR` — pasta da base de dados (WEG)
 - `SUPABASE_URL` — default já aponta pro projeto certo
-
-## Agendamento diário
-
-Troque a chamada do antigo `python atualiza_dashboard.py` por:
-
-```
-npm run update
-```
-
-(no Agendador de Tarefas do Windows / cron, com a env var `SUPABASE_SERVICE_ROLE`
-definida no ambiente do job).
 
 ## Notas
 
-- **Mescla segura:** o script busca o `data.json` atual antes e sobrepõe só o que
-  conseguiu ler. Se uma planilha estiver faltando, a seção dela é preservada (não
-  apaga).
-- **Imune a login/bucket privado:** a `service_role` ignora RLS e privacidade, então
-  se um dia a leitura da dash for protegida, este upload continua funcionando.
+- **Sem merge, sem corrida:** cada planilha grava só o próprio arquivo
+  `data-<dataset>.json`; uma planilha ausente simplesmente mantém o arquivo
+  anterior intacto.
 - **Um parser só:** qualquer mudança de mapeamento de coluna vive em
-  `src/parse-workbook.js` e vale pros dois (front + script) — sem divergência.
-- O antigo `atualiza_dashboard.py` (Playwright) pode ser mantido como fallback até
-  este estar validado em produção.
+  `src/parse-workbook.js` e vale pra tudo (front, API do Vercel e script local).

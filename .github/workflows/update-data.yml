@@ -1,0 +1,43 @@
+name: Atualiza dados da dashboard
+
+# Chama o endpoint do Vercel que baixa cada planilha do Google Drive,
+# parseia e sobe o data-<dataset>.json pro Supabase. O site em si é
+# deployado pelo Vercel — este workflow é só o "despertador".
+#
+# Secrets necessários (Settings → Secrets and variables → Actions):
+#   DASHBOARD_URL      — URL de produção no Vercel (ex: https://minha-dash.vercel.app)
+#   UPDATE_CRON_SECRET — mesmo valor da env CRON_SECRET configurada no Vercel
+
+on:
+  schedule:
+    - cron: '0 11 * * 1-5'  # dias úteis, 11h UTC (8h BRT)
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Atualiza as 6 planilhas via API
+        env:
+          URL: ${{ secrets.DASHBOARD_URL }}
+          TOKEN: ${{ secrets.UPDATE_CRON_SECRET }}
+        run: |
+          set -u
+          if [ -z "${URL:-}" ] || [ -z "${TOKEN:-}" ]; then
+            echo "::error::Configure os secrets DASHBOARD_URL e UPDATE_CRON_SECRET no repositório."
+            exit 1
+          fi
+          falhas=""
+          for ds in beef_us beef_br poultry_br poultry_us macro weg; do
+            echo "→ atualizando $ds"
+            resp=$(curl -sS --max-time 120 -X POST \
+              -H "Authorization: Bearer $TOKEN" \
+              "$URL/api/update-dashboard?dataset=$ds" || echo '{"error":"curl falhou"}')
+            echo "  $resp"
+            echo "$resp" | grep -q '"ok":true' || falhas="$falhas $ds"
+          done
+          if [ -n "$falhas" ]; then
+            echo "::error::Falha ao atualizar:$falhas"
+            exit 1
+          fi
+          echo "✓ todas as planilhas atualizadas"

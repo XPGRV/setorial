@@ -31,6 +31,7 @@ const darkenAccent = (str, maxL = 0.55) => {
 
 function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_us', dashboardSection = 'proteinas' }) {
   const TWEAK_DEFAULTS = { palette: 'neon', typography: 'modern', density: 'comfortable', theme: 'flux' };
+  const routeNavigate = useNavigate();
 
   // ── Todos os hooks ANTES de qualquer return condicional ──────────────────────
   const [data, setData] = useState(propData || initialData);
@@ -176,6 +177,16 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
   // Navega para um destino da busca: troca dataset/aba e rola até o gráfico.
   const navigateTo = useCallback((dest) => {
     if (!dest) return;
+    const targetSection = dest.dataset === 'macro'
+      ? 'macro'
+      : dest.dataset === 'weg'
+      ? 'capitalgoods'
+      : 'proteinas';
+    if (targetSection !== dashboardSection) {
+      try { sessionStorage.setItem('dashboard-search-destination', JSON.stringify(dest)); } catch {}
+      routeNavigate(targetSection === 'proteinas' ? '/proteinas' : `/${targetSection}`);
+      return;
+    }
     setActiveDataset(dest.dataset);
     if (dest.tab) setTab(dest.tab);
     let tries = 0;
@@ -193,7 +204,24 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
     setTimeout(go, 70);
-  }, []);
+  }, [dashboardSection, routeNavigate]);
+
+  useEffect(() => {
+    let pending = null;
+    try {
+      pending = JSON.parse(sessionStorage.getItem('dashboard-search-destination') || 'null');
+    } catch {}
+    if (!pending) return;
+    const pendingSection = pending.dataset === 'macro'
+      ? 'macro'
+      : pending.dataset === 'weg'
+      ? 'capitalgoods'
+      : 'proteinas';
+    if (pendingSection !== dashboardSection) return;
+    try { sessionStorage.removeItem('dashboard-search-destination'); } catch {}
+    const timer = setTimeout(() => navigateTo(pending), 100);
+    return () => clearTimeout(timer);
+  }, [dashboardSection, navigateTo]);
 
   if (!data) {
     return (
@@ -571,7 +599,7 @@ function rxHighlightCard(el) {
   ], { duration: 1400, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)', fill: 'none' });
 }
 
-function GlobalSearch({ onNavigate, dashboardSection = 'proteinas' }) {
+function GlobalSearch({ onNavigate }) {
   const [q, setQ] = useState('');
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -580,13 +608,8 @@ function GlobalSearch({ onNavigate, dashboardSection = 'proteinas' }) {
 
   const results = useMemo(() => {
     if (!q.trim()) return [];
-    const allowed = dashboardSection === 'macro'
-      ? ['macro']
-      : dashboardSection === 'capitalgoods'
-      ? ['weg']
-      : ['beef_br', 'beef_us', 'poultry_br', 'poultry_us'];
-    return searchDestinations(q).filter(r => allowed.includes(r.dataset)).slice(0, 8);
-  }, [q, dashboardSection]);
+    return searchDestinations(q).slice(0, 8);
+  }, [q]);
   useEffect(() => { setActive(0); }, [q]);
 
   useEffect(() => {
@@ -679,7 +702,7 @@ function TopBar({ meta, onUpload, activeDataset, colorMode = 'dark', onCycleMode
       </div>
       <div className="topbar-spacer"/>
       <div className="topbar-actions">
-        <GlobalSearch onNavigate={onNavigate} dashboardSection={dashboardSection}/>
+        <GlobalSearch onNavigate={onNavigate}/>
         <button className="topbar-mode-btn" onClick={onCycleMode}
           title={MODE_LABEL[colorMode]} aria-label={MODE_LABEL[colorMode]}>
           {MODE_ICON[colorMode]}

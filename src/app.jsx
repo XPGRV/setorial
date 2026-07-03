@@ -314,7 +314,7 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
         ) : activeDataset === 'macro' ? (
           <MacroTab data={data} accent={accent}/>
         ) : activeDataset === 'weg' ? (
-          <WegTab data={data} accent={accent}/>
+          <WegTab data={data} accent={accent} tab={tab}/>
         ) : tab === 'precos' ? (
           <PrecosTab data={data} accent={accent}/>
         ) : (
@@ -394,6 +394,9 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
   const isPoultryUS = activeDataset === 'poultry_us';
   const isMacro     = activeDataset === 'macro';
   const isWeg       = activeDataset === 'weg';
+  // Sub-aba efetiva da WEG p/ destaque na sidebar — espelha o fallback do WegTab
+  // (qualquer valor que não seja 'peers' cai em Transformadores).
+  const wegTab      = tab === 'peers' ? 'peers' : 'transformadores';
 
   const PT_MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   const _now = new Date();
@@ -517,10 +520,24 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
           <span className={`sidebar-item-icon${isMacro ? ' is-icon-breathing' : ''}`}>{SIcon.globe}</span>
           <span className="sidebar-item-label" style={{textTransform:'uppercase', letterSpacing:'0.1em', fontSize:11}}>MACRO</span>
         </button>}
-        {dashboardSection === 'capitalgoods' && <button className={`sidebar-item ${isWeg ? 'is-on' : ''}`} onClick={() => onPick('weg')}>
-          <span className={`sidebar-item-icon${isWeg ? ' is-icon-breathing' : ''}`}>{SIcon.factory}</span>
-          <span className="sidebar-item-label" style={{textTransform:'uppercase', letterSpacing:'0.1em', fontSize:11}}>WEG</span>
-        </button>}
+        {dashboardSection === 'capitalgoods' && <div className="sidebar-group">
+          <GroupHeader groupId="weg" icon={SIcon.factory} isActive={isWeg}
+            label="WEG" labelStyle={{textTransform:'uppercase', letterSpacing:'0.1em', fontSize:11}}/>
+          {openGroup.has('weg') && (<>
+            <button className={`sidebar-item ${isWeg && wegTab==='transformadores' ? 'is-on' : ''}`} onClick={() => onPick('weg', 'transformadores')}>
+              <span className="sidebar-item-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M13 2L4 14h7l-1 8 9-12h-7z"/>
+                </svg>
+              </span>
+              <span className="sidebar-item-label">Transformadores</span>
+            </button>
+            <button className={`sidebar-item ${isWeg && wegTab==='peers' ? 'is-on' : ''}`} onClick={() => onPick('weg', 'peers')}>
+              <span className="sidebar-item-icon">{SIcon.bar}</span>
+              <span className="sidebar-item-label">Peers</span>
+            </button>
+          </>)}
+        </div>}
       </div>}
 
       <div className="sidebar-spacer"/>

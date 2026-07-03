@@ -464,36 +464,20 @@ const EmptyWeg = () => (
   </main>
 );
 
-const WEG_SUBTABS = [
-  { key: 'transformadores', label: 'Transformadores' },
-  { key: 'peers',           label: 'Peers' },
-];
-
-const WegTab = ({ data, accent }) => {
+// Sub-aba controlada pela sidebar (prop `tab`, à la Poultry): 'peers' mostra os
+// dois gráficos de comparação; qualquer outro valor mostra Transformadores.
+// Se a sub-aba pedida não tiver dados, cai graciosamente para a que tiver.
+const WegTab = ({ data, accent, tab }) => {
   const hasTransf = !!(data.weg_transformadores && data.weg_transformadores.length);
   const hasPeers  = !!(data.weg_peers && data.weg_peers.length);
-  const [sub, setSub] = React.useState('transformadores');
-
-  // Sub-aba efetiva: se a escolhida não tiver dados, cai para a que tiver.
-  const enabled = { transformadores: hasTransf, peers: hasPeers };
-  const activeSub = enabled[sub] ? sub : (hasTransf ? 'transformadores' : 'peers');
-
   if (!hasTransf && !hasPeers) return <EmptyWeg />;
+
+  const showPeers  = (tab === 'peers' && hasPeers) || (!hasTransf && hasPeers);
+  const showTransf = !showPeers && hasTransf;
 
   return (
     <main className="main">
-      <div className="weg-subtabs" role="tablist" aria-label="Seções da WEG">
-        {WEG_SUBTABS.map(t => (
-          <button key={t.key} role="tab" type="button"
-            aria-selected={activeSub === t.key}
-            className={`weg-subtab-btn ${activeSub === t.key ? 'is-on' : ''}`}
-            disabled={!enabled[t.key]} onClick={() => setSub(t.key)}>
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {activeSub === 'transformadores' && (
+      {showTransf && (
         <ContinuousCard
           cardId="card-weg-transformadores"
           title="Preço Transformadores"
@@ -502,7 +486,7 @@ const WegTab = ({ data, accent }) => {
           field="value" unit="Base 100" decimals={2}
         />
       )}
-      {activeSub === 'peers' && (
+      {showPeers && (
         <>
           <WegPeersCard data={data} metric="price"/>
           <WegPeersCard data={data} metric="pe"/>

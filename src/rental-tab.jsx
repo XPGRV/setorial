@@ -209,7 +209,7 @@ function RentalPeersCard({ data, metric }) {
 
 function RentalPeers({ data }) {
   if (!(data.rental_peers || []).length) return <main className="main"><section className="card card-full"><div className="card-head"><div><div className="card-eyebrow">Rental · Peers</div><h3 className="card-title">Sem dados de peers</h3><div className="rental-empty">Atualize a planilha CarRental.xlsm para carregar Localiza, Movida e Vamos.</div></div></div></section></main>
-  return <main className="main"><div className="cards-grid"><RentalPeersCard data={data} metric="price"/><RentalPeersCard data={data} metric="pe"/></div></main>
+  return <main className="main"><RentalPeersCard data={data} metric="price"/><RentalPeersCard data={data} metric="pe"/></main>
 }
 
 export function RentalTab({ data, tab }) {

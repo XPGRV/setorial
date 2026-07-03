@@ -1,4 +1,5 @@
 import React from 'react'
+import { WegPeersChart } from './weg-tab.jsx'
 
 const MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
 const BLUE = '#4387d9'
@@ -72,7 +73,7 @@ function RentalPriceChart({ rows }) {
   </div>
 }
 
-export function RentalTab({ data }) {
+function RentalCarPrices({ data }) {
   const rows = data.rental_car_prices || []
   const [range, setRange] = React.useState('Todos')
   if (!rows.length) return <main className="main"><section className="card card-full"><div className="card-head"><div><div className="card-eyebrow">Carros</div><h3 className="card-title">Preços e Spreads</h3><div className="rental-empty">Atualize a planilha CarRental.xlsm para visualizar o gráfico.</div></div></div></section></main>
@@ -106,4 +107,111 @@ export function RentalTab({ data }) {
       </div>
     </section>
   </main>
+}
+
+const RENTAL_PEERS = [
+  { key: 'localiza', label: 'Localiza', color: 'rgb(120 222 31)' },
+  { key: 'movida',   label: 'Movida',   color: 'rgb(255 80 0)' },
+  { key: 'vamos',    label: 'Vamos',    color: 'rgb(222 28 34)' },
+]
+
+const ChevronDown = () => <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{opacity:.5,marginLeft:4}}><path d="M2 4l4 4 4-4"/></svg>
+
+function PeerDropdown({ label, children }) {
+  const [open, setOpen] = React.useState(false)
+  const ref = React.useRef(null)
+  React.useEffect(() => {
+    if (!open) return
+    const close = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [open])
+  return <div className="weg-dd" ref={ref}>
+    <button className={`weg-dd-btn ${open ? 'is-open' : ''}`} onClick={() => setOpen(v => !v)}><span>{label}</span><ChevronDown/></button>
+    {open && <div className="weg-dd-panel" style={{width:190}}>{children}</div>}
+  </div>
+}
+
+const PEER_METRICS = {
+  price: {
+    suffix: '', rebase: true, cardId: 'card-rental-peers', chartId: 'rental-price',
+    title: 'Peers · Comparação de Preço', eyebrow: 'Bloomberg · Preço das ações · Base 100 (início da janela)',
+  },
+  pe: {
+    suffix: '_pe', rebase: false, cardId: 'card-rental-peers-pe', chartId: 'rental-pe',
+    title: 'Peers · Comparação de P/E', eyebrow: 'Bloomberg · Múltiplo Preço/Lucro (P/E) Forward 12M',
+  },
+}
+
+function RentalPeersCard({ data, metric }) {
+  const config = PEER_METRICS[metric]
+  const allRows = data.rental_peers || []
+  const [range, setRange] = React.useState('5')
+  const [chartStyle, setChartStyle] = React.useState('line')
+  const [selected, setSelected] = React.useState(() => new Set(RENTAL_PEERS.map(p => p.key)))
+  const [pinnedKey, setPinnedKey] = React.useState(null)
+  const [zoom, setZoom] = React.useState(null)
+  const tOf = r => r.year + (r.month - 1) / 12 + (r.day - .5) / 365.25
+
+  const filtered = React.useMemo(() => {
+    if (!allRows.length) return []
+    if (zoom) return allRows.filter(r => { const t = tOf(r); return t >= zoom.t0 && t <= zoom.t1 })
+    if (range === 'all') return allRows
+    const last = allRows.at(-1)
+    const cutOrd = last.year * 12 + last.month - Number(range) * 12
+    return allRows.filter(r => r.year * 12 + r.month > cutOrd)
+  }, [allRows, range, zoom])
+
+  const rows = React.useMemo(() => {
+    const firsts = {}
+    return filtered.map(r => {
+      const out = { year:r.year, month:r.month, day:r.day }
+      for (const peer of RENTAL_PEERS) {
+        const value = r[peer.key + config.suffix]
+        if (value == null) continue
+        if (config.rebase) {
+          if (firsts[peer.key] == null && value !== 0) firsts[peer.key] = value
+          if (firsts[peer.key] != null) out[peer.key] = value / firsts[peer.key] * 100
+        } else out[peer.key] = value
+      }
+      return out
+    })
+  }, [filtered, config])
+
+  const peers = RENTAL_PEERS.filter(p => selected.has(p.key))
+  const togglePeer = key => setSelected(current => {
+    const next = new Set(current)
+    next.has(key) ? next.delete(key) : next.add(key)
+    return next
+  })
+  const applyZoom = next => {
+    const count = allRows.filter(r => { const t=tOf(r); return t>=next.t0 && t<=next.t1 }).length
+    if (count >= 2) setZoom(next)
+  }
+
+  return <section className="card card-full" data-card-id={config.cardId}>
+    <div className="card-head">
+      <div><div className="card-eyebrow">{config.eyebrow}</div><h3 className="card-title">{config.title}</h3></div>
+      <div className="card-controls">
+        <div className="card-ctrl-row">
+          <div className="year-seg">{[['3a','3'],['5a','5'],['10a','10'],['Todos','all']].map(([label,value]) => <button key={value} className={`year-seg-btn ${!zoom && range===value ? 'is-on' : ''}`} onClick={() => {setZoom(null);setRange(value)}}>{label}</button>)}</div>
+          {zoom && <button className="seg-btn weg-zoom-reset" onClick={() => setZoom(null)}>Reset zoom</button>}
+          <div className="seg">{[['line','Linha'],['area','Área']].map(([value,label]) => <button key={value} className={`seg-btn ${chartStyle===value ? 'is-on' : ''}`} onClick={() => setChartStyle(value)}>{label}</button>)}</div>
+        </div>
+        <div className="card-ctrl-row">
+          <PeerDropdown label={`Empresas (${peers.length})`}>{RENTAL_PEERS.map(peer => <label key={peer.key} className="weg-dd-check"><input type="checkbox" checked={selected.has(peer.key)} onChange={() => togglePeer(peer.key)}/><span className="weg-dd-dot" style={{background:peer.color}}/><span>{peer.label}</span></label>)}</PeerDropdown>
+        </div>
+      </div>
+    </div>
+    <WegPeersChart rows={rows} peers={peers} chartStyle={chartStyle} pinnedKey={pinnedKey} setPinnedKey={setPinnedKey} chartId={config.chartId} decimals={1} onZoom={applyZoom} onResetZoom={() => setZoom(null)}/>
+  </section>
+}
+
+function RentalPeers({ data }) {
+  if (!(data.rental_peers || []).length) return <main className="main"><section className="card card-full"><div className="card-head"><div><div className="card-eyebrow">Rental · Peers</div><h3 className="card-title">Sem dados de peers</h3><div className="rental-empty">Atualize a planilha CarRental.xlsm para carregar Localiza, Movida e Vamos.</div></div></div></section></main>
+  return <main className="main"><div className="cards-grid"><RentalPeersCard data={data} metric="price"/><RentalPeersCard data={data} metric="pe"/></div></main>
+}
+
+export function RentalTab({ data, tab }) {
+  return tab === 'peers' ? <RentalPeers data={data}/> : <RentalCarPrices data={data}/>
 }

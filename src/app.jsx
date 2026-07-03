@@ -343,7 +343,7 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
         ) : activeDataset === 'weg' ? (
           <WegTab data={data} accent={accent} tab={tab}/>
         ) : activeDataset === 'rental' ? (
-          <RentalTab data={data} accent={accent}/>
+          <RentalTab data={data} accent={accent} tab={tab}/>
         ) : activeDataset === 'embraer' ? (
           <ComingSoon name="Embraer" icon={SIcon.embraer}/>
         ) : activeDataset === 'marcopolo' ? (
@@ -449,6 +449,7 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
   const isEmbraer   = activeDataset === 'embraer';
   const isMarcopolo = activeDataset === 'marcopolo';
   const isRental    = activeDataset === 'rental';
+  const rentalTab   = tab === 'peers' ? 'peers' : 'precos';
   // Sub-aba efetiva da WEG p/ destaque na sidebar — espelha o fallback do WegTab
   // (qualquer valor que não seja 'peers' cai em Transformadores).
   const wegTab      = tab === 'peers' ? 'peers' : 'transformadores';
@@ -609,8 +610,8 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
         </>}
         {dashboardSection === 'rental' && <>
           <div className="sidebar-group">
-            <GroupHeader groupId="rental" icon={SIcon.car} label="Carros" isActive={isRental}/>
-            {openGroup.has('rental') && <button className={`sidebar-item ${isRental ? 'is-on' : ''}`} onClick={() => onPick('rental', 'precos')}>
+            <GroupHeader groupId="rental" icon={SIcon.car} label="Carros" isActive={isRental && rentalTab === 'precos'}/>
+            {openGroup.has('rental') && <button className={`sidebar-item ${isRental && rentalTab === 'precos' ? 'is-on' : ''}`} onClick={() => onPick('rental', 'precos')}>
               <span className="sidebar-item-icon">{SIcon.bar}</span>
               <span className="sidebar-item-label">Preços e Spreads</span>
             </button>}
@@ -618,8 +619,8 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
           <button className="sidebar-item" disabled>
             <span className="sidebar-item-icon">{SIcon.truck}</span><span className="sidebar-item-label">Pesados</span><span className="sidebar-soon">em breve</span>
           </button>
-          <button className="sidebar-item" disabled>
-            <span className="sidebar-item-icon">{SIcon.bar}</span><span className="sidebar-item-label">Peers</span><span className="sidebar-soon">em breve</span>
+          <button className={`sidebar-item ${isRental && rentalTab === 'peers' ? 'is-on' : ''}`} onClick={() => onPick('rental', 'peers')}>
+            <span className={`sidebar-item-icon${isRental && rentalTab === 'peers' ? ' is-icon-breathing' : ''}`}>{SIcon.bar}</span><span className="sidebar-item-label">Peers</span>
           </button>
         </>}
       </div>}

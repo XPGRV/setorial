@@ -90,6 +90,28 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
     if (rental_car_prices.length) result.rental_car_prices = rental_car_prices;
   }
 
+  // Rental · Peers (CarRental.xlsm · aba Peers)
+  // A=data; B:D=preços em BRL (Localiza, Movida, Vamos); F:H=P/E Forward 12M.
+  if (parseRental && findSheet('Peers')) {
+    const raw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('Peers')], { header: 1, raw: true });
+    const rental_peers = [];
+    for (let i = 4; i < raw.length; i++) {
+      const r = raw[i];
+      if (!r) continue;
+      const pd = r[0] instanceof Date
+        ? { year: r[0].getUTCFullYear(), month: r[0].getUTCMonth() + 1, day: r[0].getUTCDate() }
+        : parseDate(r[0]);
+      if (!pd) continue;
+      const row = {
+        year: pd.year, month: pd.month, day: pd.day,
+        localiza: parseNum(r[1]), movida: parseNum(r[2]), vamos: parseNum(r[3]),
+        localiza_pe: parseNum(r[5]), movida_pe: parseNum(r[6]), vamos_pe: parseNum(r[7]),
+      };
+      if (Object.entries(row).some(([k, v]) => !['year','month','day'].includes(k) && v != null)) rental_peers.push(row);
+    }
+    if (rental_peers.length) result.rental_peers = rental_peers;
+  }
+
   // ── BeefBR (abas: BeefBR, SECEX, Abates) ────────────────────────────────────
   if (parseBR && findSheet('BeefBR')) {
     const beefRaw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('BeefBR')], { header: 1, raw: false });
@@ -956,7 +978,7 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
   // Preços diários das ações (USD). Colunas F..O (idx 5..14):
   //   F=WEG G=ABB H=Nidec I=Regal Rexnord J=Eaton K=Siemens L=Schneider
   //   M=GE Vernova N=Hitachi O=Hyosung. A coluna de data é autodetectada (A..E).
-  if (findSheet('Peers')) {
+  if (!parseRental && findSheet('Peers')) {
     const pRaw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('Peers')], { header: 1, raw: true });
     // Preço: F..O (5..14). P/E: Q..Z (16..25). Mesma ordem de empresas.
     const PEER_COLS = {

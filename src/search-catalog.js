@@ -39,6 +39,8 @@ const RAW_ITEMS = [
   ['weg',null,null,'WEG','capital goods bens de capital industria equipamentos transformadores motores peers'],
   ['rental','precos',null,'Rental · Carros','rental carros automoveis veiculos precos spreads'],
   ['rental','precos','card-rental-car-prices','Preços e Spreads · Carros','automovel novo usado spread preco indice'],
+  ['rental','peers','card-rental-peers','Peers · Comparação de Preço','localiza movida vamos rent3 movi3 vamo3 cotacao preco base 100'],
+  ['rental','peers','card-rental-peers-pe','Peers · Comparação de P/E','localiza movida vamos rent3 movi3 vamo3 pe price earnings multiplo'],
   ['weg',null,'card-weg-transformadores','Preço de Transformadores','transformador transformadores transformer ppi electric power specialty manufacturing'],
   ['weg',null,'card-weg-peers','Peers · Comparação de Preço','peers cotacao preco price weg abb nidec regal rexnord eaton siemens schneider ge vernova hitachi hyosung eie gtd'],
   ['weg',null,'card-weg-peers-pe','Peers · Comparação de P/E','peers pe price earnings valuation multiplo weg abb nidec regal rexnord eaton siemens schneider ge vernova hitachi hyosung eie gtd'],

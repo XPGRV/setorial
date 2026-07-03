@@ -66,7 +66,7 @@ function Dropdown({ label, children, width = 200 }) {
 }
 
 // ── Gráfico multi-linha diário contínuo ──────────────────────────────────────
-function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey, chartId = 'weg', decimals = 1, onZoom, onResetZoom }) {
+export function WegPeersChart({ rows, peers, chartStyle, pinnedKey, setPinnedKey, chartId = 'weg', decimals = 1, onZoom, onResetZoom }) {
   const W = 1000, H = 340;
   const padL = 56, padR = 24, padT = 18, padB = 32;
   const chartW = W - padL - padR;

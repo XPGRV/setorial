@@ -41,7 +41,7 @@ const DATASET_DATA_KEYS = {
   poultry_us: ['broiler_production', 'frango_us_daily', 'frango_us_monthly', 'frango_us_nc_weekly', 'frango_us_nc_cols'],
   macro:      ['selic_snapshots'],
   weg:        ['weg_transformadores', 'weg_peers'],
-  rental:     ['rental_car_prices'],
+  rental:     ['rental_car_prices', 'rental_peers'],
 }
 const DATASET_META_KEYS = {
   beef_us: 'us', beef_br: 'br', poultry_br: 'poultry_br',

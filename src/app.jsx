@@ -1,5 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Users } from 'lucide-react'
 import { searchDestinations as searchCatalog } from './search-catalog.js'
 import { runRouteTransition } from './route-transition.js'
 import { THEMES, ThemePicker } from './reactive.js'
@@ -362,6 +363,7 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
 
 // ---------------- Sidebar ----------------
 const SIcon = {
+  peers: <Users size={16} strokeWidth={1.8}/>,
   car: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17h14l-1.5-6a2 2 0 0 0-1.9-1.5H8.4A2 2 0 0 0 6.5 11L5 17Z"/><path d="M3 14v5h2m16-5v5h-2M7 13h.01M17 13h.01"/></svg>,
   truck: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h11v11H3zM14 10h4l3 3v4h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>,
   bar: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="6" width="4" height="14" rx="1"/><rect x="17" y="9" width="4" height="11" rx="1"/></svg>,
@@ -593,7 +595,7 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
                 <span className="sidebar-item-label">Transformadores</span>
               </button>
               <button className={`sidebar-item ${isWeg && wegTab==='peers' ? 'is-on' : ''}`} onClick={() => onPick('weg', 'peers')}>
-                <span className="sidebar-item-icon">{SIcon.bar}</span>
+                <span className="sidebar-item-icon">{SIcon.peers}</span>
                 <span className="sidebar-item-label">Peers</span>
               </button>
             </>)}
@@ -621,7 +623,7 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
             <span className="sidebar-item-icon">{SIcon.truck}</span><span className="sidebar-item-label">Pesados</span><span className="sidebar-soon">em breve</span>
           </button>
           <button className={`sidebar-item ${isRental && rentalTab === 'peers' ? 'is-on' : ''}`} onClick={() => onPick('rental', 'peers')}>
-            <span className={`sidebar-item-icon${isRental && rentalTab === 'peers' ? ' is-icon-breathing' : ''}`}>{SIcon.bar}</span><span className="sidebar-item-label">Peers</span>
+            <span className={`sidebar-item-icon${isRental && rentalTab === 'peers' ? ' is-icon-breathing' : ''}`}>{SIcon.peers}</span><span className="sidebar-item-label">Peers</span>
           </button>
         </>}
       </div>}

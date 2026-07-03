@@ -1,5 +1,6 @@
 import React from 'react'
 import { WegPeersChart } from './weg-tab.jsx'
+import { fmt } from './data-utils.jsx'
 
 const MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
 const BLUE = '#4387d9'
@@ -64,12 +65,22 @@ function RentalPriceChart({ rows }) {
         {rows[hover].used_price_index != null && <circle cx={x(hover)} cy={yPrice(rows[hover].used_price_index)} r="4" fill={RED}/>} 
       </>}
     </svg>
-    {hover != null && <div className="rental-tooltip" style={{ left: `${clamp(x(hover) / W * 100, 11, 78)}%` }}>
-      <strong>{MONTHS[rows[hover].month-1]}/{String(rows[hover].year).slice(-2)}</strong>
-      <span><i style={{background:BLUE}}/>Novo <b>{rows[hover].new_price_index?.toFixed(1)}</b></span>
-      <span><i style={{background:RED}}/>Usado ajustado <b>{rows[hover].used_price_index?.toFixed(1)}</b></span>
-      <span><i style={{background:GRAY}}/>Spread <b>{rows[hover].used_new_spread == null ? '—' : `${(rows[hover].used_new_spread*100).toFixed(1)}%`}</b></span>
-    </div>}
+    {hover != null && (() => {
+      const row = rows[hover]
+      const xPos = x(hover)
+      const isRight = xPos > W * .68
+      return <div className="hover-card" style={{
+        left: `${(xPos / W * 100).toFixed(1)}%`,
+        transform: isRight ? 'translateX(calc(-100% - 16px))' : 'translateX(16px)',
+      }}>
+        <div className="hover-month">{MONTHS[row.month-1]}/{row.year}</div>
+        <div className="hover-rows">
+          <div className="hover-row"><span className="hover-year" style={{color:BLUE}}>Novo</span><span className="hover-val">{fmt(row.new_price_index,{decimals:1})}</span></div>
+          <div className="hover-row"><span className="hover-year" style={{color:RED}}>Usado ajustado</span><span className="hover-val">{fmt(row.used_price_index,{decimals:1})}</span></div>
+          <div className="hover-row"><span className="hover-year" style={{color:GRAY}}>Spread</span><span className="hover-val">{row.used_new_spread == null ? '—' : `${fmt(row.used_new_spread*100,{decimals:1})}%`}</span></div>
+        </div>
+      </div>
+    })()}
   </div>
 }
 

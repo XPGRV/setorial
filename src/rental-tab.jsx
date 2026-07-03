@@ -83,8 +83,8 @@ export function RentalTab({ data }) {
           <div className="card-eyebrow">Cálculo Próprio · IPCA Mensal</div>
           <h3 className="card-title">Preços e Spreads</h3>
           <div className="rental-latest">
-            <span className="rental-latest-item"><b style={{color:BLUE}}>{latest.new_price_index.toLocaleString('pt-BR',{maximumFractionDigits:1})}</b><small>Novo</small></span>
-            <span className="rental-latest-item"><b style={{color:RED}}>{latest.used_price_index.toLocaleString('pt-BR',{maximumFractionDigits:1})}</b><small>Usado</small></span>
+            <span className="rental-latest-item" style={{color:BLUE}}><b>{latest.new_price_index.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}</b><small>Novo</small></span>
+            <span className="rental-latest-item" style={{color:RED}}><b>{latest.used_price_index.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}</b><small>Usado</small></span>
             <span className="card-unit">Base 100</span>
             <span className="card-date">{MONTHS[latest.month-1]}/{String(latest.year).slice(-2)}</span>
           </div>
@@ -94,7 +94,11 @@ export function RentalTab({ data }) {
         </div></div></div>
       </div>
       <RentalPriceChart rows={visibleRows}/>
-      <div className="rental-legend"><span><i style={{background:BLUE}}/>Automóvel novo</span><span><i style={{background:RED}}/>Automóvel usado ajustado</span><span><i style={{background:GRAY}}/>Spread usado / novo</span></div>
+      <div className="ciclo-legend">
+        <span className="legend-year" style={{padding:'2px 6px'}}><span className="legend-line" style={{background:BLUE}}/>Automóvel novo</span>
+        <span className="legend-year" style={{padding:'2px 6px'}}><span className="legend-line" style={{background:RED}}/>Automóvel usado ajustado</span>
+        <span className="legend-year" style={{padding:'2px 6px'}}><span className="legend-line" style={{background:GRAY}}/>Spread usado / novo</span>
+      </div>
     </section>
   </main>
 }

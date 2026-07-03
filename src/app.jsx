@@ -9,6 +9,7 @@ import { PoultryBRTab } from './poultry-br-tab.jsx'
 import { PoultryUSTab } from './poultry-us-tab.jsx'
 import { MacroTab } from './macro-tab.jsx'
 import { WegTab } from './weg-tab.jsx'
+import { RentalTab } from './rental-tab.jsx'
 import { CicloDoBoi } from './ciclo-boi.jsx'
 import { EVENTS, MONTHS_PT, availableYears, fmt, latestNonNull } from './data-utils.jsx'
 import { PriceCard, DailySeasonalCard } from './price-card.jsx'
@@ -78,7 +79,7 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
   const [activeDataset, setActiveDataset] = useState(() => {
     try {
       const d = new URLSearchParams(window.location.search).get('dataset');
-      if (['beef_us', 'beef_br', 'poultry_br', 'poultry_us', 'macro', 'weg'].includes(d)) return d;
+      if (['beef_us', 'beef_br', 'poultry_br', 'poultry_us', 'macro', 'weg', 'rental'].includes(d)) return d;
     } catch {}
     return initialDataset;
   });
@@ -176,6 +177,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
     ? 'oklch(0.76 0.20 45)'
     : activeDataset === 'macro'
     ? 'oklch(0.70 0.19 160)'
+    : activeDataset === 'rental'
+    ? 'rgb(120 222 31)'
     : activeDataset === 'weg'
     ? 'oklch(0.491 0.131 247.6)'
     : activeDataset === 'embraer'
@@ -193,6 +196,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
     ? 'oklch(0.76 0.20 45)'
     : activeDataset === 'macro'
     ? 'oklch(0.70 0.19 160)'
+    : activeDataset === 'rental'
+    ? 'rgb(120 222 31)'
     : activeDataset === 'weg'
     ? 'oklch(0.491 0.131 247.6)'
     : activeDataset === 'embraer'
@@ -215,6 +220,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
       ? 'oklch(0.76 0.20 45)'
       : activeDataset === 'macro'
       ? 'oklch(0.70 0.19 160)'
+      : activeDataset === 'rental'
+      ? 'rgb(120 222 31)'
       : activeDataset === 'weg'
       ? 'oklch(0.491 0.131 247.6)'
       : activeDataset === 'embraer'
@@ -237,6 +244,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
     if (!dest) return;
     const targetSection = dest.dataset === 'macro'
       ? 'macro'
+      : dest.dataset === 'rental'
+      ? 'rental'
       : (dest.dataset === 'weg' || dest.dataset === 'embraer' || dest.dataset === 'marcopolo')
       ? 'capitalgoods'
       : 'proteinas';
@@ -272,6 +281,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
     if (!pending) return;
     const pendingSection = pending.dataset === 'macro'
       ? 'macro'
+      : pending.dataset === 'rental'
+      ? 'rental'
       : (pending.dataset === 'weg' || pending.dataset === 'embraer' || pending.dataset === 'marcopolo')
       ? 'capitalgoods'
       : 'proteinas';
@@ -331,6 +342,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
           <MacroTab data={data} accent={accent}/>
         ) : activeDataset === 'weg' ? (
           <WegTab data={data} accent={accent} tab={tab}/>
+        ) : activeDataset === 'rental' ? (
+          <RentalTab data={data} accent={accent}/>
         ) : activeDataset === 'embraer' ? (
           <ComingSoon name="Embraer" icon={SIcon.embraer}/>
         ) : activeDataset === 'marcopolo' ? (
@@ -348,6 +361,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
 
 // ---------------- Sidebar ----------------
 const SIcon = {
+  car: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17h14l-1.5-6a2 2 0 0 0-1.9-1.5H8.4A2 2 0 0 0 6.5 11L5 17Z"/><path d="M3 14v5h2m16-5v5h-2M7 13h.01M17 13h.01"/></svg>,
+  truck: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h11v11H3zM14 10h4l3 3v4h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>,
   bar: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="6" width="4" height="14" rx="1"/><rect x="17" y="9" width="4" height="11" rx="1"/></svg>,
   abates: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18l5-6 4 4 4-7 5 9"/><path d="M3 21h18"/></svg>,
   cow: <svg width="16" height="16" viewBox="0 0 512 512" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M512,237.3c-0.008-14.331-1.105-28.117-4.601-40.405c-1.748-6.136-4.102-11.914-7.285-17.14c-3.166-5.226-7.17-9.899-12.101-13.733l-0.054-0.036c-9.399-7.161-18.112-11.896-27.287-14.732c-9.176-2.836-18.647-3.754-29.544-3.754c-12.324,0-26.583,1.15-45.006,2.229c-16.454,0.973-38.747,1.142-59.132,1.142c-10.853,0-21.171-0.045-29.829-0.045c-11.931,0.009-31.631-1.748-51.704-4.548c-20.065-2.782-40.664-6.635-54.504-10.647c-12.823-3.71-24.21-8.48-34.047-12.423c-4.922-1.97-9.47-3.736-13.698-5.056c-1.56-0.472-3.058-0.874-4.547-1.222c2.051-4.86,2.809-9.675,2.809-13.742c0-2.291-0.223-4.351-0.668-6.206c-0.224-0.928-0.5-1.802-0.892-2.685c-0.401-0.883-0.874-1.783-1.854-2.792v0.009c-1.454-1.426-3.05-2.22-4.771-2.79c-1.73-0.554-3.612-0.838-5.636-0.838c-3.825,0-8.204,1.07-12.68,3.486c-0.838-5.155-2.72-10.05-4.958-14.313c-1.534-2.889-3.246-5.475-5.056-7.669c-1.837-2.185-3.674-3.995-6.028-5.324c-2.818-1.56-5.716-2.426-8.632-2.434c-2.479,0-5.082,0.651-7.268,2.434c-1.07,0.882-1.997,2.051-2.604,3.38c-0.606,1.32-0.891,2.764-0.882,4.164c0,1.695,0.384,3.318,1.016,4.842c0.9,2.167,1.774,4.869,2.39,7.589c0.624,2.72,0.99,5.484,0.99,7.687c0,1.417-0.152,2.594-0.365,3.326c-0.089,0.303-0.179,0.508-0.241,0.651c-1.828,1.115-6.43,3.942-11.414,7.026c-3.211,1.98-6.563,4.058-9.408,5.832c-2.844,1.784-5.145,3.237-6.411,4.076c-0.803,0.544-1.293,1.016-1.89,1.57c-1.079,1.026-2.283,2.318-3.71,3.906c-4.931,5.511-12.315,14.482-19.04,22.419c-3.352,3.96-6.536,7.651-9.078,10.434c-1.266,1.382-2.38,2.551-3.228,3.371c-0.419,0.402-0.767,0.722-0.999,0.918l-0.232,0.178c-2.577,1.472-6.394,3.576-9.774,5.814c-1.712,1.15-3.318,2.319-4.753,3.692c-0.722,0.705-1.409,1.454-2.06,2.462c-0.32,0.508-0.633,1.088-0.883,1.792C0.187,169.91,0,170.765,0,171.747c0.018,1.07,0.161,1.614,0.303,2.211c0.277,1.062,0.633,2.078,1.106,3.265c1.641,4.066,4.566,9.871,7.928,15.062c1.694,2.586,3.46,4.994,5.431,7.009c0.999,1.007,2.051,1.935,3.335,2.728c1.276,0.775,2.881,1.516,5.048,1.542c0.356-0.008,1.748,0.071,3.593,0.223c6.572,0.544,19.788,1.972,34.502,3.496c13.635,1.417,28.554,2.925,40.985,3.932c1.998,3.353,5.761,9.845,10.015,17.924c5.565,10.559,11.95,23.837,16.203,36.081c1.177,3.389,2.453,7.964,3.763,13.046c1.989,7.633,4.076,16.426,6.341,24.541c1.132,4.066,2.31,7.964,3.558,11.504c1.248,3.548,2.56,6.733,4.084,9.47c7.232,12.939,14.508,24.817,19.859,34.93c2.666,5.047,4.86,9.658,6.323,13.644c1.48,3.968,2.193,7.303,2.175,9.64c0,12.225,0,37.935,0,42.876l-5.234,17.745l3.746,2.337c0.678,0.437,7.794,4.664,20.421,4.664c3.531,0,6.662-0.66,9.3-1.935c1.972-0.954,3.639-2.247,4.932-3.683c1.935-2.167,3.022-4.566,3.629-6.706c0.606-2.149,0.767-4.057,0.767-5.556c0-1.881,0-16.016,0-29.669c0-6.83,0-13.546,0-18.557c0-5.003,0-8.284,0-8.302v-0.597l-0.133-0.598l-0.028-0.142c-0.152-0.74-0.874-4.343-1.56-8.739c-0.686-4.379-1.301-9.622-1.293-13.287c-0.008-0.526,0.134-2.158,0.456-4.2c1.061-7.099,3.825-19.806,6.447-31.551c4.244,1.213,10.104,2.854,16.56,4.557c6.411,1.686,13.394,3.434,19.966,4.887c6.59,1.453,12.698,2.612,17.63,3.103c24.576,2.461,43.437,4.94,73.801,4.94c6.688,0,13.938-0.125,21.928-0.384c23.622-0.784,41.11-6.269,52.738-11.655c4.94-2.292,8.756-4.53,11.619-6.412c4.556,11.852,10.87,21.09,16.837,27.894c4.53,5.181,8.864,9.034,11.985,11.682c1.106,0.928,2.051,1.712,2.773,2.319c-0.045,0.633-0.099,1.328-0.152,2.158c-0.562,7.883-1.819,24.229-2.934,38.596c-0.554,7.178-1.07,13.866-1.454,18.762c-0.249,3.246-0.446,5.672-0.544,6.956l-8.846,19.342l4.04,2.773c0.749,0.526,7.446,4.762,20.064,4.753c3.398,0,6.492-0.509,9.248-1.596c2.069-0.812,3.924-1.953,5.484-3.362c2.336-2.122,3.924-4.78,4.86-7.517c0.946-2.747,1.293-5.591,1.293-8.409c-0.008-0.054,0.036-0.66,0.134-1.463c0.384-3.139,1.57-9.515,3.121-17.148c2.31-11.486,5.44-26.021,7.99-38.453c1.274-6.215,2.408-11.905,3.228-16.479c0.41-2.283,0.749-4.29,0.99-5.975c0.232-1.712,0.393-2.997,0.402-4.334c0-0.446-0.009-0.892-0.125-1.579c-0.999-5.645-1.427-12.315-1.418-19.681c-0.009-12.422,1.168-26.779,2.372-41.708C510.787,267.726,512,252.21,512,237.3z"/></svg>,
@@ -398,6 +413,8 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
   const onPick = (ds, sub) => {
     const targetPath = ds === 'macro'
       ? '/macro'
+      : ds === 'rental'
+      ? '/rental'
       : (ds === 'weg' || ds === 'embraer' || ds === 'marcopolo')
       ? '/capitalgoods'
       : `/proteinas${ds === 'beef_us' ? '' : `?dataset=${ds}`}`;
@@ -431,6 +448,7 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
   const isWeg       = activeDataset === 'weg';
   const isEmbraer   = activeDataset === 'embraer';
   const isMarcopolo = activeDataset === 'marcopolo';
+  const isRental    = activeDataset === 'rental';
   // Sub-aba efetiva da WEG p/ destaque na sidebar — espelha o fallback do WegTab
   // (qualquer valor que não seja 'peers' cai em Transformadores).
   const wegTab      = tab === 'peers' ? 'peers' : 'transformadores';
@@ -442,6 +460,8 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
     ? 'Macro'
     : dashboardSection === 'capitalgoods'
     ? 'Capital Goods'
+    : dashboardSection === 'rental'
+    ? 'Rental'
     : 'Proteínas';
 
   const Chevron = ({ open }) => (
@@ -587,6 +607,21 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
             <span className="sidebar-soon">em breve</span>
           </button>
         </>}
+        {dashboardSection === 'rental' && <>
+          <div className="sidebar-group">
+            <GroupHeader groupId="rental" icon={SIcon.car} label="Carros" isActive={isRental}/>
+            {openGroup.has('rental') && <button className={`sidebar-item ${isRental ? 'is-on' : ''}`} onClick={() => onPick('rental', 'precos')}>
+              <span className="sidebar-item-icon">{SIcon.bar}</span>
+              <span className="sidebar-item-label">Preços e Spreads</span>
+            </button>}
+          </div>
+          <button className="sidebar-item" disabled>
+            <span className="sidebar-item-icon">{SIcon.truck}</span><span className="sidebar-item-label">Pesados</span><span className="sidebar-soon">em breve</span>
+          </button>
+          <button className="sidebar-item" disabled>
+            <span className="sidebar-item-icon">{SIcon.bar}</span><span className="sidebar-item-label">Peers</span><span className="sidebar-soon">em breve</span>
+          </button>
+        </>}
       </div>}
 
       <div className="sidebar-spacer"/>
@@ -693,8 +728,8 @@ const MODE_ICON = {
 const MODE_LABEL = { light: 'Tema: Claro · clique p/ Escuro', dark: 'Tema: Escuro · clique p/ Claro' };
 
 function TopBar({ meta, onUpload, activeDataset, colorMode = 'dark', onCycleMode, onNavigate, dashboardSection }) {
-  const title  = activeDataset === 'macro' ? 'MACRO' : activeDataset === 'weg' ? 'WEG' : activeDataset === 'embraer' ? 'EMBRAER' : activeDataset === 'marcopolo' ? 'MARCOPOLO' : (activeDataset === 'poultry_br' || activeDataset === 'poultry_us') ? 'POULTRY' : 'BEEF';
-  const suffix = (activeDataset === 'macro' || activeDataset === 'weg' || activeDataset === 'embraer' || activeDataset === 'marcopolo') ? '' : (activeDataset === 'beef_us' || activeDataset === 'poultry_us') ? 'US' : 'BR';
+  const title  = activeDataset === 'rental' ? 'RENTAL' : activeDataset === 'macro' ? 'MACRO' : activeDataset === 'weg' ? 'WEG' : activeDataset === 'embraer' ? 'EMBRAER' : activeDataset === 'marcopolo' ? 'MARCOPOLO' : (activeDataset === 'poultry_br' || activeDataset === 'poultry_us') ? 'POULTRY' : 'BEEF';
+  const suffix = (activeDataset === 'rental' || activeDataset === 'macro' || activeDataset === 'weg' || activeDataset === 'embraer' || activeDataset === 'marcopolo') ? '' : (activeDataset === 'beef_us' || activeDataset === 'poultry_us') ? 'US' : 'BR';
   const currentMeta = activeDataset === 'beef_us'
     ? (meta?.us ?? null)
     : activeDataset === 'poultry_br'
@@ -705,6 +740,8 @@ function TopBar({ meta, onUpload, activeDataset, colorMode = 'dark', onCycleMode
     ? (meta?.selic ?? null)
     : activeDataset === 'weg'
     ? (meta?.weg ?? null)
+    : activeDataset === 'rental'
+    ? (meta?.rental ?? null)
     : (activeDataset === 'embraer' || activeDataset === 'marcopolo')
     ? null
     : (meta?.br ?? (meta?.updated ? meta : null));
@@ -895,7 +932,7 @@ function TickerBar({ data, activeDataset }) {
   const requestRef = useRef();
 
   const items = useMemo(() => {
-    if (activeDataset === 'macro' || activeDataset === 'embraer' || activeDataset === 'marcopolo') return [];
+    if (activeDataset === 'macro' || activeDataset === 'rental' || activeDataset === 'embraer' || activeDataset === 'marcopolo') return [];
     const ds = activeDataset === 'beef_us'    ? 'beef_us'
              : activeDataset === 'poultry_br'  ? 'frango'
              : activeDataset === 'poultry_us'  ? 'frango_us_daily'

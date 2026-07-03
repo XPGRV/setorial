@@ -110,6 +110,7 @@ const ALL_DATASETS = [
   { key: 'poultry_br', label: 'FrangoBR' },
   { key: 'macro',     label: 'Macro'    },
   { key: 'weg',       label: 'WEG'      },
+  { key: 'rental',    label: 'Rental'   },
 ];
 
 const SidebarRefresh = ({ onLoad }) => {

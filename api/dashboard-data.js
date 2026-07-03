@@ -10,6 +10,7 @@ const DATASET_OBJECTS = {
   poultry_us: 'data-poultry_us.json',
   macro: 'data-macro.json',
   weg: 'data-weg.json',
+  rental: 'data-rental.json',
 };
 const LEGACY_OBJECT = 'data.json';
 

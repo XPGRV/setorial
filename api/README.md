@@ -11,6 +11,7 @@ Datasets aceitos:
 - `poultry_us` -> `FrangoUS.xlsm`
 - `macro` -> `Planilha - Selic.xlsm`
 - `weg` -> `WEG - Setorial.xlsm`
+- `rental` -> `CarRental.xlsm`
 
 ## Autorização
 

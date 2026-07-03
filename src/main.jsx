@@ -26,7 +26,7 @@ function ProteinasLoading({ label = 'Proteinas' }) {
 // Cada planilha vive em dashboard/data-<dataset>.json no Storage; enquanto o
 // arquivo separado não existir, o backend cai para o data.json combinado.
 // ============================================================================
-const DATA_VERSION = '5'
+const DATA_VERSION = '6'
 const SB_URL = 'https://wmxjdveucxbousoquwmc.supabase.co'
 window.__SB_URL = SB_URL
 
@@ -41,15 +41,18 @@ const DATASET_DATA_KEYS = {
   poultry_us: ['broiler_production', 'frango_us_daily', 'frango_us_monthly', 'frango_us_nc_weekly', 'frango_us_nc_cols'],
   macro:      ['selic_snapshots'],
   weg:        ['weg_transformadores', 'weg_peers'],
+  rental:     ['rental_car_prices'],
 }
 const DATASET_META_KEYS = {
   beef_us: 'us', beef_br: 'br', poultry_br: 'poultry_br',
   poultry_us: 'poultry_us', macro: 'selic', weg: 'weg',
+  rental: 'rental',
 }
 const SECTION_DATASETS = {
   proteinas:    ['beef_us', 'beef_br', 'poultry_br', 'poultry_us'],
   macro:        ['macro'],
   capitalgoods: ['weg'],
+  rental:       ['rental'],
 }
 
 const normalizeDashboardPayload = (data, meta) => {
@@ -222,7 +225,7 @@ function ProteinasRoute({ initialDataset = 'beef_us', dashboardSection = 'protei
   }, [dashboardSection, initialDataset])
 
   if (!ready) {
-    const label = dashboardSection === 'macro' ? 'Macro' : dashboardSection === 'capitalgoods' ? 'Capital Goods' : 'Proteinas'
+    const label = dashboardSection === 'macro' ? 'Macro' : dashboardSection === 'capitalgoods' ? 'Capital Goods' : dashboardSection === 'rental' ? 'Rental' : 'Proteinas'
     return <ProteinasLoading label={label} />
   }
   const { Component } = ready
@@ -244,6 +247,9 @@ root.render(
       } />
       <Route path="/capitalgoods" element={
         <ProteinasRoute initialDataset="weg" dashboardSection="capitalgoods" />
+      } />
+      <Route path="/rental" element={
+        <ProteinasRoute initialDataset="rental" dashboardSection="rental" />
       } />
     </Routes>
   </BrowserRouter>

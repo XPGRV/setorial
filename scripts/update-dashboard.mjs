@@ -33,6 +33,7 @@ const ARQUIVOS = [
   { dir: PASTA,  nome: 'FrangoBR.xlsm' },
   { dir: PASTA,  nome: 'Planilha - Selic.xlsm' },
   { dir: DB_DIR, nome: 'WEG - Setorial.xlsm' },
+  { dir: DB_DIR, nome: 'CarRental.xlsm' },
 ];
 const SB_URL   = process.env.SUPABASE_URL || 'https://wmxjdveucxbousoquwmc.supabase.co';
 const SB_KEY   = process.env.SUPABASE_SERVICE_ROLE;
@@ -46,15 +47,17 @@ function flagsFor(nome) {
   const forcePoultry   = forcePoultryBR || forcePoultryUS;
   const forceSelic     = lc.includes('selic');
   const forceWeg       = lc.includes('weg');
-  const metaKey = forceWeg ? 'weg' : forceSelic ? 'selic' : forceUS ? 'us' : forcePoultryUS ? 'poultry_us' : forcePoultryBR ? 'poultry_br' : 'br';
+  const forceRental    = lc.includes('carrental');
+  const metaKey = forceRental ? 'rental' : forceWeg ? 'weg' : forceSelic ? 'selic' : forceUS ? 'us' : forcePoultryUS ? 'poultry_us' : forcePoultryBR ? 'poultry_br' : 'br';
   // Nome do dataset = nome do arquivo no Storage (data-<dataset>.json)
-  const dataset = { weg: 'weg', selic: 'macro', us: 'beef_us', poultry_us: 'poultry_us', poultry_br: 'poultry_br', br: 'beef_br' }[metaKey];
+  const dataset = { rental: 'rental', weg: 'weg', selic: 'macro', us: 'beef_us', poultry_us: 'poultry_us', poultry_br: 'poultry_br', br: 'beef_br' }[metaKey];
   return {
     opts: {
       parseBR: !forceUS && !forcePoultry && !forceSelic && !forceWeg,
       parseUS: forceUS,
       parsePoultryUS: forcePoultryUS,
       parseSelic: forceSelic,
+      parseRental: forceRental,
     },
     metaKey,
     dataset,

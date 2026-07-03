@@ -8,7 +8,7 @@ const normalize = value => (value || '')
 const DATASET_LABELS = {
   beef_br: 'Beef BR', beef_us: 'Beef US',
   poultry_br: 'Poultry BR', poultry_us: 'Poultry US',
-  macro: 'Macro', weg: 'WEG',
+  macro: 'Macro', weg: 'WEG', rental: 'Rental',
 }
 
 const TAB_LABELS = {
@@ -23,6 +23,7 @@ const DATASET_KEYWORDS = {
   poultry_us: 'poultry frango chicken aves ave eua usa us estados unidos america',
   macro: 'macro cenario',
   weg: 'weg capital goods bens de capital industria equipamentos transformadores motores',
+  rental: 'rental locadoras carros automoveis veiculos pesados peers mobilidade',
 }
 
 const RAW_ITEMS = [
@@ -36,6 +37,8 @@ const RAW_ITEMS = [
   ['poultry_us','producao',null,'Poultry US · Produção','producao production broiler matrizes ovos pintos'],
   ['macro',null,null,'Macro · CDI','cdi selic juros taxa banco central bcb cenario macro'],
   ['weg',null,null,'WEG','capital goods bens de capital industria equipamentos transformadores motores peers'],
+  ['rental','precos',null,'Rental · Carros','rental carros automoveis veiculos precos spreads'],
+  ['rental','precos','card-rental-car-prices','Preços e Spreads · Carros','automovel novo usado spread preco indice'],
   ['weg',null,'card-weg-transformadores','Preço de Transformadores','transformador transformadores transformer ppi electric power specialty manufacturing'],
   ['weg',null,'card-weg-peers','Peers · Comparação de Preço','peers cotacao preco price weg abb nidec regal rexnord eaton siemens schneider ge vernova hitachi hyosung eie gtd'],
   ['weg',null,'card-weg-peers-pe','Peers · Comparação de P/E','peers pe price earnings valuation multiplo weg abb nidec regal rexnord eaton siemens schneider ge vernova hitachi hyosung eie gtd'],
@@ -108,5 +111,6 @@ export function searchDestinations(query) {
 export function dashboardPathForDataset(dataset) {
   if (dataset === 'macro') return '/macro'
   if (dataset === 'weg') return '/capitalgoods'
+  if (dataset === 'rental') return '/rental'
   return '/proteinas'
 }

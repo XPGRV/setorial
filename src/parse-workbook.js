@@ -63,12 +63,32 @@ function trimSifLag(arr, field, lagMonths = 2) {
 
 // Recebe um workbook JÁ LIDO pelo SheetJS (com cellDates:true, cellStyles:true)
 // e a instância XLSX, e devolve o objeto de dados.
-export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, parsePoultryUS = false, parseSelic = false } = {}) {
+export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, parsePoultryUS = false, parseSelic = false, parseRental = false } = {}) {
   _XLSX = XLSX;
   const sheets = wb.SheetNames;
   // Case-insensitive sheet lookup
   const findSheet = name => sheets.find(s => s.toLowerCase() === name.toLowerCase()) || null;
   const result = {};
+
+  // Rental · Carros (CarRental.xlsm · aba "Preço Carros")
+  // B = mês, J = preço novo (base 100), L = usado ajustado, M = spread usado/novo.
+  const rentalSheet = findSheet('Preço Carros') || findSheet('Preços Carros');
+  if (parseRental && rentalSheet) {
+    const raw = XLSX.utils.sheet_to_json(wb.Sheets[rentalSheet], { header: 1, raw: true });
+    const rental_car_prices = [];
+    for (let i = 4; i < raw.length; i++) {
+      const r = raw[i];
+      if (!r) continue;
+      const md = parseDate(r[1]) || parseMonthTag(r[1]);
+      if (!md) continue;
+      const new_price_index = parseNum(r[9]);
+      const used_price_index = parseNum(r[11]);
+      const used_new_spread = parseNum(r[12]);
+      if (new_price_index == null && used_price_index == null && used_new_spread == null) continue;
+      rental_car_prices.push({ year: md.year, month: md.month, new_price_index, used_price_index, used_new_spread });
+    }
+    if (rental_car_prices.length) result.rental_car_prices = rental_car_prices;
+  }
 
   // ── BeefBR (abas: BeefBR, SECEX, Abates) ────────────────────────────────────
   if (parseBR && findSheet('BeefBR')) {

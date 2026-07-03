@@ -156,7 +156,7 @@ function TopbarMesh({ accent = '#2f8fc4', spacing = 12, intensity = 0.3, speed =
 // ── Setores (esquerda) ────────────────────────────────────────────────────────
 const SECTORS = [
   { label: 'Proteínas',       sub: 'Dados setoriais de preço e produção de Carne Bovina, Frango e Processados, no Brasil e EUA.', icon: Beef, route: '/proteinas', active: true },
-  { label: 'Rental',          sub: 'Dados de locadoras, frotas, preços e mobilidade.', icon: Car },
+  { label: 'Rental',          sub: 'Dados de locadoras, frotas, preços e mobilidade.', icon: Car, route: '/rental', active: true },
   { label: 'Capital Goods',   sub: 'Acompanhamento setorial de empresas como: WEG, Marcopolo, Embraer, etc.', icon: Factory, route: '/capitalgoods', active: true },
   { label: 'Agro',            sub: 'Acompanhamento de commodities agrícolas, produção, preços e empresas do agronegócio.', icon: Sprout },
   { label: 'Food & Beverage', sub: 'Acompanhamento setorial de alimentos, bebidas, consumo e principais empresas.', icon: Utensils },

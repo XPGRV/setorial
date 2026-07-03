@@ -43,6 +43,13 @@ const DATASETS = {
     metaKey: 'weg',
     opts: { parseBR: false, parseUS: false, parsePoultryUS: false, parseSelic: false },
   },
+  rental: {
+    fileName: 'CarRental.xlsm',
+    fileIdEnv: 'GOOGLE_DRIVE_RENTAL_FILE_ID',
+    folderIdEnv: 'GOOGLE_DRIVE_DATABASE_FOLDER_ID',
+    metaKey: 'rental',
+    opts: { parseBR: false, parseUS: false, parsePoultryUS: false, parseSelic: false, parseRental: true },
+  },
 };
 
 function json(res, status, body) {

@@ -2159,7 +2159,7 @@ html.route-is-entering #root { animation: route-fade-in 280ms cubic-bezier(0.22,
 
 /* Rental · preços de carros */
 .rental-chart-wrap { position: relative; width: 100%; min-height: 320px; }
-.rental-chart { display: block; width: 100%; height: auto; min-height: 320px; overflow: visible; touch-action: pan-y; }
+.rental-chart { display: block; width: 100%; height: auto; min-height: 320px; overflow: visible; touch-action: pan-y; cursor: crosshair; }
 .rental-grid { stroke: var(--border); stroke-width: 1; }
 .rental-grid-x { opacity: .55; }
 .rental-axis-line { stroke: var(--border-strong); stroke-width: 1; }

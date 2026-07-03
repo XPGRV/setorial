@@ -16,6 +16,7 @@ const pathFor = (rows, field, x, y) => rows.reduce((d, row, i) => {
 
 function RentalPriceChart({ rows }) {
   const [hover, setHover] = React.useState(null)
+  const [mouseY, setMouseY] = React.useState(0)
   const W = 1100, H = 390
   const pad = { l: 58, r: 62, t: 24, b: 48 }
   const innerW = W - pad.l - pad.r, innerH = H - pad.t - pad.b
@@ -38,7 +39,9 @@ function RentalPriceChart({ rows }) {
   const onMove = e => {
     const box = e.currentTarget.getBoundingClientRect()
     const px = (e.clientX - box.left) / box.width * W
+    const py = (e.clientY - box.top) / box.height * H
     setHover(clamp(Math.round((px - pad.l) / innerW * (rows.length - 1)), 0, rows.length - 1))
+    setMouseY(current => Math.abs(current - py) < 12 ? current : py)
   }
 
   return <div className="rental-chart-wrap">
@@ -71,6 +74,7 @@ function RentalPriceChart({ rows }) {
       const isRight = xPos > W * .68
       return <div className="hover-card" style={{
         left: `${(xPos / W * 100).toFixed(1)}%`,
+        top: Math.max(10, Math.min(H - 150, mouseY - 40)),
         transform: isRight ? 'translateX(calc(-100% - 16px))' : 'translateX(16px)',
       }}>
         <div className="hover-month">{MONTHS[row.month-1]}/{row.year}</div>

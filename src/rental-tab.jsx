@@ -112,7 +112,7 @@ function RentalCarPrices({ data }) {
 const RENTAL_PEERS = [
   { key: 'localiza', label: 'Localiza', color: 'rgb(120 222 31)' },
   { key: 'movida',   label: 'Movida',   color: 'rgb(255 80 0)' },
-  { key: 'vamos',    label: 'Vamos',    color: 'rgb(230 129 130)' },
+  { key: 'vamos',    label: 'Vamos',    color: 'rgb(33 64 154)' },
 ]
 
 const ChevronDown = () => <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{opacity:.5,marginLeft:4}}><path d="M2 4l4 4 4-4"/></svg>

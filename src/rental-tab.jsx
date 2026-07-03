@@ -28,7 +28,7 @@ function RentalPriceChart({ rows }) {
   const ySpread = v => pad.t + (spreadMax - v) / (spreadMax - spreadMin || 1) * innerH
   const priceTicks = Array.from({ length: 6 }, (_, i) => priceMin + (priceMax - priceMin) * i / 5)
   const spreadTicks = Array.from({ length: 6 }, (_, i) => spreadMin + (spreadMax - spreadMin) * i / 5)
-  const yearTicks = rows.map((r, i) => ({ ...r, i })).filter((r, i) => r.month === 1 && i % 2 === 0)
+  const yearTicks = rows.map((r, i) => ({ ...r, i })).filter(r => r.month === 1 && (rows.length < 150 || r.year % 2 === 0))
   const spreadPath = pathFor(rows, 'used_new_spread', x, ySpread)
   const zeroY = ySpread(0)
   const areaPath = spreadPath ? `${spreadPath}L${x(rows.length - 1)},${zeroY}L${x(0)},${zeroY}Z` : ''
@@ -69,15 +69,32 @@ function RentalPriceChart({ rows }) {
 
 export function RentalTab({ data }) {
   const rows = data.rental_car_prices || []
+  const [range, setRange] = React.useState('5a')
   if (!rows.length) return <main className="main"><section className="card card-full"><div className="card-head"><div><div className="card-eyebrow">Carros</div><h3 className="card-title">Preços e Spreads</h3><div className="rental-empty">Atualize a planilha CarRental.xlsm para visualizar o gráfico.</div></div></div></section></main>
   const latest = rows.at(-1)
+  const yearsByRange = { '3a': 3, '5a': 5, '10a': 10 }
+  const visibleRows = range === 'Todos'
+    ? rows
+    : rows.filter(row => row.year >= latest.year - yearsByRange[range] + 1)
   return <main className="main">
     <section className="card card-full" data-card-id="card-rental-car-prices">
       <div className="card-head">
-        <div><div className="card-eyebrow">Carros · Índices mensais</div><h3 className="card-title">Preços e Spreads</h3><div className="card-price"><span className="card-value">{latest.new_price_index.toLocaleString('pt-BR',{maximumFractionDigits:1})}</span><span className="card-unit">Novo · base 100</span><span className="card-date">{MONTHS[latest.month-1]}/{String(latest.year).slice(-2)}</span></div></div>
-        <div className="rental-legend"><span><i style={{background:BLUE}}/>Automóvel novo</span><span><i style={{background:RED}}/>Automóvel usado ajustado</span><span><i style={{background:GRAY}}/>Spread usado / novo</span></div>
+        <div>
+          <div className="card-eyebrow">Cálculo Próprio · IPCA Mensal</div>
+          <h3 className="card-title">Preços e Spreads</h3>
+          <div className="rental-latest">
+            <span className="rental-latest-item"><b style={{color:BLUE}}>{latest.new_price_index.toLocaleString('pt-BR',{maximumFractionDigits:1})}</b><small>Novo</small></span>
+            <span className="rental-latest-item"><b style={{color:RED}}>{latest.used_price_index.toLocaleString('pt-BR',{maximumFractionDigits:1})}</b><small>Usado</small></span>
+            <span className="card-unit">Base 100</span>
+            <span className="card-date">{MONTHS[latest.month-1]}/{String(latest.year).slice(-2)}</span>
+          </div>
+        </div>
+        <div className="card-controls"><div className="card-ctrl-row"><div className="year-seg">
+          {['3a','5a','10a','Todos'].map(option => <button key={option} className={`year-seg-btn ${range === option ? 'is-on' : ''}`} onClick={() => setRange(option)}>{option}</button>)}
+        </div></div></div>
       </div>
-      <RentalPriceChart rows={rows}/>
+      <RentalPriceChart rows={visibleRows}/>
+      <div className="rental-legend"><span><i style={{background:BLUE}}/>Automóvel novo</span><span><i style={{background:RED}}/>Automóvel usado ajustado</span><span><i style={{background:GRAY}}/>Spread usado / novo</span></div>
     </section>
   </main>
 }

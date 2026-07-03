@@ -2163,13 +2163,17 @@ html.route-is-entering #root { animation: route-fade-in 280ms cubic-bezier(0.22,
 .rental-grid { stroke: var(--border); stroke-width: 1; }
 .rental-axis { fill: var(--fg-dim); font: 10px var(--font-mono); }
 .rental-crosshair { stroke: var(--fg-dim); stroke-width: 1; stroke-dasharray: 4 4; opacity: .65; }
-.rental-legend { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px 18px; color: var(--fg-dim); font-size: 11px; }
+.rental-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 22px; padding: 8px 0 2px; color: var(--fg-dim); font-size: 11px; }
 .rental-legend span, .rental-tooltip span { display: flex; align-items: center; gap: 6px; }
 .rental-legend i, .rental-tooltip i { width: 15px; height: 2px; border-radius: 2px; flex: 0 0 auto; }
 .rental-tooltip { position: absolute; top: 36px; z-index: 3; display: grid; gap: 7px; min-width: 190px; padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: 6px; background: color-mix(in srgb, var(--bg-elevated) 96%, transparent); box-shadow: 0 12px 30px rgb(0 0 0 / .22); color: var(--fg-dim); font-size: 11px; pointer-events: none; }
 .rental-tooltip strong { color: var(--fg); font-size: 12px; }
 .rental-tooltip b { margin-left: auto; color: var(--fg); font-family: var(--font-mono); font-weight: 500; }
 .rental-empty { margin-top: 8px; color: var(--fg-dim); font-size: 13px; }
+.rental-latest { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; }
+.rental-latest-item { display: grid; gap: 1px; }
+.rental-latest-item b { font-family: var(--font-mono); font-size: 22px; line-height: 1; font-weight: 500; }
+.rental-latest-item small { color: var(--fg-dim); font-size: 9px; text-transform: uppercase; letter-spacing: .06em; }
 @media (max-width: 760px) { .rental-legend { justify-content: flex-start; } .rental-chart-wrap, .rental-chart { min-height: 250px; } }
 @media (hover: none) {
   .hover-card, .rx-crosshair { display: none !important; }

@@ -2161,6 +2161,8 @@ html.route-is-entering #root { animation: route-fade-in 280ms cubic-bezier(0.22,
 .rental-chart-wrap { position: relative; width: 100%; min-height: 320px; }
 .rental-chart { display: block; width: 100%; height: auto; min-height: 320px; overflow: visible; touch-action: pan-y; }
 .rental-grid { stroke: var(--border); stroke-width: 1; }
+.rental-grid-x { opacity: .55; }
+.rental-axis-line { stroke: var(--border-strong); stroke-width: 1; }
 .rental-axis { fill: var(--fg-dim); font: 10px var(--font-mono); }
 .rental-crosshair { stroke: var(--fg-dim); stroke-width: 1; stroke-dasharray: 4 4; opacity: .65; }
 .rental-tooltip span { display: flex; align-items: center; gap: 6px; }

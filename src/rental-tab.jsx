@@ -22,7 +22,7 @@ function RentalPriceChart({ rows }) {
   const priceMin = Math.floor(Math.min(...priceValues, 0) / 20) * 20
   const priceMax = Math.ceil(Math.max(...priceValues) / 20) * 20
   const spreadMin = Math.floor(Math.min(...spreadValues) * 20) / 20
-  const spreadMax = Math.max(0, Math.ceil(Math.max(...spreadValues) * 20) / 20)
+  const spreadMax = 0
   const x = i => pad.l + (rows.length <= 1 ? 0 : i / (rows.length - 1)) * innerW
   const yPrice = v => pad.t + (priceMax - v) / (priceMax - priceMin || 1) * innerH
   const ySpread = v => pad.t + (spreadMax - v) / (spreadMax - spreadMin || 1) * innerH
@@ -47,7 +47,12 @@ function RentalPriceChart({ rows }) {
         const yy = yPrice(v)
         return <g key={v}><line x1={pad.l} x2={W-pad.r} y1={yy} y2={yy} className="rental-grid"/><text x={pad.l-10} y={yy+4} textAnchor="end" className="rental-axis">{v.toFixed(0)}</text><text x={W-pad.r+10} y={yy+4} className="rental-axis">{(spreadTicks[i]*100).toFixed(0)}%</text></g>
       })}
-      {yearTicks.map(r => <text key={`${r.year}-${r.i}`} x={x(r.i)} y={H-18} textAnchor="middle" className="rental-axis">{String(r.year).slice(-2)}</text>)}
+      <line x1={pad.l} x2={W-pad.r} y1={H-pad.b} y2={H-pad.b} className="rental-axis-line"/>
+      {yearTicks.map(r => <g key={`${r.year}-${r.i}`}>
+        <line x1={x(r.i)} x2={x(r.i)} y1={pad.t} y2={H-pad.b} className="rental-grid rental-grid-x"/>
+        <line x1={x(r.i)} x2={x(r.i)} y1={H-pad.b} y2={H-pad.b+5} className="rental-axis-line"/>
+        <text x={x(r.i)} y={H-18} textAnchor="middle" className="rental-axis">{String(r.year).slice(-2)}</text>
+      </g>)}
       <path d={areaPath} fill="color-mix(in srgb, var(--fg-dim) 14%, transparent)"/>
       <path d={spreadPath} fill="none" stroke={GRAY} strokeWidth="1.5"/>
       <path d={pathFor(rows, 'new_price_index', x, yPrice)} fill="none" stroke={BLUE} strokeWidth="2.5"/>
@@ -69,7 +74,7 @@ function RentalPriceChart({ rows }) {
 
 export function RentalTab({ data }) {
   const rows = data.rental_car_prices || []
-  const [range, setRange] = React.useState('5a')
+  const [range, setRange] = React.useState('Todos')
   if (!rows.length) return <main className="main"><section className="card card-full"><div className="card-head"><div><div className="card-eyebrow">Carros</div><h3 className="card-title">Preços e Spreads</h3><div className="rental-empty">Atualize a planilha CarRental.xlsm para visualizar o gráfico.</div></div></div></section></main>
   const latest = rows.at(-1)
   const yearsByRange = { '3a': 3, '5a': 5, '10a': 10 }

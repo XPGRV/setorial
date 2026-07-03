@@ -21,13 +21,17 @@ function RentalPriceChart({ rows }) {
   const spreadValues = rows.map(r => r.used_new_spread).filter(Number.isFinite)
   const priceMin = Math.floor(Math.min(...priceValues, 0) / 20) * 20
   const priceMax = Math.ceil(Math.max(...priceValues) / 20) * 20
-  const spreadMin = Math.floor(Math.min(...spreadValues) * 20) / 20
-  const spreadMax = 0
+  const spreadStep = 0.04
+  const spreadMin = Math.floor(Math.min(...spreadValues, 0) / spreadStep) * spreadStep
+  const spreadMax = Math.ceil(Math.max(...spreadValues, 0) / spreadStep) * spreadStep
   const x = i => pad.l + (rows.length <= 1 ? 0 : i / (rows.length - 1)) * innerW
   const yPrice = v => pad.t + (priceMax - v) / (priceMax - priceMin || 1) * innerH
   const ySpread = v => pad.t + (spreadMax - v) / (spreadMax - spreadMin || 1) * innerH
   const priceTicks = Array.from({ length: 6 }, (_, i) => priceMin + (priceMax - priceMin) * i / 5)
-  const spreadTicks = Array.from({ length: 6 }, (_, i) => spreadMin + (spreadMax - spreadMin) * i / 5)
+  const spreadTicks = Array.from(
+    { length: Math.round((spreadMax - spreadMin) / spreadStep) + 1 },
+    (_, i) => spreadMin + spreadStep * i
+  )
   const yearTicks = rows.map((r, i) => ({ ...r, i })).filter(r => r.month === 1 && (rows.length < 150 || r.year % 2 === 0))
   const spreadPath = pathFor(rows, 'used_new_spread', x, ySpread)
   const zeroY = ySpread(0)
@@ -43,20 +47,28 @@ function RentalPriceChart({ rows }) {
     <svg className="rental-chart" viewBox={`0 0 ${W} ${H}`} role="img"
       aria-label="Preço de automóveis novos e usados e spread usado sobre novo"
       onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
-      {priceTicks.map((v, i) => {
+      <defs><clipPath id="rental-plot-clip"><rect x={pad.l} y={pad.t} width={innerW} height={innerH}/></clipPath></defs>
+      {priceTicks.map(v => {
         const yy = yPrice(v)
-        return <g key={v}><line x1={pad.l} x2={W-pad.r} y1={yy} y2={yy} className="rental-grid"/><text x={pad.l-10} y={yy+4} textAnchor="end" className="rental-axis">{v.toFixed(0)}</text><text x={W-pad.r+10} y={yy+4} className="rental-axis">{(spreadTicks[i]*100).toFixed(0)}%</text></g>
+        return <g key={v}><line x1={pad.l} x2={W-pad.r} y1={yy} y2={yy} className="rental-grid"/><text x={pad.l-10} y={yy+4} textAnchor="end" className="rental-axis">{v.toFixed(0)}</text></g>
       })}
+      {spreadTicks.map(v => {
+        const yy = ySpread(v)
+        return <g key={`spread-${v}`}><line x1={W-pad.r} x2={W-pad.r+5} y1={yy} y2={yy} className="rental-axis-line"/><text x={W-pad.r+10} y={yy+4} className={`rental-axis ${Math.abs(v) < .001 ? 'is-zero' : ''}`}>{Math.round(v*100)}%</text></g>
+      })}
+      <line x1={pad.l} x2={W-pad.r} y1={zeroY} y2={zeroY} className="rental-zero-line"/>
       <line x1={pad.l} x2={W-pad.r} y1={H-pad.b} y2={H-pad.b} className="rental-axis-line"/>
       {yearTicks.map(r => <g key={`${r.year}-${r.i}`}>
         <line x1={x(r.i)} x2={x(r.i)} y1={pad.t} y2={H-pad.b} className="rental-grid rental-grid-x"/>
         <line x1={x(r.i)} x2={x(r.i)} y1={H-pad.b} y2={H-pad.b+5} className="rental-axis-line"/>
         <text x={x(r.i)} y={H-18} textAnchor="middle" className="rental-axis">{String(r.year).slice(-2)}</text>
       </g>)}
-      <path d={areaPath} fill="color-mix(in srgb, var(--fg-dim) 14%, transparent)"/>
-      <path d={spreadPath} fill="none" stroke={GRAY} strokeWidth="1.5"/>
-      <path d={pathFor(rows, 'new_price_index', x, yPrice)} fill="none" stroke={BLUE} strokeWidth="2.5"/>
-      <path d={pathFor(rows, 'used_price_index', x, yPrice)} fill="none" stroke={RED} strokeWidth="2.5"/>
+      <g clipPath="url(#rental-plot-clip)">
+        <path d={areaPath} fill="color-mix(in srgb, var(--fg-dim) 14%, transparent)"/>
+        <path d={spreadPath} fill="none" stroke={GRAY} strokeWidth="1.5"/>
+        <path d={pathFor(rows, 'new_price_index', x, yPrice)} fill="none" stroke={BLUE} strokeWidth="2.5"/>
+        <path d={pathFor(rows, 'used_price_index', x, yPrice)} fill="none" stroke={RED} strokeWidth="2.5"/>
+      </g>
       {hover != null && <>
         <line x1={x(hover)} x2={x(hover)} y1={pad.t} y2={H-pad.b} className="rental-crosshair"/>
         {rows[hover].new_price_index != null && <circle cx={x(hover)} cy={yPrice(rows[hover].new_price_index)} r="4" fill={BLUE}/>} 

@@ -75,6 +75,7 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
   const [tweaks, setTweaks] = useState(TWEAK_DEFAULTS);
   const [editMode, setEditMode] = useState(false);
   const [tab, setTab] = useState('precos');
+  const rentalAccent = tab === 'peers' ? 'rgb(255 80 0)' : 'rgb(120 222 31)';
   // Dataset inicial: aceita ?dataset=... da URL (ex: home → /proteinas?dataset=macro)
   const [activeDataset, setActiveDataset] = useState(() => {
     try {
@@ -178,7 +179,7 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
     : activeDataset === 'macro'
     ? 'oklch(0.70 0.19 160)'
     : activeDataset === 'rental'
-    ? 'rgb(120 222 31)'
+    ? rentalAccent
     : activeDataset === 'weg'
     ? 'oklch(0.491 0.131 247.6)'
     : activeDataset === 'embraer'
@@ -197,7 +198,7 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
     : activeDataset === 'macro'
     ? 'oklch(0.70 0.19 160)'
     : activeDataset === 'rental'
-    ? 'rgb(120 222 31)'
+    ? rentalAccent
     : activeDataset === 'weg'
     ? 'oklch(0.491 0.131 247.6)'
     : activeDataset === 'embraer'
@@ -221,7 +222,7 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
       : activeDataset === 'macro'
       ? 'oklch(0.70 0.19 160)'
       : activeDataset === 'rental'
-      ? 'rgb(120 222 31)'
+      ? rentalAccent
       : activeDataset === 'weg'
       ? 'oklch(0.491 0.131 247.6)'
       : activeDataset === 'embraer'

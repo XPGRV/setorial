@@ -61,7 +61,7 @@ const darkenAccent = (str, maxL = 0.55) => {
 
 // Accents das empresas de Capital Goods (além da WEG)
 const MARCOPOLO_ACCENT = 'oklch(0.706 0.169 52)';  // laranja Marcopolo (RGB 244,129,32)
-const EMBRAER_ACCENT   = 'oklch(0.50 0.20 272)';   // azul-royal Embraer — distinto do azul WEG
+const EMBRAER_ACCENT   = 'oklch(0.274 0.110 279.8)';   // azul-marinho Embraer (RGB 32,27,91)
 
 
 function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_us', dashboardSection = 'proteinas' }) {

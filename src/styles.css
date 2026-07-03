@@ -1992,6 +1992,10 @@ html.route-is-entering #root { animation: route-fade-in 280ms cubic-bezier(0.22,
   to { left: 110%; }
 }
 
+/* === Placeholder "Em breve" (Capital Goods) === */
+.coming-soon-logo { display: inline-flex; opacity: 0.9; }
+.coming-soon-logo svg { width: 46px; height: 46px; }
+
 /* === WEG peers dropdowns === */
 .weg-dd { position: relative; display: inline-block; }
 .weg-dd-btn {

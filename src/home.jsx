@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Beef, Car, Factory, TrainFront, Landmark, Search, ChevronRight, Sun, Moon, Sprout, Utensils } from 'lucide-react'
+import { Beef, Car, Factory, Train, Landmark, Search, ChevronRight, Sun, Moon, Sprout, Utensils } from 'lucide-react'
 import { dashboardPathForDataset, searchDestinations } from './search-catalog.js'
 import { runRouteTransition } from './route-transition.js'
 
@@ -158,7 +158,7 @@ const SECTORS = [
   { label: 'Proteínas',       sub: 'Dados setoriais de preço e produção de Carne Bovina, Frango e Processados, no Brasil e EUA.', icon: Beef, route: '/proteinas', active: true },
   { label: 'Rental',          sub: 'Dados de locadoras, frotas, preços e mobilidade.', icon: Car, route: '/rental', active: true },
   { label: 'Capital Goods',   sub: 'Acompanhamento setorial de empresas como: WEG, Marcopolo, Embraer, etc.', icon: Factory, route: '/capitalgoods', active: true },
-  { label: 'Transportes',     sub: 'Acompanhamento de logística, rodovias, ferrovias e infraestrutura de transportes.', icon: TrainFront },
+  { label: 'Transportes',     sub: 'Acompanhamento de logística, rodovias, ferrovias e infraestrutura de transportes.', icon: Train },
   { label: 'Agro',            sub: 'Acompanhamento de commodities agrícolas, produção, preços e empresas do agronegócio.', icon: Sprout },
   { label: 'Food & Beverage', sub: 'Acompanhamento setorial de alimentos, bebidas, consumo e principais empresas.', icon: Utensils },
 ]

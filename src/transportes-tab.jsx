@@ -50,7 +50,7 @@ function FreightRouteMap({ pinnedSeries, setPinnedSeries, fields, lastRow }) {
         </div>
       </div>
 
-      <svg className="freight-brazil-map" viewBox="215 230 310 330" role="img" aria-label="Mapa do Brasil com rotas de frete">
+      <svg className="freight-brazil-map" viewBox="175 215 360 350" role="img" aria-label="Mapa do Brasil com rotas de frete">
         <g className="freight-map-states">
           {brazilMap.locations.map(state => (
             <path key={state.id} className={`freight-map-state freight-map-state-${state.id}`} d={state.path}>
@@ -79,7 +79,7 @@ function FreightRouteMap({ pinnedSeries, setPinnedSeries, fields, lastRow }) {
             <text x={point.x + 9} y={point.y - 7}>{label}</text>
           </g>
         ))}
-        <text className="freight-map-credit" x="520" y="555" textAnchor="end">Mapa: @svg-maps/brazil</text>
+        <text className="freight-map-credit" x="530" y="560" textAnchor="end">Mapa: @svg-maps/brazil</text>
       </svg>
     </div>
   )

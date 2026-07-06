@@ -13,9 +13,20 @@ const FREIGHT_FIELDS = [
 ]
 
 const MAP_POINTS = {
-  Sorriso: { x: 300, y: 303 },
-  Rondonópolis: { x: 326, y: 371 },
-  Santos: { x: 445, y: 493 },
+  Sorriso: { x: 284, y: 302 },
+  Rondonópolis: { x: 320, y: 368 },
+  Santos: { x: 458, y: 494 },
+}
+
+function freightRoutePath(route) {
+  const { fromPoint: a, toPoint: b } = route
+  if (route.key === 'sorriso_santos') {
+    return `M${a.x} ${a.y} C350 298 424 383 ${b.x} ${b.y}`
+  }
+  if (route.key === 'rondonopolis_santos') {
+    return `M${a.x} ${a.y} C376 380 432 433 ${b.x} ${b.y}`
+  }
+  return `M${a.x} ${a.y} C244 320 256 365 ${b.x} ${b.y}`
 }
 
 function FreightRouteMap({ pinnedSeries, setPinnedSeries, fields, lastRow }) {
@@ -50,7 +61,7 @@ function FreightRouteMap({ pinnedSeries, setPinnedSeries, fields, lastRow }) {
         </div>
       </div>
 
-      <svg className="freight-brazil-map" viewBox="175 215 360 350" role="img" aria-label="Mapa do Brasil com rotas de frete">
+      <svg className="freight-brazil-map" viewBox="175 185 360 350" role="img" aria-label="Mapa do Brasil com rotas de frete">
         <g className="freight-map-states">
           {brazilMap.locations.map(state => (
             <path key={state.id} className={`freight-map-state freight-map-state-${state.id}`} d={state.path}>
@@ -61,9 +72,7 @@ function FreightRouteMap({ pinnedSeries, setPinnedSeries, fields, lastRow }) {
         {routes.map(route => {
           const isOn = active === route.key
           const dimmed = active && !isOn
-          const midX = (route.fromPoint.x + route.toPoint.x) / 2
-          const midY = Math.min(route.fromPoint.y, route.toPoint.y) - 70
-          const d = `M${route.fromPoint.x} ${route.fromPoint.y} Q${midX} ${midY} ${route.toPoint.x} ${route.toPoint.y}`
+          const d = freightRoutePath(route)
           return (
             <g key={route.key} className={`freight-map-route ${isOn ? 'is-on' : ''}`}
               style={{'--route-color': route.color, opacity: dimmed ? 0.18 : 1}}

@@ -38,6 +38,8 @@ function FreightRouteMap({ pinnedSeries, setPinnedSeries, fields, lastRow }) {
     toPoint: MAP_POINTS[field.to],
   }))
   const active = pinnedSeries || null
+  const activeRoute = active ? routes.find(r => r.key === active) : null
+  const activeCities = activeRoute ? new Set([activeRoute.from, activeRoute.to]) : null
   const fmt = value => value == null ? '-' : Number(value).toFixed(1).replace('.', ',')
   const toggle = key => setPinnedSeries(current => current === key ? null : key)
 
@@ -84,12 +86,15 @@ function FreightRouteMap({ pinnedSeries, setPinnedSeries, fields, lastRow }) {
             </g>
           )
         })}
-        {Object.entries(MAP_POINTS).map(([label, point]) => (
-          <g key={label} className="freight-map-point">
-            <circle cx={point.x} cy={point.y} r="5" />
-            <text x={point.x + 9} y={point.y - 7}>{label}</text>
-          </g>
-        ))}
+        {Object.entries(MAP_POINTS).map(([label, point]) => {
+          const dimmed = activeCities ? !activeCities.has(label) : false
+          return (
+            <g key={label} className={`freight-map-point${dimmed ? ' is-dimmed' : ''}`}>
+              <circle cx={point.x} cy={point.y} r="5" />
+              <text x={point.x + 9} y={point.y - 7}>{label}</text>
+            </g>
+          )
+        })}
         <text className="freight-map-credit" x="530" y="560" textAnchor="end">Mapa: @svg-maps/brazil</text>
       </svg>
     </div>

@@ -1673,6 +1673,12 @@ html.route-is-entering #root { animation: route-fade-in 280ms cubic-bezier(0.22,
   stroke-width: 12;
   stroke-opacity: 0.32;
 }
+.freight-map-point {
+  transition: opacity 0.2s ease;
+}
+.freight-map-point.is-dimmed {
+  opacity: 0;
+}
 .freight-map-point circle {
   fill: rgb(250 94 220);
   stroke: color-mix(in oklch, var(--bg-panel) 82%, transparent);

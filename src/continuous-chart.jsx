@@ -442,10 +442,10 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
     if (!svgRef.current) return;
     const rect = svgRef.current.getBoundingClientRect();
     const px = (e.clientX - rect.left - padL) / chartW;
-    const ord = firstOrd + px * totalMons;
+    const t = firstT + px * totalT;
     let best = null, bestD = Infinity;
     for (const r of valid) {
-      const d = Math.abs(r.year * 12 + r.month - 1 - ord);
+      const d = Math.abs(tOf(r) - t);
       if (d < bestD) { bestD = d; best = r; }
     }
     if (best) {

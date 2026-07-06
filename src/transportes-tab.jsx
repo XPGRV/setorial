@@ -1,4 +1,5 @@
 import React from 'react'
+import brazilMap from '@svg-maps/brazil'
 import { PriceCard } from './price-card.jsx'
 import { MultiContinuousCard } from './continuous-chart.jsx'
 
@@ -7,14 +8,14 @@ const LATEST_YEAR_ACCENT = 'oklch(0.82 0.18 155)'
 const FREIGHT_ACCENT = 'rgb(1 48 136)'
 const FREIGHT_FIELDS = [
   { key: 'sorriso_santos', label: 'Sorriso → Santos', color: 'rgb(60 140 255)', from: 'Sorriso', to: 'Santos' },
-  { key: 'rondonopolis_santos', label: 'Rondonópolis → Santos', color: 'rgb(120 222 31)', from: 'Rondonópolis', to: 'Santos' },
+  { key: 'rondonopolis_santos', label: 'Rondonópolis → Santos', color: 'rgb(204 242 97)', from: 'Rondonópolis', to: 'Santos' },
   { key: 'sorriso_rondonopolis', label: 'Sorriso → Rondonópolis', color: 'rgb(255 203 112)', from: 'Sorriso', to: 'Rondonópolis' },
 ]
 
 const MAP_POINTS = {
-  Sorriso: { x: 162, y: 132 },
-  Rondonópolis: { x: 178, y: 184 },
-  Santos: { x: 252, y: 262 },
+  Sorriso: { x: 300, y: 303 },
+  Rondonópolis: { x: 326, y: 371 },
+  Santos: { x: 445, y: 493 },
 }
 
 function FreightRouteMap({ pinnedSeries, setPinnedSeries, fields, lastRow }) {
@@ -31,7 +32,7 @@ function FreightRouteMap({ pinnedSeries, setPinnedSeries, fields, lastRow }) {
     <div className="freight-map-panel">
       <div className="freight-map-copy">
         <div className="freight-map-title">Rotas IMEA</div>
-        <div className="freight-map-sub">Selecione uma linha do gráfico, legenda ou rota no mapa para destacar o trajeto.</div>
+        <div className="freight-map-sub">Selecione linha, legenda ou rota para destacar o trajeto.</div>
         <div className="freight-route-list">
           {routes.map(route => {
             const isOn = active === route.key
@@ -49,15 +50,19 @@ function FreightRouteMap({ pinnedSeries, setPinnedSeries, fields, lastRow }) {
         </div>
       </div>
 
-      <svg className="freight-brazil-map" viewBox="0 0 360 320" role="img" aria-label="Mapa indicativo das rotas de frete no Brasil">
-        <path className="freight-map-shape" d="M181 20 221 39 250 73 287 98 303 139 285 172 302 212 279 247 240 264 215 297 174 285 136 296 102 273 83 239 51 218 65 181 45 145 74 116 74 78 119 66 143 31Z" />
-        <path className="freight-map-region" d="M105 119 158 104 199 129 196 185 151 202 113 178Z" />
-        <path className="freight-map-region" d="M198 191 246 208 262 254 220 278 178 245Z" />
+      <svg className="freight-brazil-map" viewBox={brazilMap.viewBox} role="img" aria-label="Mapa do Brasil com rotas de frete">
+        <g className="freight-map-states">
+          {brazilMap.locations.map(state => (
+            <path key={state.id} className={`freight-map-state freight-map-state-${state.id}`} d={state.path}>
+              <title>{state.name}</title>
+            </path>
+          ))}
+        </g>
         {routes.map(route => {
           const isOn = active === route.key
           const dimmed = active && !isOn
           const midX = (route.fromPoint.x + route.toPoint.x) / 2
-          const midY = Math.min(route.fromPoint.y, route.toPoint.y) - 42
+          const midY = Math.min(route.fromPoint.y, route.toPoint.y) - 70
           const d = `M${route.fromPoint.x} ${route.fromPoint.y} Q${midX} ${midY} ${route.toPoint.x} ${route.toPoint.y}`
           return (
             <g key={route.key} className={`freight-map-route ${isOn ? 'is-on' : ''}`}
@@ -74,6 +79,7 @@ function FreightRouteMap({ pinnedSeries, setPinnedSeries, fields, lastRow }) {
             <text x={point.x + 9} y={point.y - 7}>{label}</text>
           </g>
         ))}
+        <text className="freight-map-credit" x="610" y="635" textAnchor="end">Mapa: @svg-maps/brazil</text>
       </svg>
     </div>
   )

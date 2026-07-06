@@ -1641,8 +1641,9 @@ html.route-is-entering #root { animation: route-fade-in 280ms cubic-bezier(0.22,
 }
 .freight-map-state-mt,
 .freight-map-state-sp {
-  fill: color-mix(in oklch, var(--accent) 16%, var(--bg-panel));
-  stroke: color-mix(in oklch, var(--accent) 62%, var(--border));
+  fill: color-mix(in oklch, var(--accent) 34%, var(--bg-panel));
+  stroke: color-mix(in oklch, var(--accent) 90%, var(--border));
+  stroke-width: 1.6;
 }
 .freight-map-route {
   cursor: pointer;
@@ -1657,19 +1658,20 @@ html.route-is-entering #root { animation: route-fade-in 280ms cubic-bezier(0.22,
 .freight-map-route-line {
   stroke-width: 4.2;
   stroke-dasharray: 8 8;
-  animation: freight-route-dash 2.3s linear infinite;
+  animation: freight-route-dash 1.6s linear infinite;
   vector-effect: non-scaling-stroke;
 }
 .freight-map-route-glow {
-  stroke-width: 20;
-  stroke-opacity: 0.14;
+  stroke-width: 9;
+  stroke-opacity: 0.16;
   vector-effect: non-scaling-stroke;
 }
 .freight-map-route.is-on .freight-map-route-line {
   stroke-width: 5.8;
 }
 .freight-map-route.is-on .freight-map-route-glow {
-  stroke-opacity: 0.3;
+  stroke-width: 12;
+  stroke-opacity: 0.32;
 }
 .freight-map-point circle {
   fill: rgb(250 94 220);
@@ -1694,7 +1696,7 @@ html.route-is-entering #root { animation: route-fade-in 280ms cubic-bezier(0.22,
   opacity: 0.55;
 }
 @keyframes freight-route-dash {
-  to { stroke-dashoffset: -20; }
+  to { stroke-dashoffset: -16; }
 }
 @media (max-width: 900px) {
   .freight-map-panel {

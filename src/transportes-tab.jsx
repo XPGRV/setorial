@@ -12,21 +12,23 @@ const FREIGHT_FIELDS = [
   { key: 'sorriso_rondonopolis', label: 'Sorriso → Rondonópolis', color: 'rgb(255 203 112)', from: 'Sorriso', to: 'Rondonópolis' },
 ]
 
+// Posições calibradas por lat/long dentro das bounding boxes reais dos estados
+// do mapa (@svg-maps/brazil): MT X[194..371] Y[196..367], SP X[326..466] Y[395..488].
 const MAP_POINTS = {
-  Sorriso: { x: 284, y: 302 },
-  Rondonópolis: { x: 320, y: 368 },
-  Santos: { x: 458, y: 494 },
+  Sorriso: { x: 285, y: 279 },
+  Rondonópolis: { x: 305, y: 344 },
+  Santos: { x: 434, y: 465 },
 }
 
 function freightRoutePath(route) {
   const { fromPoint: a, toPoint: b } = route
   if (route.key === 'sorriso_santos') {
-    return `M${a.x} ${a.y} C350 298 424 383 ${b.x} ${b.y}`
+    return `M${a.x} ${a.y} C351 275 400 354 ${b.x} ${b.y}`
   }
   if (route.key === 'rondonopolis_santos') {
-    return `M${a.x} ${a.y} C376 380 432 433 ${b.x} ${b.y}`
+    return `M${a.x} ${a.y} C361 356 408 404 ${b.x} ${b.y}`
   }
-  return `M${a.x} ${a.y} C244 320 256 365 ${b.x} ${b.y}`
+  return `M${a.x} ${a.y} C245 297 241 341 ${b.x} ${b.y}`
 }
 
 function FreightRouteMap({ pinnedSeries, setPinnedSeries, fields, lastRow }) {

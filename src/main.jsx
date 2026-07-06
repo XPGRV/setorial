@@ -26,7 +26,7 @@ function ProteinasLoading({ label = 'Proteinas' }) {
 // Cada planilha vive em dashboard/data-<dataset>.json no Storage; enquanto o
 // arquivo separado não existir, o backend cai para o data.json combinado.
 // ============================================================================
-const DATA_VERSION = '7'
+const DATA_VERSION = '8'
 const SB_URL = 'https://wmxjdveucxbousoquwmc.supabase.co'
 window.__SB_URL = SB_URL
 
@@ -42,7 +42,7 @@ const DATASET_DATA_KEYS = {
   macro:      ['selic_snapshots'],
   weg:        ['weg_transformadores', 'weg_peers'],
   rental:     ['rental_car_prices', 'rental_peers'],
-  transportes:['transport_grains'],
+  transportes:['transport_grains', 'transport_freights'],
 }
 const DATASET_META_KEYS = {
   beef_us: 'us', beef_br: 'br', poultry_br: 'poultry_br',

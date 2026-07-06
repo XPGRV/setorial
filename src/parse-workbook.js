@@ -33,6 +33,12 @@ export function parseDate(v) {
   if (typeof v === 'string') {
     const tag = parseMonthTag(v);
     if (tag) return { year: tag.year, month: tag.month, day: 1 };
+    const br = String(v).trim().match(/(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})/);
+    if (br) {
+      let yr = parseInt(br[3], 10);
+      if (yr < 100) yr += (yr < 50 ? 2000 : 1900);
+      return { year: yr, month: parseInt(br[2], 10), day: parseInt(br[1], 10) };
+    }
     const d = new Date(v);
     if (!isNaN(d)) return { year: d.getUTCFullYear(), month: d.getUTCMonth()+1, day: d.getUTCDate() };
   }
@@ -69,6 +75,35 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
   // Case-insensitive sheet lookup
   const findSheet = name => sheets.find(s => s.toLowerCase() === name.toLowerCase()) || null;
   const result = {};
+
+  const normalizeSheetName = value => String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+  const findSheetByWords = words => sheets.find(sheet =>
+    words.every(word => normalizeSheetName(sheet).includes(word))
+  ) || null;
+  const freightSheet = findSheetByWords(['frete']);
+  if (parseTransportes && freightSheet) {
+    const raw = XLSX.utils.sheet_to_json(wb.Sheets[freightSheet], { header: 1, raw: true });
+    const transport_freights = [];
+    for (let i = 3; i < raw.length; i++) {
+      const r = raw[i];
+      if (!r) continue;
+      const wd = parseDate(r[2]) || parseDate(r[1]) || parseMonthTag(r[1]);
+      if (!wd) continue;
+      const row = {
+        year: wd.year, month: wd.month, day: wd.day || 1,
+        sorriso_santos: parseNum(r[3]),
+        rondonopolis_santos: parseNum(r[4]),
+        sorriso_rondonopolis: parseNum(r[5]),
+      };
+      if (Object.entries(row).some(([key, value]) => !['year','month','day'].includes(key) && value != null)) {
+        transport_freights.push(row);
+      }
+    }
+    if (transport_freights.length) result.transport_freights = transport_freights;
+  }
 
   // Transportes · Grãos (Transportes.xlsm · aba SECEX)
   // B=mês; D/E=volumes soja/milho; G/H=preço soja USD/BRL; I/J=preço milho USD/BRL.

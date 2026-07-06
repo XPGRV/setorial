@@ -43,6 +43,8 @@ const RAW_ITEMS = [
   ['rental','precos','card-rental-car-prices','Preços e Spreads · Carros','automovel novo usado spread preco indice'],
   ['rental','peers','card-rental-peers','Peers · Comparação de Preço','localiza movida vamos rent3 movi3 vamo3 cotacao preco base 100'],
   ['rental','peers','card-rental-peers-pe','Peers · Comparação de P/E','localiza movida vamos rent3 movi3 vamo3 pe price earnings multiplo'],
+  ['transportes','fretes',null,'Transportes · Fretes','frete fretes logistica imea mato grosso santos sorriso rondonopolis'],
+  ['transportes','fretes','card-transport-freights','Preços de Frete','frete fretes rota rotas sorriso santos rondonopolis rs ton'],
   ['transportes','graos',null,'Transportes · Grãos','soja milho exportacao secex volume preco mercado externo'],
   ['transportes','graos','card-transport-soy-volume','Exportação Soja','soja volume exportado exportacao 1000 toneladas'],
   ['transportes','graos','card-transport-soy-price','Preço Soja · Mercado Externo','soja preco exportacao usd brl kg'],

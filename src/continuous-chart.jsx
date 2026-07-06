@@ -386,18 +386,26 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
   const maxV = Math.max(...allVals);
   const { ticks: yTicks, lo: yMin, hi: yMax } = niceYTicks(minV, maxV);
 
+  const tOf = row => row.year + (row.month - 1) / 12 + ((row.day || 1) - 1) / 365.25;
+  const firstT = tOf(valid[0]);
+  const lastT = tOf(valid[valid.length - 1]);
+  const totalT = lastT - firstT || 1;
   const firstOrd  = valid[0].year * 12 + valid[0].month - 1;
   const lastOrd   = valid[valid.length - 1].year * 12 + valid[valid.length - 1].month - 1;
-  const totalMons = lastOrd - firstOrd || 1;
 
-  const xOf     = row => padL + ((row.year * 12 + row.month - 1 - firstOrd) / totalMons) * chartW;
+  const xOf     = row => padL + ((tOf(row) - firstT) / totalT) * chartW;
   const yOf     = v   => padT + chartH - ((v - yMin) / (yMax - yMin)) * chartH;
-  const xOf_ord = ord => padL + ((ord - firstOrd) / totalMons) * chartW;
+  const xOf_ord = ord => {
+    const yr = Math.floor(ord / 12);
+    const mo = (ord % 12) + 1;
+    return padL + ((yr + (mo - 1) / 12 - firstT) / totalT) * chartW;
+  };
 
   const lineOpacity = key => pinnedSeries ? (pinnedSeries === key ? 1 : 0.15) : 1;
   const lineWidth   = key => pinnedSeries === key ? 2.5 : 2;
 
-  const stepMons = totalMons <= 72 ? 6 : 12;
+  const spanMons = Math.max(1, Math.round(totalT * 12));
+  const stepMons = spanMons <= 72 ? 6 : 12;
   const xTicks = [];
   const tickStart = Math.ceil(firstOrd / stepMons) * stepMons;
   for (let ord = tickStart; ord <= lastOrd; ord += stepMons) {
@@ -451,6 +459,9 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
   const toggle = key => setPinnedSeries(p => p === key ? null : key);
 
   const fmt    = v  => v == null ? '—' : Number(v).toFixed(decimals).replace('.', ',');
+  const fmtDate = r => r?.day
+    ? `${String(r.day).padStart(2, '0')}/${MONTHS_PT_ABR[r.month - 1]}/${String(r.year).slice(-2)}`
+    : `${MONTHS_PT_ABR[r.month - 1]}/${r.year}`;
   const clipId = `mcc-clip-${chartId}`;
 
   const visFields = pinnedSeries ? fields.filter(f => f.key === pinnedSeries) : fields;
@@ -581,7 +592,7 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
             left: Math.max(4, Math.min(svgW - TW - 4, rawLeft)),
             top: Math.max(10, Math.min(H - 120, hovered.mouseY - 40)),
           }}>
-            <div className="hover-month">{MONTHS_PT_ABR[r.month - 1]}/{r.year}</div>
+            <div className="hover-month">{fmtDate(r)}</div>
             <div className="hover-rows">
               {visFields.map(f => (
                 <div key={f.key} className="hover-row">
@@ -598,8 +609,8 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
 }
 
 // ── MultiContinuousCard ───────────────────────────────────────────────────────
-function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', decimals = 2, height = 360 }) {
-  const [range, setRange]             = React.useState('5');
+function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', decimals = 2, height = 360, defaultRange = '5', beforeChart = null }) {
+  const [range, setRange]             = React.useState(defaultRange);
   const [chartStyle, setChartStyle]   = React.useState('area');
   const [pinnedSeries, setPinnedSeries] = React.useState(null);
   const rangeNum = range === 'all' ? 'all' : parseInt(range);
@@ -607,8 +618,9 @@ function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', deci
   const filteredRows = React.useMemo(() => {
     if (!rows.length || rangeNum === 'all') return rows;
     const last = rows[rows.length - 1];
-    const cutOrd = last.year * 12 + last.month - 1 - rangeNum * 12;
-    return rows.filter(r => r.year * 12 + r.month - 1 > cutOrd);
+    const tOf = row => row.year + (row.month - 1) / 12 + ((row.day || 1) - 1) / 365.25;
+    const cutT = tOf(last) - rangeNum;
+    return rows.filter(r => tOf(r) > cutT);
   }, [rows, rangeNum]);
 
   const lastRow = filteredRows[filteredRows.length - 1] || null;
@@ -655,6 +667,8 @@ function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', deci
           </div>
         </div>
       </div>
+
+      {beforeChart?.({ pinnedSeries, setPinnedSeries, fields, lastRow })}
 
       <MultiContinuousChart
         rows={filteredRows}

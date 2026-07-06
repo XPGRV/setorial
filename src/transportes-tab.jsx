@@ -5,7 +5,7 @@ import { MultiContinuousCard } from './continuous-chart.jsx'
 
 const NO_EVENTS = []
 const LATEST_YEAR_ACCENT = 'oklch(0.82 0.18 155)'
-const FREIGHT_ACCENT = 'rgb(1 48 136)'
+const FREIGHT_ACCENT = 'rgb(108 173 223)'
 const FREIGHT_FIELDS = [
   { key: 'sorriso_santos', label: 'Sorriso → Santos', color: 'rgb(60 140 255)', from: 'Sorriso', to: 'Santos' },
   { key: 'rondonopolis_santos', label: 'Rondonópolis → Santos', color: 'rgb(204 242 97)', from: 'Rondonópolis', to: 'Santos' },

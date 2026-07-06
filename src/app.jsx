@@ -78,7 +78,7 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
   const [editMode, setEditMode] = useState(false);
   const [tab, setTab] = useState(() => dashboardSection === 'transportes' ? 'graos' : 'precos');
   const rentalAccent = tab === 'peers' ? 'rgb(255 80 0)' : 'rgb(120 222 31)';
-  const transportAccent = tab === 'fretes' ? 'rgb(1 48 136)' : 'rgb(255 203 112)';
+  const transportAccent = tab === 'fretes' ? 'rgb(108 173 223)' : 'rgb(255 203 112)';
   // Dataset inicial: aceita ?dataset=... da URL (ex: home → /proteinas?dataset=macro)
   const [activeDataset, setActiveDataset] = useState(() => {
     try {

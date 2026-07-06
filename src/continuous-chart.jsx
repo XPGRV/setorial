@@ -530,7 +530,9 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
         {showLabels && (() => {
           const f = fields.find(ff => ff.key === lastPinnedRef.current);
           if (!f) return null;
-          const MIN_GAP = 32;
+          const MIN_GAP = 34;
+          const lastIdx = valid.length - 1;
+          const lastX = valid.length ? xOf(valid[lastIdx]) : -Infinity;
           let lastLabelX = -Infinity;
           return (
             <g style={{animation: labelsLeaving ? 'rx-fade-in 0.15s ease-out reverse forwards' : 'rx-fade-in 0.15s ease-out'}}>
@@ -538,8 +540,10 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
                 const v = r[f.key];
                 if (v == null) return null;
                 const cx = xOf(r), cy = yOf(v);
-                const isLast = i === valid.length - 1;
-                if (!isLast && cx - lastLabelX < MIN_GAP) return null;
+                const isLast = i === lastIdx;
+                // O último ponto sempre aparece; os intermediários pulam se
+                // colarem no rótulo anterior OU no rótulo final.
+                if (!isLast && (cx - lastLabelX < MIN_GAP || lastX - cx < MIN_GAP)) return null;
                 lastLabelX = cx;
                 const above     = cy - padT > 20;
                 const nearLeft  = cx < padL + 20;

@@ -38,7 +38,7 @@ function FreightRouteMap({ pinnedSeries, setPinnedSeries, fields, lastRow }) {
     toPoint: MAP_POINTS[field.to],
   }))
   const active = pinnedSeries || null
-  const fmt = value => value == null ? '-' : Number(value).toFixed(0).replace('.', ',')
+  const fmt = value => value == null ? '-' : Number(value).toFixed(1).replace('.', ',')
   const toggle = key => setPinnedSeries(current => current === key ? null : key)
 
   return (
@@ -118,7 +118,7 @@ function FreightCharts({ data }) {
         rows={rows}
         fields={FREIGHT_FIELDS}
         unit="R$/ton"
-        decimals={0}
+        decimals={1}
         height={330}
         defaultRange="5"
         beforeChart={({ pinnedSeries, setPinnedSeries, fields, lastRow }) => (

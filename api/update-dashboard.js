@@ -50,6 +50,13 @@ const DATASETS = {
     metaKey: 'rental',
     opts: { parseBR: false, parseUS: false, parsePoultryUS: false, parseSelic: false, parseRental: true },
   },
+  transportes: {
+    fileName: 'Transportes.xlsm',
+    fileIdEnv: 'GOOGLE_DRIVE_TRANSPORTES_FILE_ID',
+    folderIdEnv: 'GOOGLE_DRIVE_DATABASE_FOLDER_ID',
+    metaKey: 'transportes',
+    opts: { parseBR: false, parseUS: false, parsePoultryUS: false, parseSelic: false, parseTransportes: true },
+  },
 };
 
 function json(res, status, body) {

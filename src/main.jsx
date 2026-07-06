@@ -26,7 +26,7 @@ function ProteinasLoading({ label = 'Proteinas' }) {
 // Cada planilha vive em dashboard/data-<dataset>.json no Storage; enquanto o
 // arquivo separado não existir, o backend cai para o data.json combinado.
 // ============================================================================
-const DATA_VERSION = '6'
+const DATA_VERSION = '7'
 const SB_URL = 'https://wmxjdveucxbousoquwmc.supabase.co'
 window.__SB_URL = SB_URL
 
@@ -42,17 +42,20 @@ const DATASET_DATA_KEYS = {
   macro:      ['selic_snapshots'],
   weg:        ['weg_transformadores', 'weg_peers'],
   rental:     ['rental_car_prices', 'rental_peers'],
+  transportes:['transport_grains'],
 }
 const DATASET_META_KEYS = {
   beef_us: 'us', beef_br: 'br', poultry_br: 'poultry_br',
   poultry_us: 'poultry_us', macro: 'selic', weg: 'weg',
   rental: 'rental',
+  transportes: 'transportes',
 }
 const SECTION_DATASETS = {
   proteinas:    ['beef_us', 'beef_br', 'poultry_br', 'poultry_us'],
   macro:        ['macro'],
   capitalgoods: ['weg'],
   rental:       ['rental'],
+  transportes:  ['transportes'],
 }
 
 const normalizeDashboardPayload = (data, meta) => {
@@ -225,7 +228,7 @@ function ProteinasRoute({ initialDataset = 'beef_us', dashboardSection = 'protei
   }, [dashboardSection, initialDataset])
 
   if (!ready) {
-    const label = dashboardSection === 'macro' ? 'Macro' : dashboardSection === 'capitalgoods' ? 'Capital Goods' : dashboardSection === 'rental' ? 'Rental' : 'Proteinas'
+    const label = dashboardSection === 'macro' ? 'Macro' : dashboardSection === 'capitalgoods' ? 'Capital Goods' : dashboardSection === 'rental' ? 'Rental' : dashboardSection === 'transportes' ? 'Transportes' : 'Proteinas'
     return <ProteinasLoading label={label} />
   }
   const { Component } = ready
@@ -250,6 +253,9 @@ root.render(
       } />
       <Route path="/rental" element={
         <ProteinasRoute initialDataset="rental" dashboardSection="rental" />
+      } />
+      <Route path="/transportes" element={
+        <ProteinasRoute initialDataset="transportes" dashboardSection="transportes" />
       } />
     </Routes>
   </BrowserRouter>

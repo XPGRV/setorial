@@ -11,6 +11,7 @@ const DATASET_OBJECTS = {
   macro: 'data-macro.json',
   weg: 'data-weg.json',
   rental: 'data-rental.json',
+  transportes: 'data-transportes.json',
 };
 const LEGACY_OBJECT = 'data.json';
 

@@ -158,7 +158,7 @@ const SECTORS = [
   { label: 'Proteínas',       sub: 'Dados setoriais de preço e produção de Carne Bovina, Frango e Processados, no Brasil e EUA.', icon: Beef, route: '/proteinas', active: true },
   { label: 'Rental',          sub: 'Dados de locadoras, frotas, preços e mobilidade.', icon: Car, route: '/rental', active: true },
   { label: 'Capital Goods',   sub: 'Acompanhamento setorial de empresas como: WEG, Marcopolo, Embraer, etc.', icon: Factory, route: '/capitalgoods', active: true },
-  { label: 'Transportes',     sub: 'Acompanhamento de logística, rodovias, ferrovias e infraestrutura de transportes.', icon: Train },
+  { label: 'Transportes',     sub: 'Acompanhamento de fretes, exportações e preços de grãos.', icon: Train, route: '/transportes', active: true },
   { label: 'Agro',            sub: 'Acompanhamento de commodities agrícolas, produção, preços e empresas do agronegócio.', icon: Sprout },
   { label: 'Food & Beverage', sub: 'Acompanhamento setorial de alimentos, bebidas, consumo e principais empresas.', icon: Utensils },
 ]

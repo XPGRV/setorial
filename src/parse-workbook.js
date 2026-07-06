@@ -63,12 +63,38 @@ function trimSifLag(arr, field, lagMonths = 2) {
 
 // Recebe um workbook JÁ LIDO pelo SheetJS (com cellDates:true, cellStyles:true)
 // e a instância XLSX, e devolve o objeto de dados.
-export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, parsePoultryUS = false, parseSelic = false, parseRental = false } = {}) {
+export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, parsePoultryUS = false, parseSelic = false, parseRental = false, parseTransportes = false } = {}) {
   _XLSX = XLSX;
   const sheets = wb.SheetNames;
   // Case-insensitive sheet lookup
   const findSheet = name => sheets.find(s => s.toLowerCase() === name.toLowerCase()) || null;
   const result = {};
+
+  // Transportes · Grãos (Transportes.xlsm · aba SECEX)
+  // B=mês; D/E=volumes soja/milho; G/H=preço soja USD/BRL; I/J=preço milho USD/BRL.
+  if (parseTransportes && findSheet('SECEX')) {
+    const raw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('SECEX')], { header: 1, raw: true });
+    const transport_grains = [];
+    for (let i = 2; i < raw.length; i++) {
+      const r = raw[i];
+      if (!r) continue;
+      const md = parseDate(r[1]) || parseMonthTag(r[1]);
+      if (!md) continue;
+      const row = {
+        year: md.year, month: md.month,
+        soy_volume_kt: parseNum(r[3]),
+        corn_volume_kt: parseNum(r[4]),
+        soy_usd_kg: parseNum(r[6]),
+        soy_brl_kg: parseNum(r[7]),
+        corn_usd_kg: parseNum(r[8]),
+        corn_brl_kg: parseNum(r[9]),
+      };
+      if (Object.entries(row).some(([key, value]) => !['year','month'].includes(key) && value != null)) {
+        transport_grains.push(row);
+      }
+    }
+    if (transport_grains.length) result.transport_grains = transport_grains;
+  }
 
   // Rental · Carros (CarRental.xlsm · aba "Preço Carros")
   // B = mês, J = preço novo (base 100), L = usado ajustado, M = spread usado/novo.

@@ -8,12 +8,13 @@ const normalize = value => (value || '')
 const DATASET_LABELS = {
   beef_br: 'Beef BR', beef_us: 'Beef US',
   poultry_br: 'Poultry BR', poultry_us: 'Poultry US',
-  macro: 'Macro', weg: 'WEG', rental: 'Rental',
+  macro: 'Macro', weg: 'WEG', rental: 'Rental', transportes: 'Transportes',
 }
 
 const TAB_LABELS = {
   precos: 'Preços & Spreads', abates: 'Produção',
   ipca: 'Processados', producao: 'Produção',
+  graos: 'Grãos', fretes: 'Fretes',
 }
 
 const DATASET_KEYWORDS = {
@@ -24,6 +25,7 @@ const DATASET_KEYWORDS = {
   macro: 'macro cenario',
   weg: 'weg capital goods bens de capital industria equipamentos transformadores motores',
   rental: 'rental locadoras carros automoveis veiculos pesados peers mobilidade',
+  transportes: 'transportes logistica frete fretes graos soja milho exportacao secex',
 }
 
 const RAW_ITEMS = [
@@ -41,6 +43,11 @@ const RAW_ITEMS = [
   ['rental','precos','card-rental-car-prices','Preços e Spreads · Carros','automovel novo usado spread preco indice'],
   ['rental','peers','card-rental-peers','Peers · Comparação de Preço','localiza movida vamos rent3 movi3 vamo3 cotacao preco base 100'],
   ['rental','peers','card-rental-peers-pe','Peers · Comparação de P/E','localiza movida vamos rent3 movi3 vamo3 pe price earnings multiplo'],
+  ['transportes','graos',null,'Transportes · Grãos','soja milho exportacao secex volume preco mercado externo'],
+  ['transportes','graos','card-transport-soy-volume','Exportação Soja','soja volume exportado exportacao 1000 toneladas'],
+  ['transportes','graos','card-transport-soy-price','Preço Soja · Mercado Externo','soja preco exportacao usd brl kg'],
+  ['transportes','graos','card-transport-corn-volume','Exportação Milho','milho volume exportado exportacao 1000 toneladas'],
+  ['transportes','graos','card-transport-corn-price','Preço Milho · Mercado Externo','milho preco exportacao usd brl kg'],
   ['weg',null,'card-weg-transformadores','Preço de Transformadores','transformador transformadores transformer ppi electric power specialty manufacturing'],
   ['weg',null,'card-weg-peers','Peers · Comparação de Preço','peers cotacao preco price weg abb nidec regal rexnord eaton siemens schneider ge vernova hitachi hyosung eie gtd'],
   ['weg',null,'card-weg-peers-pe','Peers · Comparação de P/E','peers pe price earnings valuation multiplo weg abb nidec regal rexnord eaton siemens schneider ge vernova hitachi hyosung eie gtd'],
@@ -114,5 +121,6 @@ export function dashboardPathForDataset(dataset) {
   if (dataset === 'macro') return '/macro'
   if (dataset === 'weg') return '/capitalgoods'
   if (dataset === 'rental') return '/rental'
+  if (dataset === 'transportes') return '/transportes'
   return '/proteinas'
 }

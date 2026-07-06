@@ -111,6 +111,7 @@ const ALL_DATASETS = [
   { key: 'macro',     label: 'Macro'    },
   { key: 'weg',       label: 'WEG'      },
   { key: 'rental',    label: 'Rental'   },
+  { key: 'transportes', label: 'Transportes' },
 ];
 
 const SidebarRefresh = ({ onLoad }) => {

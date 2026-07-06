@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChartSpline } from 'lucide-react'
+import { ChartSpline, Wheat } from 'lucide-react'
 import { searchDestinations as searchCatalog } from './search-catalog.js'
 import { runRouteTransition } from './route-transition.js'
 import { THEMES, ThemePicker } from './reactive.js'
@@ -11,6 +11,7 @@ import { PoultryUSTab } from './poultry-us-tab.jsx'
 import { MacroTab } from './macro-tab.jsx'
 import { WegTab } from './weg-tab.jsx'
 import { RentalTab } from './rental-tab.jsx'
+import { TransportesTab } from './transportes-tab.jsx'
 import { CicloDoBoi } from './ciclo-boi.jsx'
 import { EVENTS, MONTHS_PT, availableYears, fmt, latestNonNull } from './data-utils.jsx'
 import { PriceCard, DailySeasonalCard } from './price-card.jsx'
@@ -75,13 +76,13 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
   const [meta, setMeta] = useState(initialMeta || null);
   const [tweaks, setTweaks] = useState(TWEAK_DEFAULTS);
   const [editMode, setEditMode] = useState(false);
-  const [tab, setTab] = useState('precos');
+  const [tab, setTab] = useState(() => dashboardSection === 'transportes' ? 'graos' : 'precos');
   const rentalAccent = tab === 'peers' ? 'rgb(255 80 0)' : 'rgb(120 222 31)';
   // Dataset inicial: aceita ?dataset=... da URL (ex: home → /proteinas?dataset=macro)
   const [activeDataset, setActiveDataset] = useState(() => {
     try {
       const d = new URLSearchParams(window.location.search).get('dataset');
-      if (['beef_us', 'beef_br', 'poultry_br', 'poultry_us', 'macro', 'weg', 'rental'].includes(d)) return d;
+      if (['beef_us', 'beef_br', 'poultry_br', 'poultry_us', 'macro', 'weg', 'rental', 'transportes'].includes(d)) return d;
     } catch {}
     return initialDataset;
   });
@@ -181,6 +182,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
     ? 'oklch(0.70 0.19 160)'
     : activeDataset === 'rental'
     ? rentalAccent
+    : activeDataset === 'transportes'
+    ? 'oklch(0.72 0.18 240)'
     : activeDataset === 'weg'
     ? 'oklch(0.491 0.131 247.6)'
     : activeDataset === 'embraer'
@@ -200,6 +203,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
     ? 'oklch(0.70 0.19 160)'
     : activeDataset === 'rental'
     ? rentalAccent
+    : activeDataset === 'transportes'
+    ? 'oklch(0.72 0.18 240)'
     : activeDataset === 'weg'
     ? 'oklch(0.491 0.131 247.6)'
     : activeDataset === 'embraer'
@@ -224,6 +229,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
       ? 'oklch(0.70 0.19 160)'
       : activeDataset === 'rental'
       ? rentalAccent
+      : activeDataset === 'transportes'
+      ? 'oklch(0.72 0.18 240)'
       : activeDataset === 'weg'
       ? 'oklch(0.491 0.131 247.6)'
       : activeDataset === 'embraer'
@@ -248,6 +255,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
       ? 'macro'
       : dest.dataset === 'rental'
       ? 'rental'
+      : dest.dataset === 'transportes'
+      ? 'transportes'
       : (dest.dataset === 'weg' || dest.dataset === 'embraer' || dest.dataset === 'marcopolo')
       ? 'capitalgoods'
       : 'proteinas';
@@ -285,6 +294,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
       ? 'macro'
       : pending.dataset === 'rental'
       ? 'rental'
+      : pending.dataset === 'transportes'
+      ? 'transportes'
       : (pending.dataset === 'weg' || pending.dataset === 'embraer' || pending.dataset === 'marcopolo')
       ? 'capitalgoods'
       : 'proteinas';
@@ -346,6 +357,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
           <WegTab data={data} accent={accent} tab={tab}/>
         ) : activeDataset === 'rental' ? (
           <RentalTab data={data} accent={accent} tab={tab}/>
+        ) : activeDataset === 'transportes' ? (
+          <TransportesTab data={data} accent={accent} tab={tab}/>
         ) : activeDataset === 'embraer' ? (
           <ComingSoon name="Embraer" icon={SIcon.embraer}/>
         ) : activeDataset === 'marcopolo' ? (
@@ -363,6 +376,7 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
 
 // ---------------- Sidebar ----------------
 const SIcon = {
+  grains: <Wheat size={16} strokeWidth={1.8}/>,
   peers: <ChartSpline size={16} strokeWidth={1.8}/>,
   car: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17h14l-1.5-6a2 2 0 0 0-1.9-1.5H8.4A2 2 0 0 0 6.5 11L5 17Z"/><path d="M3 14v5h2m16-5v5h-2M7 13h.01M17 13h.01"/></svg>,
   truck: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h11v11H3zM14 10h4l3 3v4h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>,
@@ -418,6 +432,8 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
       ? '/macro'
       : ds === 'rental'
       ? '/rental'
+      : ds === 'transportes'
+      ? '/transportes'
       : (ds === 'weg' || ds === 'embraer' || ds === 'marcopolo')
       ? '/capitalgoods'
       : `/proteinas${ds === 'beef_us' ? '' : `?dataset=${ds}`}`;
@@ -452,7 +468,9 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
   const isEmbraer   = activeDataset === 'embraer';
   const isMarcopolo = activeDataset === 'marcopolo';
   const isRental    = activeDataset === 'rental';
+  const isTransportes = activeDataset === 'transportes';
   const rentalTab   = tab === 'peers' ? 'peers' : 'precos';
+  const transportTab = tab === 'fretes' ? 'fretes' : 'graos';
   // Sub-aba efetiva da WEG p/ destaque na sidebar — espelha o fallback do WegTab
   // (qualquer valor que não seja 'peers' cai em Transformadores).
   const wegTab      = tab === 'peers' ? 'peers' : 'transformadores';
@@ -466,6 +484,8 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
     ? 'Capital Goods'
     : dashboardSection === 'rental'
     ? 'Rental'
+    : dashboardSection === 'transportes'
+    ? 'Transportes'
     : 'Proteínas';
 
   const Chevron = ({ open }) => (
@@ -575,7 +595,7 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
 
       {dashboardSection !== 'proteinas' && <div style={{display:'flex', flexDirection:'column', gap:2}}>
         <div className="sidebar-section-label" style={{paddingTop:0}}>
-          {dashboardSection === 'macro' ? 'Cenário' : 'Empresas'}
+          {dashboardSection === 'macro' ? 'Cenário' : dashboardSection === 'transportes' ? 'Visões' : 'Empresas'}
         </div>
         {dashboardSection === 'macro' && <button className={`sidebar-item ${isMacro ? 'is-on' : ''}`} onClick={() => onPick('macro')}>
           <span className={`sidebar-item-icon${isMacro ? ' is-icon-breathing' : ''}`}>{SIcon.globe}</span>
@@ -624,6 +644,16 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
           </button>
           <button className={`sidebar-item ${isRental && rentalTab === 'peers' ? 'is-on' : ''}`} onClick={() => onPick('rental', 'peers')}>
             <span className={`sidebar-item-icon${isRental && rentalTab === 'peers' ? ' is-icon-breathing' : ''}`}>{SIcon.peers}</span><span className="sidebar-item-label">Peers</span>
+          </button>
+        </>}
+        {dashboardSection === 'transportes' && <>
+          <button className={`sidebar-item ${isTransportes && transportTab === 'fretes' ? 'is-on' : ''}`} onClick={() => onPick('transportes', 'fretes')}>
+            <span className={`sidebar-item-icon${isTransportes && transportTab === 'fretes' ? ' is-icon-breathing' : ''}`}>{SIcon.truck}</span>
+            <span className="sidebar-item-label">Fretes</span>
+          </button>
+          <button className={`sidebar-item ${isTransportes && transportTab === 'graos' ? 'is-on' : ''}`} onClick={() => onPick('transportes', 'graos')}>
+            <span className={`sidebar-item-icon${isTransportes && transportTab === 'graos' ? ' is-icon-breathing' : ''}`}>{SIcon.grains}</span>
+            <span className="sidebar-item-label">Grãos</span>
           </button>
         </>}
       </div>}
@@ -732,8 +762,8 @@ const MODE_ICON = {
 const MODE_LABEL = { light: 'Tema: Claro · clique p/ Escuro', dark: 'Tema: Escuro · clique p/ Claro' };
 
 function TopBar({ meta, onUpload, activeDataset, colorMode = 'dark', onCycleMode, onNavigate, dashboardSection }) {
-  const title  = activeDataset === 'rental' ? 'RENTAL' : activeDataset === 'macro' ? 'MACRO' : activeDataset === 'weg' ? 'WEG' : activeDataset === 'embraer' ? 'EMBRAER' : activeDataset === 'marcopolo' ? 'MARCOPOLO' : (activeDataset === 'poultry_br' || activeDataset === 'poultry_us') ? 'POULTRY' : 'BEEF';
-  const suffix = (activeDataset === 'rental' || activeDataset === 'macro' || activeDataset === 'weg' || activeDataset === 'embraer' || activeDataset === 'marcopolo') ? '' : (activeDataset === 'beef_us' || activeDataset === 'poultry_us') ? 'US' : 'BR';
+  const title  = activeDataset === 'transportes' ? 'TRANSPORTES' : activeDataset === 'rental' ? 'RENTAL' : activeDataset === 'macro' ? 'MACRO' : activeDataset === 'weg' ? 'WEG' : activeDataset === 'embraer' ? 'EMBRAER' : activeDataset === 'marcopolo' ? 'MARCOPOLO' : (activeDataset === 'poultry_br' || activeDataset === 'poultry_us') ? 'POULTRY' : 'BEEF';
+  const suffix = (activeDataset === 'transportes' || activeDataset === 'rental' || activeDataset === 'macro' || activeDataset === 'weg' || activeDataset === 'embraer' || activeDataset === 'marcopolo') ? '' : (activeDataset === 'beef_us' || activeDataset === 'poultry_us') ? 'US' : 'BR';
   const currentMeta = activeDataset === 'beef_us'
     ? (meta?.us ?? null)
     : activeDataset === 'poultry_br'
@@ -746,6 +776,8 @@ function TopBar({ meta, onUpload, activeDataset, colorMode = 'dark', onCycleMode
     ? (meta?.weg ?? null)
     : activeDataset === 'rental'
     ? (meta?.rental ?? null)
+    : activeDataset === 'transportes'
+    ? (meta?.transportes ?? null)
     : (activeDataset === 'embraer' || activeDataset === 'marcopolo')
     ? null
     : (meta?.br ?? (meta?.updated ? meta : null));
@@ -936,7 +968,7 @@ function TickerBar({ data, activeDataset }) {
   const requestRef = useRef();
 
   const items = useMemo(() => {
-    if (activeDataset === 'macro' || activeDataset === 'rental' || activeDataset === 'embraer' || activeDataset === 'marcopolo') return [];
+    if (activeDataset === 'macro' || activeDataset === 'rental' || activeDataset === 'transportes' || activeDataset === 'embraer' || activeDataset === 'marcopolo') return [];
     const ds = activeDataset === 'beef_us'    ? 'beef_us'
              : activeDataset === 'poultry_br'  ? 'frango'
              : activeDataset === 'poultry_us'  ? 'frango_us_daily'

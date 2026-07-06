@@ -17,7 +17,7 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - name: Atualiza as 7 planilhas via API
+      - name: Atualiza as 8 planilhas via API
         env:
           URL: ${{ secrets.DASHBOARD_URL }}
           TOKEN: ${{ secrets.UPDATE_CRON_SECRET }}
@@ -28,7 +28,7 @@ jobs:
             exit 1
           fi
           falhas=""
-          for ds in beef_us beef_br poultry_br poultry_us macro weg rental; do
+          for ds in beef_us beef_br poultry_br poultry_us macro weg rental transportes; do
             echo "→ atualizando $ds"
             resp=$(curl -sS --max-time 120 -X POST \
               -H "Authorization: Bearer $TOKEN" \

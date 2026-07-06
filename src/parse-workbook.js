@@ -84,8 +84,10 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
       const new_price_index = parseNum(r[9]);
       const used_price_index = parseNum(r[11]);
       const used_new_spread = parseNum(r[12]);
-      if (new_price_index == null && used_price_index == null && used_new_spread == null) continue;
-      rental_car_prices.push({ year: md.year, month: md.month, new_price_index, used_price_index, used_new_spread });
+      const new_price_mom = parseNum(r[3]);
+      const used_price_mom = parseNum(r[5]);
+      if (new_price_index == null && used_price_index == null && used_new_spread == null && new_price_mom == null && used_price_mom == null) continue;
+      rental_car_prices.push({ year: md.year, month: md.month, new_price_index, used_price_index, used_new_spread, new_price_mom, used_price_mom });
     }
     if (rental_car_prices.length) result.rental_car_prices = rental_car_prices;
   }

@@ -8,22 +8,30 @@ const RED = '#dc4d43'
 const GRAY = '#90979d'
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
-const pathFor = (rows, field, x, y) => rows.reduce((d, row, i) => {
-  const value = row[field]
-  if (value == null) return d
-  return `${d}${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(value).toFixed(1)}`
-}, '')
+const pathFor = (rows, field, x, y) => {
+  let d = '', pen = false
+  rows.forEach((row, i) => {
+    const value = row[field]
+    if (value == null) { pen = false; return }
+    d += `${pen ? 'L' : 'M'}${x(i).toFixed(1)},${y(value).toFixed(1)}`
+    pen = true
+  })
+  return d
+}
 
-function RentalPriceChart({ rows }) {
+function RentalPriceChart({ rows, mode }) {
   const [hover, setHover] = React.useState(null)
   const [mouseY, setMouseY] = React.useState(0)
+  const isMom = mode === 'mom'
   const W = 1100, H = 390
   const pad = { l: 58, r: 62, t: 24, b: 48 }
   const innerW = W - pad.l - pad.r, innerH = H - pad.t - pad.b
-  const priceValues = rows.flatMap(r => [r.new_price_index, r.used_price_index]).filter(Number.isFinite)
+  const newField = isMom ? 'new_price_mom' : 'new_price_index'
+  const usedField = isMom ? 'used_price_mom' : 'used_price_index'
+  const priceValues = rows.flatMap(r => [r[newField], r[usedField]]).filter(Number.isFinite)
   const spreadValues = rows.map(r => r.used_new_spread).filter(Number.isFinite)
-  const priceMin = Math.floor(Math.min(...priceValues, 0) / 20) * 20
-  const priceMax = Math.ceil(Math.max(...priceValues) / 20) * 20
+  const priceMin = isMom ? Math.floor(Math.min(...priceValues, 0) / .02) * .02 : Math.floor(Math.min(...priceValues, 0) / 20) * 20
+  const priceMax = isMom ? Math.ceil(Math.max(...priceValues, 0) / .02) * .02 : Math.ceil(Math.max(...priceValues) / 20) * 20
   const spreadMin = Math.floor(Math.min(...spreadValues) * 20) / 20
   const spreadMax = 0
   const x = i => pad.l + (rows.length <= 1 ? 0 : i / (rows.length - 1)) * innerW
@@ -34,7 +42,7 @@ function RentalPriceChart({ rows }) {
   const yearTicks = rows.map((r, i) => ({ ...r, i })).filter(r => r.month === 1 && (rows.length < 150 || r.year % 2 === 0))
   const spreadPath = pathFor(rows, 'used_new_spread', x, ySpread)
   const zeroY = ySpread(0)
-  const areaPath = spreadPath ? `${spreadPath}L${x(rows.length - 1)},${zeroY}L${x(0)},${zeroY}Z` : ''
+  const areaPath = !isMom && spreadPath ? `${spreadPath}L${x(rows.length - 1)},${zeroY}L${x(0)},${zeroY}Z` : ''
 
   const onMove = e => {
     const box = e.currentTarget.getBoundingClientRect()
@@ -50,7 +58,7 @@ function RentalPriceChart({ rows }) {
       onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
       {priceTicks.map((v, i) => {
         const yy = yPrice(v)
-        return <g key={v}><line x1={pad.l} x2={W-pad.r} y1={yy} y2={yy} className="rental-grid"/><text x={pad.l-10} y={yy+4} textAnchor="end" className="rental-axis">{v.toFixed(0)}</text><text x={W-pad.r+10} y={yy+4} className="rental-axis">{(spreadTicks[i]*100).toFixed(0)}%</text></g>
+        return <g key={v}><line x1={pad.l} x2={W-pad.r} y1={yy} y2={yy} className="rental-grid"/><text x={pad.l-10} y={yy+4} textAnchor="end" className="rental-axis">{isMom ? `${(v*100).toFixed(0)}%` : v.toFixed(0)}</text>{!isMom && <text x={W-pad.r+10} y={yy+4} className="rental-axis">{(spreadTicks[i]*100).toFixed(0)}%</text>}</g>
       })}
       <line x1={pad.l} x2={W-pad.r} y1={H-pad.b} y2={H-pad.b} className="rental-axis-line"/>
       {yearTicks.map(r => <g key={`${r.year}-${r.i}`}>
@@ -58,14 +66,15 @@ function RentalPriceChart({ rows }) {
         <line x1={x(r.i)} x2={x(r.i)} y1={H-pad.b} y2={H-pad.b+5} className="rental-axis-line"/>
         <text x={x(r.i)} y={H-18} textAnchor="middle" className="rental-axis">{String(r.year).slice(-2)}</text>
       </g>)}
-      <path d={areaPath} fill="color-mix(in srgb, var(--fg-dim) 14%, transparent)"/>
-      <path d={spreadPath} fill="none" stroke={GRAY} strokeWidth="1.5"/>
-      <path d={pathFor(rows, 'new_price_index', x, yPrice)} fill="none" stroke={BLUE} strokeWidth="2.5"/>
-      <path d={pathFor(rows, 'used_price_index', x, yPrice)} fill="none" stroke={RED} strokeWidth="2.5"/>
+      {!isMom && <path d={areaPath} fill="color-mix(in srgb, var(--fg-dim) 14%, transparent)"/>}
+      {!isMom && <path d={spreadPath} fill="none" stroke={GRAY} strokeWidth="1.5"/>}
+      {isMom && <line x1={pad.l} x2={W-pad.r} y1={yPrice(0)} y2={yPrice(0)} className="rental-zero-line"/>}
+      <path d={pathFor(rows, newField, x, yPrice)} fill="none" stroke={BLUE} strokeWidth="2.5"/>
+      <path d={pathFor(rows, usedField, x, yPrice)} fill="none" stroke={RED} strokeWidth="2.5"/>
       {hover != null && <>
         <line x1={x(hover)} x2={x(hover)} y1={pad.t} y2={H-pad.b} className="rental-crosshair"/>
-        {rows[hover].new_price_index != null && <circle cx={x(hover)} cy={yPrice(rows[hover].new_price_index)} r="4" fill={BLUE}/>} 
-        {rows[hover].used_price_index != null && <circle cx={x(hover)} cy={yPrice(rows[hover].used_price_index)} r="4" fill={RED}/>} 
+        {rows[hover][newField] != null && <circle cx={x(hover)} cy={yPrice(rows[hover][newField])} r="4" fill={BLUE}/>}
+        {rows[hover][usedField] != null && <circle cx={x(hover)} cy={yPrice(rows[hover][usedField])} r="4" fill={RED}/>}
       </>}
     </svg>
     {hover != null && (() => {
@@ -79,9 +88,9 @@ function RentalPriceChart({ rows }) {
       }}>
         <div className="hover-month">{MONTHS[row.month-1]}/{row.year}</div>
         <div className="hover-rows">
-          <div className="hover-row"><span className="hover-year" style={{color:BLUE}}>Novo</span><span className="hover-val">{fmt(row.new_price_index,{decimals:1})}</span></div>
-          <div className="hover-row"><span className="hover-year" style={{color:RED}}>Usado ajustado</span><span className="hover-val">{fmt(row.used_price_index,{decimals:1})}</span></div>
-          <div className="hover-row"><span className="hover-year" style={{color:GRAY}}>Spread</span><span className="hover-val">{row.used_new_spread == null ? '—' : `${fmt(row.used_new_spread*100,{decimals:1})}%`}</span></div>
+          <div className="hover-row"><span className="hover-year" style={{color:BLUE}}>Novo</span><span className="hover-val">{row[newField] == null ? '—' : `${fmt(row[newField] * (isMom ? 100 : 1),{decimals:1})}${isMom ? '%' : ''}`}</span></div>
+          <div className="hover-row"><span className="hover-year" style={{color:RED}}>Usado ajustado</span><span className="hover-val">{row[usedField] == null ? '—' : `${fmt(row[usedField] * (isMom ? 100 : 1),{decimals:1})}${isMom ? '%' : ''}`}</span></div>
+          {!isMom && <div className="hover-row"><span className="hover-year" style={{color:GRAY}}>Spread</span><span className="hover-val">{row.used_new_spread == null ? '—' : `${fmt(row.used_new_spread*100,{decimals:1})}%`}</span></div>}
         </div>
       </div>
     })()}
@@ -91,8 +100,12 @@ function RentalPriceChart({ rows }) {
 function RentalCarPrices({ data }) {
   const rows = data.rental_car_prices || []
   const [range, setRange] = React.useState('Todos')
+  const [mode, setMode] = React.useState('base100')
   if (!rows.length) return <main className="main"><section className="card card-full"><div className="card-head"><div><div className="card-eyebrow">Carros</div><h3 className="card-title">Preços e Spreads</h3><div className="rental-empty">Atualize a planilha CarRental.xlsm para visualizar o gráfico.</div></div></div></section></main>
   const latest = rows.at(-1)
+  const latestMom = [...rows].reverse().find(row => row.new_price_mom != null || row.used_price_mom != null)
+  const displayRow = mode === 'mom' ? (latestMom || latest) : latest
+  const displayValue = value => value == null ? '—' : fmt(value * (mode === 'mom' ? 100 : 1), {decimals:1}) + (mode === 'mom' ? '%' : '')
   const yearsByRange = { '3a': 3, '5a': 5, '10a': 10 }
   const visibleRows = range === 'Todos'
     ? rows
@@ -104,21 +117,27 @@ function RentalCarPrices({ data }) {
           <div className="card-eyebrow">Cálculo Próprio · IPCA Mensal</div>
           <h3 className="card-title">Preços e Spreads</h3>
           <div className="rental-latest">
-            <span className="rental-latest-item" style={{color:BLUE}}><b>{latest.new_price_index.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}</b><small>Novo</small></span>
-            <span className="rental-latest-item" style={{color:RED}}><b>{latest.used_price_index.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}</b><small>Usado</small></span>
-            <span className="card-unit">Base 100</span>
-            <span className="card-date">{MONTHS[latest.month-1]}/{String(latest.year).slice(-2)}</span>
+            <span className="rental-latest-item" style={{color:BLUE}}><b>{displayValue(mode === 'mom' ? displayRow.new_price_mom : displayRow.new_price_index)}</b><small>Novo</small></span>
+            <span className="rental-latest-item" style={{color:RED}}><b>{displayValue(mode === 'mom' ? displayRow.used_price_mom : displayRow.used_price_index)}</b><small>Usado</small></span>
+            <span className="card-unit">{mode === 'mom' ? '%MoM' : 'Base 100'}</span>
+            <span className="card-date">{MONTHS[displayRow.month-1]}/{String(displayRow.year).slice(-2)}</span>
           </div>
         </div>
-        <div className="card-controls"><div className="card-ctrl-row"><div className="year-seg">
-          {['3a','5a','10a','Todos'].map(option => <button key={option} className={`year-seg-btn ${range === option ? 'is-on' : ''}`} onClick={() => setRange(option)}>{option}</button>)}
-        </div></div></div>
+        <div className="card-controls">
+          <div className="card-ctrl-row"><div className="year-seg">
+            {['3a','5a','10a','Todos'].map(option => <button key={option} className={`year-seg-btn ${range === option ? 'is-on' : ''}`} onClick={() => setRange(option)}>{option}</button>)}
+          </div></div>
+          <div className="card-ctrl-row"><div className="seg">
+            <button className={`seg-btn ${mode === 'base100' ? 'is-on' : ''}`} onClick={() => setMode('base100')}>Base 100</button>
+            <button className={`seg-btn ${mode === 'mom' ? 'is-on' : ''}`} onClick={() => setMode('mom')}>%MoM</button>
+          </div></div>
+        </div>
       </div>
-      <RentalPriceChart rows={visibleRows}/>
+      <RentalPriceChart rows={visibleRows} mode={mode}/>
       <div className="ciclo-legend">
         <span className="legend-year" style={{padding:'2px 6px'}}><span className="legend-line" style={{background:BLUE}}/>Automóvel novo</span>
         <span className="legend-year" style={{padding:'2px 6px'}}><span className="legend-line" style={{background:RED}}/>Automóvel usado ajustado</span>
-        <span className="legend-year" style={{padding:'2px 6px'}}><span className="legend-line" style={{background:GRAY}}/>Spread usado / novo</span>
+        {mode === 'base100' && <span className="legend-year" style={{padding:'2px 6px'}}><span className="legend-line" style={{background:GRAY}}/>Spread usado / novo</span>}
       </div>
     </section>
   </main>

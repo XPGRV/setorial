@@ -156,24 +156,10 @@ function GrainCharts({ data, accent }) {
       unit="1000 t" decimals={1} fullWidth events={NO_EVENTS}
     />
     <PriceCard
-      cardId="card-transport-soy-price" title="Preço Soja · Mercado Externo"
-      sub="SECEX · Preço Soja Exportação"
-      accent={LATEST_YEAR_ACCENT} data={data} dataset="transport_grains"
-      field="soy_brl_kg" usdField="soy_usd_kg" hasUSD
-      unit="R$/kg" usdUnit="US$/kg" decimals={2} fullWidth events={NO_EVENTS}
-    />
-    <PriceCard
       cardId="card-transport-corn-volume" title="Exportação Milho"
       sub="SECEX · Volume de Milho Exportado."
       accent={LATEST_YEAR_ACCENT} data={data} dataset="transport_grains" field="corn_volume_kt"
       unit="1000 t" decimals={1} fullWidth events={NO_EVENTS}
-    />
-    <PriceCard
-      cardId="card-transport-corn-price" title="Preço Milho · Mercado Externo"
-      sub="SECEX · Preço Milho Exportação"
-      accent={LATEST_YEAR_ACCENT} data={data} dataset="transport_grains"
-      field="corn_brl_kg" usdField="corn_usd_kg" hasUSD
-      unit="R$/kg" usdUnit="US$/kg" decimals={2} fullWidth events={NO_EVENTS}
     />
   </main>
 }

@@ -156,9 +156,21 @@ function GrainCharts({ data, accent }) {
       unit="1000 t" decimals={1} fullWidth events={NO_EVENTS}
     />
     <PriceCard
+      cardId="card-transport-soy-mt-volume" title="Exportação Soja · MT"
+      sub="SECEX · Volume de Soja Exportado · Mato Grosso."
+      accent={LATEST_YEAR_ACCENT} data={data} dataset="transport_grains" field="soy_mt_volume_kt"
+      unit="1000 t" decimals={1} fullWidth events={NO_EVENTS}
+    />
+    <PriceCard
       cardId="card-transport-corn-volume" title="Exportação Milho"
       sub="SECEX · Volume de Milho Exportado."
       accent={LATEST_YEAR_ACCENT} data={data} dataset="transport_grains" field="corn_volume_kt"
+      unit="1000 t" decimals={1} fullWidth events={NO_EVENTS}
+    />
+    <PriceCard
+      cardId="card-transport-corn-mt-volume" title="Exportação Milho · MT"
+      sub="SECEX · Volume de Milho Exportado · Mato Grosso."
+      accent={LATEST_YEAR_ACCENT} data={data} dataset="transport_grains" field="corn_mt_volume_kt"
       unit="1000 t" decimals={1} fullWidth events={NO_EVENTS}
     />
   </main>

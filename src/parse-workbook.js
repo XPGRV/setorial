@@ -106,7 +106,7 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
   }
 
   // Transportes · Grãos (Transportes.xlsm · aba SECEX)
-  // B=mês; D/E=volumes soja/milho.
+  // B=mês; D=Soja, E=Soja-MT, F=Milho, G=Milho-MT (volumes em 1000 t).
   if (parseTransportes && findSheet('SECEX')) {
     const raw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('SECEX')], { header: 1, raw: true });
     const transport_grains = [];
@@ -117,8 +117,10 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
       if (!md) continue;
       const row = {
         year: md.year, month: md.month,
-        soy_volume_kt: parseNum(r[3]),
-        corn_volume_kt: parseNum(r[4]),
+        soy_volume_kt: parseNum(r[3]),      // D — Soja (Brasil)
+        soy_mt_volume_kt: parseNum(r[4]),   // E — Soja MT
+        corn_volume_kt: parseNum(r[5]),     // F — Milho (Brasil)
+        corn_mt_volume_kt: parseNum(r[6]),  // G — Milho MT
       };
       if (Object.entries(row).some(([key, value]) => !['year','month'].includes(key) && value != null)) {
         transport_grains.push(row);

@@ -638,6 +638,7 @@ function WegTransformerExportsSection({ data, accent }) {
           chartStyle={chartStyle}
           endPaddingMonths={2}
           bottomPadding={54}
+          connectGaps
           onZoom={applyZoom}
           onResetZoom={() => setZoom(null)}
         />

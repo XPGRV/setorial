@@ -27,7 +27,7 @@ function filterByRangeYears(rows, field, rangeYears) {
   return valid.filter(r => r.year * 12 + r.month - 1 > cutOrd);
 }
 
-function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height = 260, events = [], showEvents = true, chartStyle = 'line', zeroBaseline = false, highlightZero = false, endPaddingMonths = 0, bottomPadding = 32, onZoom, onResetZoom }) {
+function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height = 260, events = [], showEvents = true, chartStyle = 'line', zeroBaseline = false, highlightZero = false, endPaddingMonths = 0, bottomPadding = 32, connectGaps = false, onZoom, onResetZoom }) {
   const svgRef = React.useRef(null);
   const [hovered, setHovered] = React.useState(null); // { x, y, row, mouseY }
   const [svgW, setSvgW] = React.useState(760);
@@ -92,15 +92,19 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
     xTicks.push({ x: xOf_ord(ord), label });
   }
 
-  // Split data into continuous segments (gap > 2 months = new subpath)
-  const segments = [];
-  let seg = [valid[0]];
-  for (let i = 1; i < valid.length; i++) {
-    const gap = valid[i].year * 12 + valid[i].month - (valid[i-1].year * 12 + valid[i-1].month);
-    if (gap > 2) { segments.push(seg); seg = [valid[i]]; }
-    else seg.push(valid[i]);
-  }
-  segments.push(seg);
+  // Some sources are sparse monthly series. For those, connect valid points
+  // like MultiContinuousChart instead of making isolated one-point fragments.
+  const segments = connectGaps ? [valid] : (() => {
+    const out = [];
+    let seg = [valid[0]];
+    for (let i = 1; i < valid.length; i++) {
+      const gap = valid[i].year * 12 + valid[i].month - (valid[i-1].year * 12 + valid[i-1].month);
+      if (gap > 2) { out.push(seg); seg = [valid[i]]; }
+      else seg.push(valid[i]);
+    }
+    out.push(seg);
+    return out;
+  })();
 
   const linePath = segments
     .map(s => 'M' + s.map(r => `${xOf(r).toFixed(1)},${yOf(r[field]).toFixed(1)}`).join('L'))

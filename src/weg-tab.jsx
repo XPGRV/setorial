@@ -634,9 +634,10 @@ function WegTransformerExportsSection({ data, accent }) {
 
         <ContinuousChart
           rows={filteredRows} field={field} accent={accent}
-          unit="1000 US$" decimals={0} height={360}
+          unit="1000 US$" decimals={0} height={390}
           chartStyle={chartStyle}
           endPaddingMonths={2}
+          bottomPadding={54}
           onZoom={applyZoom}
           onResetZoom={() => setZoom(null)}
         />

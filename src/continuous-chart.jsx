@@ -334,9 +334,8 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
             <div className="hover-month">{MONTHS_PT_ABR[r.month - 1]}/{r.year}</div>
             <div className="hover-rows">
               <div className="hover-row">
-                <span className="hover-val" style={{color: accent}}>
-                  {fmt(r[field])}<span className="hover-unit"> {unit}</span>
-                </span>
+                {mmField && <span className="hover-year" style={{color: accent}}>Total</span>}
+                <span className="hover-val">{fmt(r[field])}<span className="hover-unit"> {unit}</span></span>
               </div>
               {showMMRender && r[mmField] != null && (
                 <div className="hover-row hover-stat">

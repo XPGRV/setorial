@@ -471,7 +471,7 @@ function TransformerExportControls({ scope, setScope, selectedCodes, toggleCode,
       <div className="seg">
         {[
           ['br', 'Brasil'],
-          ['sc', 'SC'],
+          ['sc', 'Santa Catarina (WEG Proxy)'],
         ].map(([value, label]) => (
           <button key={value} className={`seg-btn ${scope === value ? 'is-on' : ''}`}
             onClick={() => setScope(value)}>{label}</button>
@@ -500,54 +500,76 @@ function TransformerExportSummary({ selectedProducts }) {
   return selectedProducts.map(p => p.label).join(' + ');
 }
 
+function sumTransformerRows(allRows, scope, selectedProducts) {
+  if (!selectedProducts.length) return [];
+  return allRows.map(r => {
+    let total = 0;
+    let hasAny = false;
+    for (const product of selectedProducts) {
+      for (const sh6 of product.codes) {
+        const value = r[`${scope}_${sh6}`];
+        if (value != null) {
+          total += value;
+          hasAny = true;
+        }
+      }
+    }
+    return { year: r.year, month: r.month, value: hasAny ? total : null };
+  }).filter(r => r.value != null);
+}
+
 function WegTransformerExportsSection({ data, accent }) {
   const sourceDataset = 'weg_transformadores_exports';
   const chartDataset = 'weg_transformadores_exports_sum';
   const allRows = data[sourceDataset] || [];
-  const [scope, setScope] = React.useState('br');
-  const [selectedCodes, setSelectedCodes] = React.useState(() => new Set(TRANSFORMER_PRODUCTS.map(p => p.code)));
+  const [mainScope, setMainScope] = React.useState('br');
+  const [mainSelectedCodes, setMainSelectedCodes] = React.useState(() => new Set(TRANSFORMER_PRODUCTS.map(p => p.code)));
+  const [seasonalScope, setSeasonalScope] = React.useState('br');
+  const [seasonalSelectedCodes, setSeasonalSelectedCodes] = React.useState(() => new Set(TRANSFORMER_PRODUCTS.map(p => p.code)));
   const [range, setRange] = React.useState('5');
   const [chartStyle, setChartStyle] = React.useState('area');
   const [zoom, setZoom] = React.useState(null);
   const [seasonalStyle, setSeasonalStyle] = React.useState('line');
   const [seasonalWindow, setSeasonalWindow] = React.useState('5');
 
-  const selectedKey = React.useMemo(() => [...selectedCodes].sort().join('|'), [selectedCodes]);
-  const selectedProducts = React.useMemo(
-    () => TRANSFORMER_PRODUCTS.filter(p => selectedCodes.has(p.code)),
-    [selectedKey]
+  const mainSelectedKey = React.useMemo(() => [...mainSelectedCodes].sort().join('|'), [mainSelectedCodes]);
+  const seasonalSelectedKey = React.useMemo(() => [...seasonalSelectedCodes].sort().join('|'), [seasonalSelectedCodes]);
+  const mainSelectedProducts = React.useMemo(
+    () => TRANSFORMER_PRODUCTS.filter(p => mainSelectedCodes.has(p.code)),
+    [mainSelectedKey]
+  );
+  const seasonalSelectedProducts = React.useMemo(
+    () => TRANSFORMER_PRODUCTS.filter(p => seasonalSelectedCodes.has(p.code)),
+    [seasonalSelectedKey]
   );
   const field = 'value';
-  const scopeLabel = scope === 'br' ? 'Brasil' : 'Santa Catarina';
+  const mainScopeLabel = mainScope === 'br' ? 'Brasil' : 'Santa Catarina (WEG Proxy)';
+  const seasonalScopeLabel = seasonalScope === 'br' ? 'Brasil' : 'Santa Catarina (WEG Proxy)';
   const ordOf = r => r.year * 12 + r.month - 1;
 
-  const toggleCode = code => setSelectedCodes(prev => {
+  const toggleMainCode = code => setMainSelectedCodes(prev => {
+    const next = new Set(prev);
+    next.has(code) ? next.delete(code) : next.add(code);
+    return next;
+  });
+  const toggleSeasonalCode = code => setSeasonalSelectedCodes(prev => {
     const next = new Set(prev);
     next.has(code) ? next.delete(code) : next.add(code);
     return next;
   });
 
-  const summedRows = React.useMemo(() => {
-    if (!selectedProducts.length) return [];
-    return allRows.map(r => {
-      let total = 0;
-      let hasAny = false;
-      for (const product of selectedProducts) {
-        for (const sh6 of product.codes) {
-          const value = r[`${scope}_${sh6}`];
-          if (value != null) {
-            total += value;
-            hasAny = true;
-          }
-        }
-      }
-      return { year: r.year, month: r.month, value: hasAny ? total : null };
-    }).filter(r => r.value != null);
-  }, [allRows, scope, selectedKey]);
+  const mainSummedRows = React.useMemo(
+    () => sumTransformerRows(allRows, mainScope, mainSelectedProducts),
+    [allRows, mainScope, mainSelectedKey]
+  );
+  const seasonalSummedRows = React.useMemo(
+    () => sumTransformerRows(allRows, seasonalScope, seasonalSelectedProducts),
+    [allRows, seasonalScope, seasonalSelectedKey]
+  );
 
-  const chartData = React.useMemo(() => ({ ...data, [chartDataset]: summedRows }), [data, summedRows]);
-  const validRows = summedRows;
-  React.useEffect(() => { setZoom(null); }, [scope, selectedKey]);
+  const chartData = React.useMemo(() => ({ ...data, [chartDataset]: seasonalSummedRows }), [data, seasonalSummedRows]);
+  const validRows = mainSummedRows;
+  React.useEffect(() => { setZoom(null); }, [mainScope, mainSelectedKey]);
 
   const filteredRows = React.useMemo(() => {
     if (zoom) return validRows.filter(r => ordOf(r) >= zoom.o0 && ordOf(r) <= zoom.o1);
@@ -577,9 +599,9 @@ function WegTransformerExportsSection({ data, accent }) {
   const fmtPct = v => v == null ? '—' : (v >= 0 ? '+' : '') + (v * 100).toFixed(1).replace('.', ',') + '%';
 
   const years = React.useMemo(() => {
-    if (!summedRows.length) return [];
+    if (!seasonalSummedRows.length) return [];
     return availableYears(chartData, chartDataset, field);
-  }, [chartData, summedRows]);
+  }, [chartData, seasonalSummedRows]);
   const selectedYears = React.useMemo(() => {
     if (seasonalWindow === 'all') return years;
     return years.slice(-parseInt(seasonalWindow, 10));
@@ -592,10 +614,10 @@ function WegTransformerExportsSection({ data, accent }) {
       <section className="card card-full" data-card-id="card-weg-transformadores-exportacoes">
         <div className="card-head">
           <div>
-            <div className="card-eyebrow">SECEX · Exportações · {scopeLabel} · 1000 US$</div>
+            <div className="card-eyebrow">SECEX · Exportações · {mainScopeLabel} · 1000 US$</div>
             <h3 className="card-title">Exportações de Transformadores</h3>
             <span style={{display:'block', marginTop:3, color:'var(--fg-dim)', fontSize:11, lineHeight:1.35}}>
-              {TransformerExportSummary({ selectedProducts })}
+              {TransformerExportSummary({ selectedProducts: mainSelectedProducts })}
             </span>
             <div className="card-price">
               <span className="card-value">{fmt(lastRow?.value, { decimals: 0 })}</span>
@@ -610,7 +632,7 @@ function WegTransformerExportsSection({ data, accent }) {
           </div>
 
           <div className="card-controls">
-            <TransformerExportControls scope={scope} setScope={setScope} selectedCodes={selectedCodes} toggleCode={toggleCode} selectedProducts={selectedProducts}/>
+            <TransformerExportControls scope={mainScope} setScope={setMainScope} selectedCodes={mainSelectedCodes} toggleCode={toggleMainCode} selectedProducts={mainSelectedProducts}/>
             <div className="card-ctrl-row">
               <div className="year-seg">
                 {[["3a","3"], ["5a","5"], ["10a","10"], ["Todos","all"]].map(([label, value]) => (
@@ -647,14 +669,14 @@ function WegTransformerExportsSection({ data, accent }) {
       <section className="card card-full" data-card-id="card-weg-transformadores-exportacoes-sazonal">
         <div className="card-head">
           <div>
-            <div className="card-eyebrow">SECEX · Sazonal · {scopeLabel}</div>
+            <div className="card-eyebrow">SECEX · Sazonal · {seasonalScopeLabel}</div>
             <h3 className="card-title">Exportações de Transformadores · Sazonal</h3>
             <span style={{display:'block', marginTop:3, color:'var(--fg-dim)', fontSize:11, lineHeight:1.35}}>
-              {TransformerExportSummary({ selectedProducts })}
+              {TransformerExportSummary({ selectedProducts: seasonalSelectedProducts })}
             </span>
           </div>
           <div className="card-controls">
-            <TransformerExportControls scope={scope} setScope={setScope} selectedCodes={selectedCodes} toggleCode={toggleCode} selectedProducts={selectedProducts}/>
+            <TransformerExportControls scope={seasonalScope} setScope={setSeasonalScope} selectedCodes={seasonalSelectedCodes} toggleCode={toggleSeasonalCode} selectedProducts={seasonalSelectedProducts}/>
             <div className="card-ctrl-row">
               <div className="year-seg">
                 {[["5a","5"], ["10a","10"], ["Todos","all"]].map(([label, value]) => (

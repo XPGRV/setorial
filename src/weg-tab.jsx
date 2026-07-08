@@ -667,7 +667,7 @@ function WegTransformerExportsSection({ data, accent }) {
           rows={filteredRows} field={field} accent={accent}
           unit="1.000 US$" decimals={0} height={390}
           chartStyle={chartStyle}
-          mmField="mm12" showMM={showMM}
+          mmField="mm12" showMM={showMM} seriesLabel="Exportações"
           endPaddingMonths={2}
           bottomPadding={54}
           connectGaps

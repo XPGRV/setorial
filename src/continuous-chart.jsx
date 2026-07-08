@@ -39,7 +39,7 @@ function filterByRangeYears(rows, field, rangeYears) {
   return valid.filter(r => r.year * 12 + r.month - 1 > cutOrd);
 }
 
-function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height = 260, events = [], showEvents = true, chartStyle = 'line', zeroBaseline = false, highlightZero = false, endPaddingMonths = 0, bottomPadding = 32, connectGaps = false, onZoom, onResetZoom, mmField = null, showMM = false, mmLabel = 'MM12M' }) {
+function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height = 260, events = [], showEvents = true, chartStyle = 'line', zeroBaseline = false, highlightZero = false, endPaddingMonths = 0, bottomPadding = 32, connectGaps = false, onZoom, onResetZoom, mmField = null, showMM = false, mmLabel = 'MM12M', mmColor = 'oklch(0.78 0.16 70)', seriesLabel = 'Valor' }) {
   const reactId = React.useId().replace(/[^a-z0-9-]/gi, '');
   const svgRef = React.useRef(null);
   const [hovered, setHovered] = React.useState(null); // { x, y, row, mouseY }
@@ -290,10 +290,12 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
           });
         })()}
 
-        {/* Média móvel 12 meses */}
+        {/* Média móvel 12 meses — sem stroke-dasharray inline de propósito: assim
+            ela qualifica para a mesma animação de entrada (rx-draw) das outras
+            linhas do chart (regra global em reactive.css). */}
         {showMMLine && mmPath && (
-          <path d={mmPath} fill="none" stroke="var(--fg)" strokeOpacity={0.6} strokeWidth={1.8}
-            strokeDasharray="5 4" strokeLinejoin="round" strokeLinecap="round"
+          <path d={mmPath} fill="none" stroke={mmColor} strokeWidth={2}
+            strokeLinejoin="round" strokeLinecap="round"
             clipPath={`url(#${clipId})`}/>
         )}
 
@@ -333,7 +335,7 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
               </div>
               {showMMLine && r[mmField] != null && (
                 <div className="hover-row hover-stat">
-                  <span className="hover-year">{mmLabel}</span>
+                  <span className="hover-year" style={{color: mmColor}}>{mmLabel}</span>
                   <span className="hover-val">{fmt(r[mmField])}<span className="hover-unit"> {unit}</span></span>
                 </div>
               )}
@@ -341,6 +343,19 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
           </div>
         );
       })()}
+
+      {showMMLine && (
+        <div className="ciclo-legend">
+          <span className="legend-year">
+            <span className="legend-line" style={{background: accent}}/>
+            {seriesLabel}
+          </span>
+          <span className="legend-year">
+            <span className="legend-line" style={{background: mmColor}}/>
+            {mmLabel}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

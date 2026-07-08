@@ -27,10 +27,12 @@ function filterByRangeYears(rows, field, rangeYears) {
   return valid.filter(r => r.year * 12 + r.month - 1 > cutOrd);
 }
 
-function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height = 260, events = [], showEvents = true, chartStyle = 'line', zeroBaseline = false, highlightZero = false }) {
+function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height = 260, events = [], showEvents = true, chartStyle = 'line', zeroBaseline = false, highlightZero = false, onZoom, onResetZoom }) {
   const svgRef = React.useRef(null);
   const [hovered, setHovered] = React.useState(null); // { x, y, row, mouseY }
   const [svgW, setSvgW] = React.useState(760);
+  const dragRef = React.useRef(null);
+  const selRef = React.useRef(null);
 
   React.useLayoutEffect(() => {
     if (!svgRef.current) return;
@@ -72,6 +74,8 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
 
   const xOf = row => padL + ((row.year * 12 + row.month - 1 - firstOrd) / totalMons) * chartW;
   const yOf = v   => padT + chartH - ((v - yMin) / (yMax - yMin)) * chartH;
+  const clampX = px => Math.max(padL, Math.min(padL + chartW, px));
+  const ordAtX = px => firstOrd + ((clampX(px) - padL) / chartW) * totalMons;
 
   // X ticks: 3a/5a → a cada 6 meses; 10a/Todos → a cada 12 meses
   const xOf_ord = ord => padL + ((ord - firstOrd) / totalMons) * chartW;
@@ -111,24 +115,63 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
     return `M${pts.join('L')}L${xN},${baseY.toFixed(1)}L${x0},${baseY.toFixed(1)}Z`;
   }).join(' ');
 
-  // Hover
+  // Hover + brush zoom
+  const pxOf = e => {
+    const rect = svgRef.current.getBoundingClientRect();
+    return {
+      px: (e.clientX - rect.left) * (W / rect.width),
+      py: (e.clientY - rect.top) * (H / rect.height),
+    };
+  };
+  const drawRect = (x0, x1) => {
+    const el = selRef.current; if (!el) return;
+    const x = Math.min(x0, x1), w = Math.abs(x1 - x0);
+    el.setAttribute('x', x);
+    el.setAttribute('width', w);
+    el.style.visibility = w > 1 ? 'visible' : 'hidden';
+  };
+  const hideRect = () => { if (selRef.current) selRef.current.style.visibility = 'hidden'; };
+
   const onMouseMove = (e) => {
     if (!svgRef.current) return;
-    const rect = svgRef.current.getBoundingClientRect();
-    const px = (e.clientX - rect.left - padL) / chartW;
-    const ord = firstOrd + px * totalMons;
+    const { px, py } = pxOf(e);
+    if (dragRef.current != null) {
+      drawRect(dragRef.current, clampX(px));
+      return;
+    }
+    const ord = ordAtX(px);
     let best = null, bestD = Infinity;
     for (const r of valid) {
       const d = Math.abs(r.year * 12 + r.month - 1 - ord);
       if (d < bestD) { bestD = d; best = r; }
     }
     if (best) {
-      const my = e.clientY - rect.top;
-      // Reusa o objeto anterior se nada relevante mudou — evita re-render por pixel
-      setHovered(prev => prev && prev.row === best && Math.abs(prev.mouseY - my) < 16
+      setHovered(prev => prev && prev.row === best && Math.abs(prev.mouseY - py) < 16
         ? prev
-        : { x: xOf(best), y: yOf(best[field]), row: best, mouseY: my });
+        : { x: xOf(best), y: yOf(best[field]), row: best, mouseY: py });
     }
+  };
+  const onMouseDown = e => {
+    if (e.button !== 0 || !onZoom || !svgRef.current) return;
+    const { px } = pxOf(e);
+    dragRef.current = clampX(px);
+    setHovered(null);
+    drawRect(dragRef.current, dragRef.current);
+  };
+  const onMouseUp = e => {
+    const start = dragRef.current;
+    if (start == null) return;
+    dragRef.current = null;
+    hideRect();
+    const end = clampX(pxOf(e).px);
+    if (Math.abs(end - start) >= 6 && onZoom) {
+      onZoom({ o0: ordAtX(Math.min(start, end)), o1: ordAtX(Math.max(start, end)) });
+    }
+  };
+  const onMouseLeave = () => {
+    dragRef.current = null;
+    hideRect();
+    setHovered(null);
   };
 
   // Visible events
@@ -147,7 +190,8 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
     <div style={{position:'relative', animation:'rx-fade-in 0.5s ease-out'}}>
       <svg key={dataKey} ref={svgRef} className="chart-svg" width="100%" height={H}
         style={{display:'block', overflow:'visible'}}
-        onMouseMove={onMouseMove} onMouseLeave={() => setHovered(null)}>
+        onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp}
+        onMouseLeave={onMouseLeave} onDoubleClick={() => onResetZoom && onResetZoom()}>
         <defs>
           <clipPath id={clipId}>
             <rect x={padL} y={padT - 2} width={chartW} height={chartH + 6}/>
@@ -221,6 +265,11 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
           });
         })()}
 
+        <rect ref={selRef} x={padL} y={padT} width={0} height={chartH}
+          fill="var(--accent)" fillOpacity="0.12" stroke="var(--accent)"
+          strokeOpacity="0.5" strokeWidth="1" pointerEvents="none"
+          style={{ visibility: 'hidden' }}/>
+
         {/* Hover crosshair */}
         {hovered && (
           <g>
@@ -259,15 +308,20 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
 }
 
 // ── ContinuousCard ────────────────────────────────────────────────────────────
-function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit = '', decimals = 1, height = 260, events: eventsProp, footerNote, rebaseBase100 = false }) {
+function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit = '', decimals = 1, height = 260, events: eventsProp, footerNote, rebaseBase100 = false, enableZoom = false }) {
   const [range, setRange]           = React.useState('5');
   const [chartStyle, setChartStyle] = React.useState('area');
+  const [zoom, setZoom]             = React.useState(null);
 
   const eventsData = []; // eventos desativados neste gráfico
   const allRows    = data[dataset] || [];
 
+  const ordOf = r => r.year * 12 + r.month - 1;
   const rangeNum = range === 'all' ? 'all' : parseInt(range);
-  const filteredRows = React.useMemo(() => filterByRangeYears(allRows, field, rangeNum), [allRows, field, rangeNum]);
+  const filteredRows = React.useMemo(() => {
+    if (zoom) return allRows.filter(r => r[field] != null && ordOf(r) >= zoom.o0 && ordOf(r) <= zoom.o1);
+    return filterByRangeYears(allRows, field, rangeNum);
+  }, [allRows, field, rangeNum, zoom]);
   const rows = React.useMemo(() => {
     if (!rebaseBase100) return filteredRows;
     const base = filteredRows.find(r => r[field] != null && r[field] !== 0)?.[field];
@@ -277,6 +331,17 @@ function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit
       [field]: r[field] == null ? null : (r[field] / base) * 100,
     }));
   }, [filteredRows, field, rebaseBase100]);
+
+  const applyZoom = z => {
+    if (!enableZoom) return;
+    let count = 0;
+    for (const r of allRows) {
+      const o = ordOf(r);
+      if (r[field] != null && o >= z.o0 && o <= z.o1) count++;
+      if (count >= 2) break;
+    }
+    if (count >= 2) setZoom(z);
+  };
 
   // Latest value header stats
   const lastRow  = rows[rows.length - 1] || null;
@@ -312,12 +377,17 @@ function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit
             <div className="year-seg">
               {[['3a',3],['5a',5],['10a',10],['Todos','all']].map(([label, val]) => (
                 <button key={label}
-                  className={`year-seg-btn ${range === String(val) ? 'is-on' : ''}`}
-                  onClick={() => setRange(String(val))}>
+                  className={`year-seg-btn ${!zoom && range === String(val) ? 'is-on' : ''}`}
+                  onClick={() => { setZoom(null); setRange(String(val)); }}>
                   {label}
                 </button>
               ))}
             </div>
+            {zoom && (
+              <button className="seg-btn weg-zoom-reset" onClick={() => setZoom(null)} title="Duplo-clique no gráfico também reseta">
+                Reset zoom
+              </button>
+            )}
           </div>
           <div className="card-ctrl-row">
             <div className="seg">
@@ -335,6 +405,8 @@ function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit
         unit={unit} decimals={decimals} height={height}
         events={eventsData} showEvents={false}
         chartStyle={chartStyle}
+        onZoom={enableZoom ? applyZoom : undefined}
+        onResetZoom={enableZoom ? () => setZoom(null) : undefined}
       />
 
       {footerNote && (

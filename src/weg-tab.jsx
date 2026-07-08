@@ -485,6 +485,7 @@ const WegTab = ({ data, accent, tab }) => {
           accent={accent} data={data} dataset="weg_transformadores"
           field="value" unit="Base 100" decimals={2}
           rebaseBase100
+          enableZoom
         />
       )}
       {showPeers && (

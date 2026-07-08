@@ -23,15 +23,12 @@ const WEG_PEERS = [
 const PEER_BY_KEY = Object.fromEntries(WEG_PEERS.map(p => [p.key, p]));
 
 const TRANSFORMER_PRODUCTS = [
-  { code: '850421', label: '850421', short: 'Trafos liq. < 650 kVA', desc: 'Transformadores dieletricos de liquido ate 650 kVA.' },
-  { code: '850422', label: '850422', short: 'Trafos liq. 650-10.000 kVA', desc: 'Transformadores dieletricos de liquido acima de 650 kVA e ate 10.000 kVA.' },
-  { code: '850423', label: '850423', short: 'Trafos liq. > 10.000 kVA', desc: 'Transformadores dieletricos de liquido acima de 10.000 kVA.' },
-  { code: '850431', label: '850431', short: 'Outros trafos < 1 kVA', desc: 'Outros transformadores eletricos ate 1 kVA.' },
-  { code: '850432', label: '850432', short: 'Outros trafos 1-16 kVA', desc: 'Outros transformadores eletricos acima de 1 kVA e ate 16 kVA.' },
-  { code: '850433', label: '850433', short: 'Outros trafos 16-500 kVA', desc: 'Outros transformadores eletricos acima de 16 kVA e ate 500 kVA.' },
-  { code: '850434', label: '850434', short: 'Outros trafos > 500 kVA', desc: 'Outros transformadores eletricos acima de 500 kVA.' },
-  { code: '850490', label: '850490', short: 'Partes de trafos', desc: 'Partes de transformadores eletricos.' },
+  { code: 'liq_lt_650', label: 'Transformadores < 650 kVA', short: '850421', codes: ['850421'], desc: 'Transformadores dieletricos de liquido ate 650 kVA.' },
+  { code: 'liq_650_10000', label: 'Transformadores > 650 kVA e < 10.000 kVA', short: '850422', codes: ['850422'], desc: 'Transformadores dieletricos de liquido acima de 650 kVA e ate 10.000 kVA.' },
+  { code: 'liq_gt_10000', label: 'Transformadores > 10.000 kVA', short: '850423', codes: ['850423'], desc: 'Transformadores dieletricos de liquido acima de 10.000 kVA.' },
+  { code: 'outros', label: 'Outros Transformadores', short: '850431-850490', codes: ['850431', '850432', '850433', '850434', '850490'], desc: 'Outros transformadores eletricos e partes de transformadores.' },
 ];
+const TRANSFORMER_SEASONAL_ACCENT = 'rgb(204, 242, 97)';
 
 const PEER_GROUPS = [
   { key: 'eie', label: 'EIE Peers', members: ['abb', 'nidec', 'regal'] },
@@ -467,7 +464,7 @@ function WegPeersCard({ data, metric = 'price' }) {
 
 function TransformerExportControls({ scope, setScope, selectedCodes, toggleCode, selectedProducts }) {
   const label = selectedProducts.length === 1
-    ? `${selectedProducts[0].label} · ${selectedProducts[0].short}`
+    ? selectedProducts[0].label
     : `${selectedProducts.length} categorias`;
   return (
     <div className="card-ctrl-row">
@@ -485,9 +482,9 @@ function TransformerExportControls({ scope, setScope, selectedCodes, toggleCode,
           <label key={p.code} className="weg-dd-check" style={{alignItems:'flex-start'}}>
             <input type="checkbox" checked={selectedCodes.has(p.code)} onChange={() => toggleCode(p.code)}/>
             <span style={{display:'block', flex:1}}>
-              <span style={{display:'block', fontWeight:700}}>{p.label} · {p.short}</span>
+              <span style={{display:'block', fontWeight:700}}>{p.label}</span>
               <span style={{display:'block', marginTop:3, color:'var(--fg-dim)', fontSize:11, lineHeight:1.35}}>
-                {p.desc}
+                {p.short} · {p.desc}
               </span>
             </span>
           </label>
@@ -499,7 +496,7 @@ function TransformerExportControls({ scope, setScope, selectedCodes, toggleCode,
 
 function TransformerExportSummary({ selectedProducts }) {
   if (!selectedProducts.length) return 'Nenhuma categoria selecionada';
-  if (selectedProducts.length === 1) return `${selectedProducts[0].label} · ${selectedProducts[0].short}`;
+  if (selectedProducts.length === 1) return `${selectedProducts[0].short} · ${selectedProducts[0].desc}`;
   return selectedProducts.map(p => p.label).join(' + ');
 }
 
@@ -508,7 +505,7 @@ function WegTransformerExportsSection({ data, accent }) {
   const chartDataset = 'weg_transformadores_exports_sum';
   const allRows = data[sourceDataset] || [];
   const [scope, setScope] = React.useState('br');
-  const [selectedCodes, setSelectedCodes] = React.useState(() => new Set([TRANSFORMER_PRODUCTS[0].code]));
+  const [selectedCodes, setSelectedCodes] = React.useState(() => new Set(TRANSFORMER_PRODUCTS.map(p => p.code)));
   const [range, setRange] = React.useState('5');
   const [chartStyle, setChartStyle] = React.useState('area');
   const [zoom, setZoom] = React.useState(null);
@@ -536,10 +533,12 @@ function WegTransformerExportsSection({ data, accent }) {
       let total = 0;
       let hasAny = false;
       for (const product of selectedProducts) {
-        const value = r[`${scope}_${product.code}`];
-        if (value != null) {
-          total += value;
-          hasAny = true;
+        for (const sh6 of product.codes) {
+          const value = r[`${scope}_${sh6}`];
+          if (value != null) {
+            total += value;
+            hasAny = true;
+          }
         }
       }
       return { year: r.year, month: r.month, value: hasAny ? total : null };
@@ -635,7 +634,7 @@ function WegTransformerExportsSection({ data, accent }) {
 
         <ContinuousChart
           rows={filteredRows} field={field} accent={accent}
-          unit="1000 US$" decimals={0} height={300}
+          unit="1000 US$" decimals={0} height={360}
           chartStyle={chartStyle}
           onZoom={applyZoom}
           onResetZoom={() => setZoom(null)}
@@ -675,9 +674,9 @@ function WegTransformerExportsSection({ data, accent }) {
             data={chartData} dataset={chartDataset} field={field}
             selectedYears={selectedYears}
             showStats={false} showEvents={false} events={[]}
-            chartStyle={seasonalStyle} accent={accent}
+            chartStyle={seasonalStyle} accent={TRANSFORMER_SEASONAL_ACCENT}
             unit="1000 US$" decimals={0} big={false}
-            height={300}
+            height={340}
             hideAvg
           />
         ) : (

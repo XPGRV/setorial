@@ -49,7 +49,7 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
   const { shouldRender: showAreaRender, isLeaving: areaLeaving } = useFadeOut(chartStyle === 'area', 450);
 
   const W = svgW, H = height;
-  const padL = 58, padR = 48, padT = 14, padB = 32;
+  const padL = 58, padR = 72, padT = 14, padB = 32;
   const chartW = W - padL - padR;
   const chartH = H - padT - padB;
 

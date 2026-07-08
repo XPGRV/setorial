@@ -290,13 +290,17 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
           });
         })()}
 
-        {/* Média móvel 12 meses — sem stroke-dasharray inline de propósito: assim
-            ela qualifica para a mesma animação de entrada (rx-draw) das outras
-            linhas do chart (regra global em reactive.css). */}
+        {/* Média móvel 12 meses — tracejada. O rx-draw (stroke-dashoffset) não
+            dá pra usar aqui porque ele PRECISA controlar o dasharray, o que
+            apagaria o padrão tracejado. Em vez disso, mesmo truque do
+            BimonthlyChart: clip-path via CSS revelando a linha da esquerda
+            pra direita, o que funciona junto com qualquer stroke-dasharray. */}
         {showMMLine && mmPath && (
-          <path d={mmPath} fill="none" stroke={mmColor} strokeWidth={2}
-            strokeLinejoin="round" strokeLinecap="round"
-            clipPath={`url(#${clipId})`}/>
+          <g clipPath={`url(#${clipId})`}>
+            <path d={mmPath} fill="none" stroke={mmColor} strokeWidth={2}
+              strokeDasharray="7 5" strokeLinejoin="round" strokeLinecap="round"
+              style={{ animation: 'bm-line-draw 1.2s cubic-bezier(0.4, 0, 0.2, 1) backwards' }}/>
+          </g>
         )}
 
         <rect ref={selRef} x={padL} y={padT} width={0} height={chartH}

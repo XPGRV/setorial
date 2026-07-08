@@ -28,6 +28,7 @@ function filterByRangeYears(rows, field, rangeYears) {
 }
 
 function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height = 260, events = [], showEvents = true, chartStyle = 'line', zeroBaseline = false, highlightZero = false, endPaddingMonths = 0, bottomPadding = 32, connectGaps = false, onZoom, onResetZoom }) {
+  const reactId = React.useId().replace(/[^a-z0-9-]/gi, '');
   const svgRef = React.useRef(null);
   const [hovered, setHovered] = React.useState(null); // { x, y, row, mouseY }
   const [svgW, setSvgW] = React.useState(760);
@@ -185,8 +186,8 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
     : [];
 
   const fmt = v => v == null ? '—' : Number(v).toFixed(decimals).replace('.', ',');
-  const clipId = `cc-clip-${field}`;
-  const gradId = `cc-grad-${field}`;
+  const clipId = `cc-clip-${field}-${reactId}`;
+  const gradId = `cc-grad-${field}-${reactId}`;
   const dataKey = valid.length > 0
     ? `${valid[0].year}-${valid[0].month}-${valid.length}`
     : 'empty';

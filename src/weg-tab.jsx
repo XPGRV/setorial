@@ -465,7 +465,10 @@ function WegPeersCard({ data, metric = 'price' }) {
   );
 }
 
-function TransformerExportControls({ scope, setScope, product, setProduct }) {
+function TransformerExportControls({ scope, setScope, selectedCodes, toggleCode, selectedProducts }) {
+  const label = selectedProducts.length === 1
+    ? `${selectedProducts[0].label} · ${selectedProducts[0].short}`
+    : `${selectedProducts.length} categorias`;
   return (
     <div className="card-ctrl-row">
       <div className="seg">
@@ -477,37 +480,75 @@ function TransformerExportControls({ scope, setScope, product, setProduct }) {
             onClick={() => setScope(value)}>{label}</button>
         ))}
       </div>
-      <Dropdown label={`${product.label} · ${product.short}`} width={340}>
+      <Dropdown label={label} width={360}>
         {TRANSFORMER_PRODUCTS.map(p => (
-          <button key={p.code} className={`weg-dd-opt ${product.code === p.code ? 'is-on' : ''}`}
-            onClick={() => setProduct(p)}>
-            <span style={{display:'block', fontWeight:700}}>{p.label} · {p.short}</span>
-            <span style={{display:'block', marginTop:3, color:'var(--fg-dim)', fontSize:11, lineHeight:1.35}}>
-              {p.desc}
+          <label key={p.code} className="weg-dd-check" style={{alignItems:'flex-start'}}>
+            <input type="checkbox" checked={selectedCodes.has(p.code)} onChange={() => toggleCode(p.code)}/>
+            <span style={{display:'block', flex:1}}>
+              <span style={{display:'block', fontWeight:700}}>{p.label} · {p.short}</span>
+              <span style={{display:'block', marginTop:3, color:'var(--fg-dim)', fontSize:11, lineHeight:1.35}}>
+                {p.desc}
+              </span>
             </span>
-          </button>
+          </label>
         ))}
       </Dropdown>
     </div>
   );
 }
 
+function TransformerExportSummary({ selectedProducts }) {
+  if (!selectedProducts.length) return 'Nenhuma categoria selecionada';
+  if (selectedProducts.length === 1) return `${selectedProducts[0].label} · ${selectedProducts[0].short}`;
+  return selectedProducts.map(p => p.label).join(' + ');
+}
+
 function WegTransformerExportsSection({ data, accent }) {
-  const dataset = 'weg_transformadores_exports';
-  const allRows = data[dataset] || [];
+  const sourceDataset = 'weg_transformadores_exports';
+  const chartDataset = 'weg_transformadores_exports_sum';
+  const allRows = data[sourceDataset] || [];
   const [scope, setScope] = React.useState('br');
-  const [product, setProduct] = React.useState(TRANSFORMER_PRODUCTS[0]);
+  const [selectedCodes, setSelectedCodes] = React.useState(() => new Set([TRANSFORMER_PRODUCTS[0].code]));
   const [range, setRange] = React.useState('5');
   const [chartStyle, setChartStyle] = React.useState('area');
   const [zoom, setZoom] = React.useState(null);
   const [seasonalStyle, setSeasonalStyle] = React.useState('line');
   const [seasonalWindow, setSeasonalWindow] = React.useState('5');
 
-  const field = `${scope}_${product.code}`;
+  const selectedKey = React.useMemo(() => [...selectedCodes].sort().join('|'), [selectedCodes]);
+  const selectedProducts = React.useMemo(
+    () => TRANSFORMER_PRODUCTS.filter(p => selectedCodes.has(p.code)),
+    [selectedKey]
+  );
+  const field = 'value';
   const scopeLabel = scope === 'br' ? 'Brasil' : 'Santa Catarina';
   const ordOf = r => r.year * 12 + r.month - 1;
-  const validRows = React.useMemo(() => allRows.filter(r => r[field] != null), [allRows, field]);
-  React.useEffect(() => { setZoom(null); }, [field]);
+
+  const toggleCode = code => setSelectedCodes(prev => {
+    const next = new Set(prev);
+    next.has(code) ? next.delete(code) : next.add(code);
+    return next;
+  });
+
+  const summedRows = React.useMemo(() => {
+    if (!selectedProducts.length) return [];
+    return allRows.map(r => {
+      let total = 0;
+      let hasAny = false;
+      for (const product of selectedProducts) {
+        const value = r[`${scope}_${product.code}`];
+        if (value != null) {
+          total += value;
+          hasAny = true;
+        }
+      }
+      return { year: r.year, month: r.month, value: hasAny ? total : null };
+    }).filter(r => r.value != null);
+  }, [allRows, scope, selectedKey]);
+
+  const chartData = React.useMemo(() => ({ ...data, [chartDataset]: summedRows }), [data, summedRows]);
+  const validRows = summedRows;
+  React.useEffect(() => { setZoom(null); }, [scope, selectedKey]);
 
   const filteredRows = React.useMemo(() => {
     if (zoom) return validRows.filter(r => ordOf(r) >= zoom.o0 && ordOf(r) <= zoom.o1);
@@ -532,14 +573,14 @@ function WegTransformerExportsSection({ data, accent }) {
   const prevRow = filteredRows.length >= 2 ? filteredRows[filteredRows.length - 2] : null;
   const yoyRow = lastRow ? [...filteredRows].reverse().find(r => r.year === lastRow.year - 1 && r.month === lastRow.month) : null;
   const pct = (a, b) => (a == null || b == null || b === 0) ? null : (a - b) / Math.abs(b);
-  const mom = pct(lastRow?.[field], prevRow?.[field]);
-  const yoy = pct(lastRow?.[field], yoyRow?.[field]);
+  const mom = pct(lastRow?.value, prevRow?.value);
+  const yoy = pct(lastRow?.value, yoyRow?.value);
   const fmtPct = v => v == null ? '—' : (v >= 0 ? '+' : '') + (v * 100).toFixed(1).replace('.', ',') + '%';
 
   const years = React.useMemo(() => {
-    if (!allRows.length) return [];
-    return availableYears(data, dataset, field);
-  }, [data, allRows, field]);
+    if (!summedRows.length) return [];
+    return availableYears(chartData, chartDataset, field);
+  }, [chartData, summedRows]);
   const selectedYears = React.useMemo(() => {
     if (seasonalWindow === 'all') return years;
     return years.slice(-parseInt(seasonalWindow, 10));
@@ -554,8 +595,11 @@ function WegTransformerExportsSection({ data, accent }) {
           <div>
             <div className="card-eyebrow">SECEX · Exportações · {scopeLabel} · 1000 US$</div>
             <h3 className="card-title">Exportações de Transformadores</h3>
+            <span style={{display:'block', marginTop:3, color:'var(--fg-dim)', fontSize:11, lineHeight:1.35}}>
+              {TransformerExportSummary({ selectedProducts })}
+            </span>
             <div className="card-price">
-              <span className="card-value">{fmt(lastRow?.[field], { decimals: 0 })}</span>
+              <span className="card-value">{fmt(lastRow?.value, { decimals: 0 })}</span>
               <span className="card-unit">1000 US$</span>
               <span className={`card-delta ${mom == null ? '' : mom >= 0 ? 'is-up' : 'is-down'}`}>
                 {fmtPct(mom)}<span className="card-delta-label"> MoM</span>
@@ -567,10 +611,10 @@ function WegTransformerExportsSection({ data, accent }) {
           </div>
 
           <div className="card-controls">
-            <TransformerExportControls scope={scope} setScope={setScope} product={product} setProduct={setProduct}/>
+            <TransformerExportControls scope={scope} setScope={setScope} selectedCodes={selectedCodes} toggleCode={toggleCode} selectedProducts={selectedProducts}/>
             <div className="card-ctrl-row">
               <div className="year-seg">
-                {[['3a','3'], ['5a','5'], ['10a','10'], ['Todos','all']].map(([label, value]) => (
+                {[["3a","3"], ["5a","5"], ["10a","10"], ["Todos","all"]].map(([label, value]) => (
                   <button key={value} className={`year-seg-btn ${!zoom && range === value ? 'is-on' : ''}`}
                     onClick={() => { setZoom(null); setRange(value); }}>{label}</button>
                 ))}
@@ -580,7 +624,7 @@ function WegTransformerExportsSection({ data, accent }) {
                   title="Duplo-clique no gráfico também reseta">Reset zoom</button>
               )}
               <div className="seg">
-                {[['line','Linha'], ['area','Área']].map(([value, label]) => (
+                {[["line","Linha"], ["area","Área"]].map(([value, label]) => (
                   <button key={value} className={`seg-btn ${chartStyle === value ? 'is-on' : ''}`}
                     onClick={() => setChartStyle(value)}>{label}</button>
                 ))}
@@ -601,20 +645,23 @@ function WegTransformerExportsSection({ data, accent }) {
       <section className="card card-full" data-card-id="card-weg-transformadores-exportacoes-sazonal">
         <div className="card-head">
           <div>
-            <div className="card-eyebrow">SECEX · Sazonal · {scopeLabel} · {product.label}</div>
+            <div className="card-eyebrow">SECEX · Sazonal · {scopeLabel}</div>
             <h3 className="card-title">Exportações de Transformadores · Sazonal</h3>
+            <span style={{display:'block', marginTop:3, color:'var(--fg-dim)', fontSize:11, lineHeight:1.35}}>
+              {TransformerExportSummary({ selectedProducts })}
+            </span>
           </div>
           <div className="card-controls">
-            <TransformerExportControls scope={scope} setScope={setScope} product={product} setProduct={setProduct}/>
+            <TransformerExportControls scope={scope} setScope={setScope} selectedCodes={selectedCodes} toggleCode={toggleCode} selectedProducts={selectedProducts}/>
             <div className="card-ctrl-row">
               <div className="year-seg">
-                {[['5a','5'], ['10a','10'], ['Todos','all']].map(([label, value]) => (
+                {[["5a","5"], ["10a","10"], ["Todos","all"]].map(([label, value]) => (
                   <button key={value} className={`year-seg-btn ${seasonalWindow === value ? 'is-on' : ''}`}
                     onClick={() => setSeasonalWindow(value)}>{label}</button>
                 ))}
               </div>
               <div className="seg">
-                {[['line','Linha'], ['area','Área'], ['bars','Barras']].map(([value, label]) => (
+                {[["line","Linha"], ["area","Área"], ["bars","Barras"]].map(([value, label]) => (
                   <button key={value} className={`seg-btn ${seasonalStyle === value ? 'is-on' : ''}`}
                     onClick={() => setSeasonalStyle(value)}>{label}</button>
                 ))}
@@ -625,7 +672,7 @@ function WegTransformerExportsSection({ data, accent }) {
 
         {selectedYears.length ? (
           <SeasonalChart
-            data={data} dataset={dataset} field={field}
+            data={chartData} dataset={chartDataset} field={field}
             selectedYears={selectedYears}
             showStats={false} showEvents={false} events={[]}
             chartStyle={seasonalStyle} accent={accent}

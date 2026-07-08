@@ -259,7 +259,7 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
 }
 
 // ── ContinuousCard ────────────────────────────────────────────────────────────
-function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit = '', decimals = 1, height = 260, events: eventsProp, footerNote }) {
+function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit = '', decimals = 1, height = 260, events: eventsProp, footerNote, rebaseBase100 = false }) {
   const [range, setRange]           = React.useState('5');
   const [chartStyle, setChartStyle] = React.useState('area');
 
@@ -267,7 +267,16 @@ function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit
   const allRows    = data[dataset] || [];
 
   const rangeNum = range === 'all' ? 'all' : parseInt(range);
-  const rows = React.useMemo(() => filterByRangeYears(allRows, field, rangeNum), [allRows, field, rangeNum]);
+  const filteredRows = React.useMemo(() => filterByRangeYears(allRows, field, rangeNum), [allRows, field, rangeNum]);
+  const rows = React.useMemo(() => {
+    if (!rebaseBase100) return filteredRows;
+    const base = filteredRows.find(r => r[field] != null && r[field] !== 0)?.[field];
+    if (base == null) return filteredRows;
+    return filteredRows.map(r => ({
+      ...r,
+      [field]: r[field] == null ? null : (r[field] / base) * 100,
+    }));
+  }, [filteredRows, field, rebaseBase100]);
 
   // Latest value header stats
   const lastRow  = rows[rows.length - 1] || null;

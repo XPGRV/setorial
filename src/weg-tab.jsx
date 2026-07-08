@@ -1,7 +1,7 @@
 import React from 'react'
 import { MONTHS_PT, availableYears, fmt, useFadeOut } from './data-utils.jsx'
 import { SeasonalChart } from './seasonal-chart.jsx'
-import { ContinuousCard, ContinuousChart } from './continuous-chart.jsx'
+import { ContinuousCard, ContinuousChart, computeMM12 } from './continuous-chart.jsx'
 
 // Aba WEG (provisória) — dados da planilha WEG - Setorial.xlsm
 
@@ -531,6 +531,7 @@ function WegTransformerExportsSection({ data, accent }) {
   const [zoom, setZoom] = React.useState(null);
   const [seasonalStyle, setSeasonalStyle] = React.useState('line');
   const [seasonalWindow, setSeasonalWindow] = React.useState('5');
+  const [showMM, setShowMM] = React.useState(false);
 
   const mainSelectedKey = React.useMemo(() => [...mainSelectedCodes].sort().join('|'), [mainSelectedCodes]);
   const seasonalSelectedKey = React.useMemo(() => [...seasonalSelectedCodes].sort().join('|'), [seasonalSelectedCodes]);
@@ -568,7 +569,12 @@ function WegTransformerExportsSection({ data, accent }) {
   );
 
   const chartData = React.useMemo(() => ({ ...data, [chartDataset]: seasonalSummedRows }), [data, seasonalSummedRows]);
-  const validRows = mainSummedRows;
+  // MM12M calculada sobre a série completa (antes do corte por range/zoom),
+  // assim ela já vem pronta em qualquer janela — sem "warm-up" visível.
+  const validRows = React.useMemo(
+    () => computeMM12(mainSummedRows, field, 'mm12'),
+    [mainSummedRows]
+  );
   React.useEffect(() => { setZoom(null); }, [mainScope, mainSelectedKey]);
 
   const filteredRows = React.useMemo(() => {
@@ -650,6 +656,9 @@ function WegTransformerExportsSection({ data, accent }) {
                     onClick={() => setChartStyle(value)}>{label}</button>
                 ))}
               </div>
+              <button className={`seg-btn weg-mm-toggle ${showMM ? 'is-on' : ''}`}
+                onClick={() => setShowMM(v => !v)}
+                title="Média móvel de 12 meses">MM12M</button>
             </div>
           </div>
         </div>
@@ -658,6 +667,7 @@ function WegTransformerExportsSection({ data, accent }) {
           rows={filteredRows} field={field} accent={accent}
           unit="1.000 US$" decimals={0} height={390}
           chartStyle={chartStyle}
+          mmField="mm12" showMM={showMM}
           endPaddingMonths={2}
           bottomPadding={54}
           connectGaps

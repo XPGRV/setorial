@@ -19,6 +19,18 @@ function niceYTicks(dataMin, dataMax, count = 5) {
 }
 
 
+// Média móvel de 12 meses — calculada a partir da série completa (antes de
+// qualquer corte por range/zoom), assim a MM já vem pronta em qualquer janela
+// visível. Anexa o valor em outKey; fica null enquanto não há 12 meses.
+export function computeMM12(rows, field, outKey = 'mm12') {
+  return rows.map((r, i) => {
+    if (i < 11) return { ...r, [outKey]: null };
+    let sum = 0;
+    for (let j = i - 11; j <= i; j++) sum += rows[j][field] ?? 0;
+    return { ...r, [outKey]: sum / 12 };
+  });
+}
+
 function filterByRangeYears(rows, field, rangeYears) {
   const valid = rows.filter(r => r[field] != null);
   if (!valid.length || rangeYears === 'all') return valid;
@@ -27,7 +39,7 @@ function filterByRangeYears(rows, field, rangeYears) {
   return valid.filter(r => r.year * 12 + r.month - 1 > cutOrd);
 }
 
-function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height = 260, events = [], showEvents = true, chartStyle = 'line', zeroBaseline = false, highlightZero = false, endPaddingMonths = 0, bottomPadding = 32, connectGaps = false, onZoom, onResetZoom }) {
+function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height = 260, events = [], showEvents = true, chartStyle = 'line', zeroBaseline = false, highlightZero = false, endPaddingMonths = 0, bottomPadding = 32, connectGaps = false, onZoom, onResetZoom, mmField = null, showMM = false, mmLabel = 'MM12M' }) {
   const reactId = React.useId().replace(/[^a-z0-9-]/gi, '');
   const svgRef = React.useRef(null);
   const [hovered, setHovered] = React.useState(null); // { x, y, row, mouseY }
@@ -64,7 +76,9 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
     );
   }
 
+  const showMMLine = showMM && !!mmField;
   const vals   = valid.map(r => r[field]);
+  if (showMMLine) for (const r of valid) { if (r[mmField] != null) vals.push(r[mmField]); }
   const minV   = Math.min(...vals);
   const maxV   = Math.max(...vals);
   const { ticks: yTicks, lo: yMin, hi: yMax } = niceYTicks(minV, maxV);
@@ -110,6 +124,11 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
   const linePath = segments
     .map(s => 'M' + s.map(r => `${xOf(r).toFixed(1)},${yOf(r[field]).toFixed(1)}`).join('L'))
     .join('');
+
+  const mmValid = showMMLine ? valid.filter(r => r[mmField] != null) : [];
+  const mmPath  = mmValid.length
+    ? 'M' + mmValid.map(r => `${xOf(r).toFixed(1)},${yOf(r[mmField]).toFixed(1)}`).join('L')
+    : '';
 
   const zeroY       = yOf(0);
   const zeroInChart = zeroY >= padT && zeroY <= padT + chartH;
@@ -271,6 +290,13 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
           });
         })()}
 
+        {/* Média móvel 12 meses */}
+        {showMMLine && mmPath && (
+          <path d={mmPath} fill="none" stroke="var(--fg)" strokeOpacity={0.6} strokeWidth={1.8}
+            strokeDasharray="5 4" strokeLinejoin="round" strokeLinecap="round"
+            clipPath={`url(#${clipId})`}/>
+        )}
+
         <rect ref={selRef} x={padL} y={padT} width={0} height={chartH}
           fill="var(--accent)" fillOpacity="0.12" stroke="var(--accent)"
           strokeOpacity="0.5" strokeWidth="1" pointerEvents="none"
@@ -305,6 +331,12 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
                   {fmt(r[field])}<span className="hover-unit"> {unit}</span>
                 </span>
               </div>
+              {showMMLine && r[mmField] != null && (
+                <div className="hover-row hover-stat">
+                  <span className="hover-year">{mmLabel}</span>
+                  <span className="hover-val">{fmt(r[mmField])}<span className="hover-unit"> {unit}</span></span>
+                </div>
+              )}
             </div>
           </div>
         );

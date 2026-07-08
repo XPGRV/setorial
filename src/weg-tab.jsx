@@ -531,7 +531,7 @@ function WegTransformerExportsSection({ data, accent }) {
   const [zoom, setZoom] = React.useState(null);
   const [seasonalStyle, setSeasonalStyle] = React.useState('line');
   const [seasonalWindow, setSeasonalWindow] = React.useState('5');
-  const [showMM, setShowMM] = React.useState(false);
+  const [showMM, setShowMM] = React.useState(true);
 
   const mainSelectedKey = React.useMemo(() => [...mainSelectedCodes].sort().join('|'), [mainSelectedCodes]);
   const seasonalSelectedKey = React.useMemo(() => [...seasonalSelectedCodes].sort().join('|'), [seasonalSelectedCodes]);

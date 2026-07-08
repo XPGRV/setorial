@@ -60,6 +60,8 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
   }, []);
 
   const { shouldRender: showAreaRender, isLeaving: areaLeaving } = useFadeOut(chartStyle === 'area', 450);
+  const showMMLine = showMM && !!mmField;
+  const { shouldRender: showMMRender, isLeaving: mmLeaving } = useFadeOut(showMMLine, 500);
 
   const W = svgW, H = height;
   const padL = 58, padR = 72, padT = 14, padB = bottomPadding;
@@ -76,9 +78,8 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
     );
   }
 
-  const showMMLine = showMM && !!mmField;
   const vals   = valid.map(r => r[field]);
-  if (showMMLine) for (const r of valid) { if (r[mmField] != null) vals.push(r[mmField]); }
+  if (showMMRender) for (const r of valid) { if (r[mmField] != null) vals.push(r[mmField]); }
   const minV   = Math.min(...vals);
   const maxV   = Math.max(...vals);
   const { ticks: yTicks, lo: yMin, hi: yMax } = niceYTicks(minV, maxV);
@@ -125,7 +126,7 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
     .map(s => 'M' + s.map(r => `${xOf(r).toFixed(1)},${yOf(r[field]).toFixed(1)}`).join('L'))
     .join('');
 
-  const mmValid = showMMLine ? valid.filter(r => r[mmField] != null) : [];
+  const mmValid = showMMRender ? valid.filter(r => r[mmField] != null) : [];
   const mmPath  = mmValid.length
     ? 'M' + mmValid.map(r => `${xOf(r).toFixed(1)},${yOf(r[mmField]).toFixed(1)}`).join('L')
     : '';
@@ -290,16 +291,16 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
           });
         })()}
 
-        {/* Média móvel 12 meses — tracejada. O rx-draw (stroke-dashoffset) não
-            dá pra usar aqui porque ele PRECISA controlar o dasharray, o que
-            apagaria o padrão tracejado. Em vez disso, mesmo truque do
-            BimonthlyChart: clip-path via CSS revelando a linha da esquerda
-            pra direita, o que funciona junto com qualquer stroke-dasharray. */}
-        {showMMLine && mmPath && (
+        {/* Média móvel 12 meses — tracejada. Reaproveita o par de classes
+            rx-stat-mean/rx-stat-leaving (mesmo usado pela linha de média
+            histórica em beef-us-tab/seasonal-chart/etc): reveal e retract
+            via clip-path, então o dasharray nunca é tocado — entra e sai
+            "desenhando" dos dois lados sem perder o padrão tracejado. */}
+        {showMMRender && mmPath && (
           <g clipPath={`url(#${clipId})`}>
             <path d={mmPath} fill="none" stroke={mmColor} strokeWidth={2}
               strokeDasharray="7 5" strokeLinejoin="round" strokeLinecap="round"
-              style={{ animation: 'bm-line-draw 1.2s cubic-bezier(0.4, 0, 0.2, 1) backwards' }}/>
+              className={`rx-stat-mean${mmLeaving ? ' rx-stat-leaving' : ''}`}/>
           </g>
         )}
 
@@ -337,7 +338,7 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
                   {fmt(r[field])}<span className="hover-unit"> {unit}</span>
                 </span>
               </div>
-              {showMMLine && r[mmField] != null && (
+              {showMMRender && r[mmField] != null && (
                 <div className="hover-row hover-stat">
                   <span className="hover-year" style={{color: mmColor}}>{mmLabel}</span>
                   <span className="hover-val">{fmt(r[mmField])}<span className="hover-unit"> {unit}</span></span>
@@ -348,7 +349,7 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
         );
       })()}
 
-      {showMMLine && (
+      {showMMRender && (
         <div className="ciclo-legend">
           <span className="legend-year">
             <span className="legend-line" style={{background: accent}}/>

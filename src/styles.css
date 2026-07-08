@@ -2223,9 +2223,9 @@ html.route-is-entering #root { animation: route-fade-in 280ms cubic-bezier(0.22,
   border: 1px solid var(--border) !important;
   border-radius: var(--radius-sm);
   color: var(--fg-dim);
-  background: var(--bg-inset);
+  background: none;
 }
-.weg-mm-toggle:hover { color: var(--fg); border-color: var(--border-strong) !important; }
+.weg-mm-toggle:hover { color: var(--fg); background: var(--bg-inset); border-color: var(--border-strong) !important; }
 .weg-mm-toggle.is-on {
   border-color: var(--accent) !important;
   background: var(--accent);

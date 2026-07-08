@@ -614,14 +614,14 @@ function WegTransformerExportsSection({ data, accent }) {
       <section className="card card-full" data-card-id="card-weg-transformadores-exportacoes">
         <div className="card-head">
           <div>
-            <div className="card-eyebrow">SECEX · Exportações · {mainScopeLabel} · 1000 US$</div>
+            <div className="card-eyebrow">SECEX · Exportações · {mainScopeLabel} · 1.000 US$</div>
             <h3 className="card-title">Exportações de Transformadores</h3>
             <span style={{display:'block', marginTop:3, color:'var(--fg-dim)', fontSize:11, lineHeight:1.35}}>
               {TransformerExportSummary({ selectedProducts: mainSelectedProducts })}
             </span>
             <div className="card-price">
               <span className="card-value">{fmt(lastRow?.value, { decimals: 0 })}</span>
-              <span className="card-unit">1000 US$</span>
+              <span className="card-unit">1.000 US$</span>
               <span className={`card-delta ${mom == null ? '' : mom >= 0 ? 'is-up' : 'is-down'}`}>
                 {fmtPct(mom)}<span className="card-delta-label"> MoM</span>
               </span>
@@ -656,7 +656,7 @@ function WegTransformerExportsSection({ data, accent }) {
 
         <ContinuousChart
           rows={filteredRows} field={field} accent={accent}
-          unit="1000 US$" decimals={0} height={390}
+          unit="1.000 US$" decimals={0} height={390}
           chartStyle={chartStyle}
           endPaddingMonths={2}
           bottomPadding={54}
@@ -700,7 +700,7 @@ function WegTransformerExportsSection({ data, accent }) {
             selectedYears={selectedYears}
             showStats={false} showEvents={false} events={[]}
             chartStyle={seasonalStyle} accent={TRANSFORMER_SEASONAL_ACCENT}
-            unit="1000 US$" decimals={0} big={false}
+            unit="1.000 US$" decimals={0} big={false}
             height={340}
             hideAvg
           />

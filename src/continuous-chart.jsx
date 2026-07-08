@@ -185,7 +185,7 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
     ? events.filter(ev => { const o = ev.year * 12 + ev.month - 1; return o >= firstOrd && o <= lastOrd; })
     : [];
 
-  const fmt = v => v == null ? '—' : Number(v).toFixed(decimals).replace('.', ',');
+  const fmt = v => v == null ? '—' : Number(v).toLocaleString('pt-BR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
   const clipId = `cc-clip-${field}-${reactId}`;
   const gradId = `cc-grad-${field}-${reactId}`;
   const dataKey = valid.length > 0

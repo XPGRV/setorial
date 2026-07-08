@@ -1063,6 +1063,25 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
       }
     }
     if (weg_transformadores_exports.length) result.weg_transformadores_exports = weg_transformadores_exports;
+
+    // Preço SECEX (col W, idx 22): US$/unid, Transformadores Dielétricos
+    // Líquido > 10.000 kVA. Só existe no layout novo — no antigo, o idx 22
+    // é coluna de exportação (sc_850432).
+    if (!oldStateLayout) {
+      const weg_transformadores_secex_price = [];
+      for (let i = 4; i < tRaw.length; i++) {
+        const r = tRaw[i];
+        if (!r) continue;
+        const val = parseNum(r[22]);
+        if (val == null) continue;
+        const md = parseDate(r[1]) || parseMonthTag(r[1]);
+        const off = i - 4;
+        const year = md?.year ?? 2000 + Math.floor(off / 12);
+        const month = md?.month ?? (off % 12) + 1;
+        weg_transformadores_secex_price.push({ year, month, value: val });
+      }
+      if (weg_transformadores_secex_price.length) result.weg_transformadores_secex_price = weg_transformadores_secex_price;
+    }
   }
 
   // ── WEG · Peers (WEG - Setorial.xlsm · aba Peers) ────────────────────────────

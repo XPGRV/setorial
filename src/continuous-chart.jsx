@@ -1,5 +1,5 @@
 import React from 'react'
-import { useFadeOut } from './data-utils.jsx'
+import { useFadeOut, fmt } from './data-utils.jsx'
 
 // ContinuousChart — série contínua (não sazonal) com controles simplificados
 
@@ -365,13 +365,20 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
 }
 
 // ── ContinuousCard ────────────────────────────────────────────────────────────
-function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit = '', decimals = 1, height = 260, events: eventsProp, footerNote, rebaseBase100 = false, enableZoom = false }) {
+function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit = '', decimals = 1, height = 260, events: eventsProp, footerNote, rebaseBase100 = false, enableZoom = false, enableMM = false, mmDefaultOn = false, seriesLabel = 'Valor' }) {
   const [range, setRange]           = React.useState('5');
   const [chartStyle, setChartStyle] = React.useState('area');
   const [zoom, setZoom]             = React.useState(null);
+  const [showMM, setShowMM]         = React.useState(mmDefaultOn);
 
   const eventsData = []; // eventos desativados neste gráfico
-  const allRows    = data[dataset] || [];
+  // MM12M calculada sobre a série completa (antes do corte por range/zoom),
+  // assim ela já vem pronta em qualquer janela. Não combinar com rebaseBase100
+  // (a MM seria calculada sobre os valores brutos, não rebaseados).
+  const allRows = React.useMemo(() => {
+    const base = data[dataset] || [];
+    return enableMM ? computeMM12(base, field, 'mm12') : base;
+  }, [data, dataset, field, enableMM]);
 
   const ordOf = r => r.year * 12 + r.month - 1;
   const rangeNum = range === 'all' ? 'all' : parseInt(range);
@@ -408,7 +415,7 @@ function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit
   const mom  = pct(lastRow?.[field], prevRow?.[field]);
   const yoy  = pct(lastRow?.[field], yoyRow?.[field]);
   const fmtPct = v => v == null ? '—' : (v >= 0 ? '+' : '') + (v * 100).toFixed(1) + '%';
-  const fmtVal = v => v == null ? '—' : Number(v).toFixed(decimals).replace('.', ',');
+  const fmtVal = v => v == null ? '—' : fmt(v, { decimals });
 
   return (
     <section className="card card-full" data-card-id={cardId}>
@@ -453,6 +460,11 @@ function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit
                   onClick={() => setChartStyle(v)}>{l}</button>
               ))}
             </div>
+            {enableMM && (
+              <button className={`seg-btn weg-mm-toggle ${showMM ? 'is-on' : ''}`}
+                onClick={() => setShowMM(v => !v)}
+                title="Média móvel de 12 meses">MM12M</button>
+            )}
           </div>
         </div>
       </div>
@@ -462,6 +474,7 @@ function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit
         unit={unit} decimals={decimals} height={height}
         events={eventsData} showEvents={false}
         chartStyle={chartStyle}
+        mmField={enableMM ? 'mm12' : null} showMM={enableMM && showMM} seriesLabel={seriesLabel}
         onZoom={enableZoom ? applyZoom : undefined}
         onResetZoom={enableZoom ? () => setZoom(null) : undefined}
       />

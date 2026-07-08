@@ -741,7 +741,8 @@ const EmptyWeg = () => (
 const WegTab = ({ data, accent, tab }) => {
   const hasTransfPrice = !!(data.weg_transformadores && data.weg_transformadores.length);
   const hasTransfExports = !!(data.weg_transformadores_exports && data.weg_transformadores_exports.length);
-  const hasTransf = hasTransfPrice || hasTransfExports;
+  const hasSecexPrice = !!(data.weg_transformadores_secex_price && data.weg_transformadores_secex_price.length);
+  const hasTransf = hasTransfPrice || hasTransfExports || hasSecexPrice;
   const hasPeers  = !!(data.weg_peers && data.weg_peers.length);
   if (!hasTransf && !hasPeers) return <EmptyWeg />;
 
@@ -761,6 +762,17 @@ const WegTab = ({ data, accent, tab }) => {
               field="value" unit="Base 100" decimals={2}
               rebaseBase100
               enableZoom
+            />
+          )}
+          {hasSecexPrice && (
+            <ContinuousCard
+              cardId="card-weg-transformadores-preco-secex"
+              title="Preço Transformadores - SECEX"
+              sub="SECEX · Transformadores Dielétricos Líquido > 10.000 kVA · US$/unid"
+              accent={accent} data={data} dataset="weg_transformadores_secex_price"
+              field="value" unit="US$/unid" decimals={0}
+              enableZoom
+              enableMM mmDefaultOn seriesLabel="Preço"
             />
           )}
           {hasTransfExports && <WegTransformerExportsSection data={data} accent={accent}/>}

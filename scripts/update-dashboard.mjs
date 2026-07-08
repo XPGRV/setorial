@@ -23,7 +23,7 @@ import * as XLSX from 'xlsx';
 import { parseWorkbookData } from '../src/parse-workbook.js';
 
 const PASTA    = process.env.SETORIAL_DIR || 'G:\\Meu Drive\\Arquivos\\Setorial - Proteínas';
-const DB_DIR   = process.env.DATABASE_DIR || 'G:\\Meu Drive\\Arquivos\\Setorial - Database';
+const DB_DIR   = process.env.DATABASE_DIR || 'G:\\.shortcut-targets-by-id\\11q1ngdqbySnDMCQSP4fiwPztT6ju2F4Z\\Arquivos\\Setorial - Database';
 // Cada item: { dir, nome }. As planilhas de proteína vêm da pasta Proteínas;
 // as de "base de dados" (ex: WEG) vêm da pasta Database.
 const ARQUIVOS = [

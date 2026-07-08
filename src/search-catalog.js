@@ -51,6 +51,8 @@ const RAW_ITEMS = [
   ['transportes','graos','card-transport-corn-volume','Exportação Milho','milho volume exportado exportacao 1000 toneladas'],
   ['transportes','graos','card-transport-corn-mt-volume','Exportação Milho · MT','milho mato grosso mt volume exportado exportacao 1000 toneladas'],
   ['weg',null,'card-weg-transformadores','Preço de Transformadores','transformador transformadores transformer ppi electric power specialty manufacturing'],
+  ['weg',null,'card-weg-transformadores-exportacoes','Exportações de Transformadores','transformador transformadores exportacao exportacoes secex sh6 brasil santa catarina sc'],
+  ['weg',null,'card-weg-transformadores-exportacoes-sazonal','Exportações de Transformadores · Sazonal','transformador transformadores exportacao exportacoes sazonal secex sh6 brasil santa catarina sc'],
   ['weg',null,'card-weg-peers','Peers · Comparação de Preço','peers cotacao preco price weg abb nidec regal rexnord eaton siemens schneider ge vernova hitachi hyosung eie gtd'],
   ['weg',null,'card-weg-peers-pe','Peers · Comparação de P/E','peers pe price earnings valuation multiplo weg abb nidec regal rexnord eaton siemens schneider ge vernova hitachi hyosung eie gtd'],
   ['beef_br','precos','card-carne-mi','Preço Carne · Mercado Interno','carne mercado interno mi domestic price'],

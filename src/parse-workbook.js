@@ -1033,6 +1033,36 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
       weg_transformadores.push({ year, month, value: val });
     }
     if (weg_transformadores.length) result.weg_transformadores = weg_transformadores;
+
+    const header3 = tRaw[2] || [];
+    const oldStateLayout = String(header3[7] || '').toLowerCase().includes('minas');
+    const transformerExportCols = oldStateLayout
+      ? [
+          ['850421', 5, 6], ['850422', 9, 10], ['850423', 13, 14], ['850431', 17, 18],
+          ['850432', 21, 22], ['850433', 25, 26], ['850434', 29, 30], ['850490', 33, 34],
+        ]
+      : [
+          ['850421', 5, 6], ['850422', 7, 8], ['850423', 9, 10], ['850431', 11, 12],
+          ['850432', 13, 14], ['850433', 15, 16], ['850434', 17, 18], ['850490', 19, 20],
+        ];
+    const weg_transformadores_exports = [];
+    for (let i = 4; i < tRaw.length; i++) {
+      const r = tRaw[i];
+      if (!r) continue;
+      const md = parseDate(r[1]) || parseMonthTag(r[1]);
+      const off = i - 4;
+      const year = md?.year ?? 2000 + Math.floor(off / 12);
+      const month = md?.month ?? (off % 12) + 1;
+      const row = { year, month };
+      for (const [code, brCol, scCol] of transformerExportCols) {
+        row[`br_${code}`] = parseNum(r[brCol]);
+        row[`sc_${code}`] = parseNum(r[scCol]);
+      }
+      if (Object.entries(row).some(([key, value]) => !['year','month'].includes(key) && value != null)) {
+        weg_transformadores_exports.push(row);
+      }
+    }
+    if (weg_transformadores_exports.length) result.weg_transformadores_exports = weg_transformadores_exports;
   }
 
   // ── WEG · Peers (WEG - Setorial.xlsm · aba Peers) ────────────────────────────

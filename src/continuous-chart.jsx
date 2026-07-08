@@ -27,7 +27,7 @@ function filterByRangeYears(rows, field, rangeYears) {
   return valid.filter(r => r.year * 12 + r.month - 1 > cutOrd);
 }
 
-function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height = 260, events = [], showEvents = true, chartStyle = 'line', zeroBaseline = false, highlightZero = false, onZoom, onResetZoom }) {
+function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height = 260, events = [], showEvents = true, chartStyle = 'line', zeroBaseline = false, highlightZero = false, endPaddingMonths = 0, onZoom, onResetZoom }) {
   const svgRef = React.useRef(null);
   const [hovered, setHovered] = React.useState(null); // { x, y, row, mouseY }
   const [svgW, setSvgW] = React.useState(760);
@@ -70,7 +70,8 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
 
   const firstOrd  = valid[0].year * 12 + valid[0].month - 1;
   const lastOrd   = valid[valid.length - 1].year * 12 + valid[valid.length - 1].month - 1;
-  const totalMons = lastOrd - firstOrd || 1;
+  const domainLastOrd = lastOrd + endPaddingMonths;
+  const totalMons = domainLastOrd - firstOrd || 1;
 
   const xOf = row => padL + ((row.year * 12 + row.month - 1 - firstOrd) / totalMons) * chartW;
   const yOf = v   => padT + chartH - ((v - yMin) / (yMax - yMin)) * chartH;

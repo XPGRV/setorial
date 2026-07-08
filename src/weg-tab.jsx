@@ -28,7 +28,7 @@ const TRANSFORMER_PRODUCTS = [
   { code: 'liq_gt_10000', label: 'Transformadores > 10.000 kVA', short: '850423', codes: ['850423'], desc: 'Transformadores dieletricos de liquido acima de 10.000 kVA.' },
   { code: 'outros', label: 'Outros Transformadores', short: '850431-850490', codes: ['850431', '850432', '850433', '850434', '850490'], desc: 'Outros transformadores eletricos e partes de transformadores.' },
 ];
-const TRANSFORMER_SEASONAL_ACCENT = 'rgb(204, 242, 97)';
+const TRANSFORMER_SEASONAL_ACCENT = 'oklch(0.82 0.18 155)';
 
 const PEER_GROUPS = [
   { key: 'eie', label: 'EIE Peers', members: ['abb', 'nidec', 'regal'] },
@@ -636,6 +636,7 @@ function WegTransformerExportsSection({ data, accent }) {
           rows={filteredRows} field={field} accent={accent}
           unit="1000 US$" decimals={0} height={360}
           chartStyle={chartStyle}
+          endPaddingMonths={2}
           onZoom={applyZoom}
           onResetZoom={() => setZoom(null)}
         />

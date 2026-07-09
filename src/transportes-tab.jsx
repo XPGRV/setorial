@@ -77,8 +77,8 @@ function FreightRouteMap({ pinnedSeries, setPinnedSeries, fields, lastRow }) {
               <stop offset="97%" stopColor="white" stopOpacity="0.55" />
               <stop offset="100%" stopColor="white" stopOpacity="0" />
             </linearGradient>
-            <mask id={`${maskId}-map-mask`} maskUnits="userSpaceOnUse" x="175" y="185" width="360" height="350">
-              <rect x="175" y="185" width="360" height="350" fill={`url(#${maskId}-fade)`} />
+            <mask id={`${maskId}-map-mask`} maskUnits="userSpaceOnUse" x="-200" y="185" width="1100" height="350">
+              <rect x="-200" y="185" width="1100" height="350" fill={`url(#${maskId}-fade)`} />
             </mask>
           </defs>
           <g mask={`url(#${maskId}-map-mask)`}>

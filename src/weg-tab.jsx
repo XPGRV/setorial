@@ -28,6 +28,10 @@ const TRANSFORMER_PRODUCTS = [
   { code: 'liq_gt_10000', label: 'Transformadores > 10.000 kVA', short: '850423', codes: ['850423'], desc: 'Transformadores dieletricos de liquido acima de 10.000 kVA.' },
   { code: 'outros', label: 'Outros Transformadores', short: '850431-850490', codes: ['850431', '850432', '850433', '850434', '850490'], desc: 'Outros transformadores eletricos e partes de transformadores.' },
 ];
+const EIE_PRODUCTS = [
+  { code: 'motores', label: 'Motores', short: '850120-850153', codes: ['850120', '850131', '850132', '850133', '850134', '850140', '850151', '850152', '850153'], desc: 'Motores eletricos universais, corrente continua e corrente alternada.' },
+  { code: 'automacao', label: 'Automação', short: '850440-853720', codes: ['850440', '850450', '853620', '853521', '853641', '853649', '853650', '853690', '853710', '853720'], desc: 'Conversores, bobinas, disjuntores, reles, interruptores e quadros.' },
+];
 const TRANSFORMER_SEASONAL_ACCENT = 'oklch(0.82 0.18 155)';
 
 const PEER_GROUPS = [
@@ -462,7 +466,7 @@ function WegPeersCard({ data, metric = 'price' }) {
   );
 }
 
-function TransformerExportControls({ scope, setScope, selectedCodes, toggleCode, selectedProducts }) {
+function TransformerExportControls({ scope, setScope, selectedCodes, toggleCode, selectedProducts, products = TRANSFORMER_PRODUCTS }) {
   const label = selectedProducts.length === 1
     ? selectedProducts[0].label
     : `${selectedProducts.length} categorias`;
@@ -478,7 +482,7 @@ function TransformerExportControls({ scope, setScope, selectedCodes, toggleCode,
         ))}
       </div>
       <Dropdown label={label} width={360}>
-        {TRANSFORMER_PRODUCTS.map(p => (
+        {products.map(p => (
           <label key={p.code} className="weg-dd-check" style={{alignItems:'flex-start'}}>
             <input type="checkbox" checked={selectedCodes.has(p.code)} onChange={() => toggleCode(p.code)}/>
             <span style={{display:'block', flex:1}}>
@@ -725,6 +729,210 @@ function WegTransformerExportsSection({ data, accent }) {
 }
 
 // ── Aba ───────────────────────────────────────────────────────────────────────
+function WegEieExportsSection({ data, accent }) {
+  const sourceDataset = 'weg_eie_exports';
+  const chartDataset = 'weg_eie_exports_sum';
+  const allRows = data[sourceDataset] || [];
+  const [mainScope, setMainScope] = React.useState('br');
+  const [mainSelectedCodes, setMainSelectedCodes] = React.useState(() => new Set(EIE_PRODUCTS.map(p => p.code)));
+  const [seasonalScope, setSeasonalScope] = React.useState('br');
+  const [seasonalSelectedCodes, setSeasonalSelectedCodes] = React.useState(() => new Set(EIE_PRODUCTS.map(p => p.code)));
+  const [range, setRange] = React.useState('5');
+  const [chartStyle, setChartStyle] = React.useState('area');
+  const [zoom, setZoom] = React.useState(null);
+  const [seasonalStyle, setSeasonalStyle] = React.useState('line');
+  const [seasonalWindow, setSeasonalWindow] = React.useState('5');
+  const [showMM, setShowMM] = React.useState(true);
+
+  const mainSelectedKey = React.useMemo(() => [...mainSelectedCodes].sort().join('|'), [mainSelectedCodes]);
+  const seasonalSelectedKey = React.useMemo(() => [...seasonalSelectedCodes].sort().join('|'), [seasonalSelectedCodes]);
+  const mainSelectedProducts = React.useMemo(
+    () => EIE_PRODUCTS.filter(p => mainSelectedCodes.has(p.code)),
+    [mainSelectedKey]
+  );
+  const seasonalSelectedProducts = React.useMemo(
+    () => EIE_PRODUCTS.filter(p => seasonalSelectedCodes.has(p.code)),
+    [seasonalSelectedKey]
+  );
+  const field = 'value';
+  const mainScopeLabel = mainScope === 'br' ? 'Brasil' : 'Santa Catarina (WEG Proxy)';
+  const seasonalScopeLabel = seasonalScope === 'br' ? 'Brasil' : 'Santa Catarina (WEG Proxy)';
+  const ordOf = r => r.year * 12 + r.month - 1;
+
+  const toggleMainCode = code => setMainSelectedCodes(prev => {
+    const next = new Set(prev);
+    next.has(code) ? next.delete(code) : next.add(code);
+    return next;
+  });
+  const toggleSeasonalCode = code => setSeasonalSelectedCodes(prev => {
+    const next = new Set(prev);
+    next.has(code) ? next.delete(code) : next.add(code);
+    return next;
+  });
+
+  const mainSummedRows = React.useMemo(
+    () => sumTransformerRows(allRows, mainScope, mainSelectedProducts),
+    [allRows, mainScope, mainSelectedKey]
+  );
+  const seasonalSummedRows = React.useMemo(
+    () => sumTransformerRows(allRows, seasonalScope, seasonalSelectedProducts),
+    [allRows, seasonalScope, seasonalSelectedKey]
+  );
+
+  const chartData = React.useMemo(() => ({ ...data, [chartDataset]: seasonalSummedRows }), [data, seasonalSummedRows]);
+  const validRows = React.useMemo(
+    () => computeMM12(mainSummedRows, field, 'mm12'),
+    [mainSummedRows]
+  );
+  React.useEffect(() => { setZoom(null); }, [mainScope, mainSelectedKey]);
+
+  const filteredRows = React.useMemo(() => {
+    if (zoom) return validRows.filter(r => ordOf(r) >= zoom.o0 && ordOf(r) <= zoom.o1);
+    if (range === 'all') return validRows;
+    if (!validRows.length) return validRows;
+    const last = validRows[validRows.length - 1];
+    const cutOrd = ordOf(last) - parseInt(range, 10) * 12;
+    return validRows.filter(r => ordOf(r) > cutOrd);
+  }, [validRows, range, zoom]);
+
+  const applyZoom = z => {
+    let count = 0;
+    for (const r of validRows) {
+      const o = ordOf(r);
+      if (o >= z.o0 && o <= z.o1) count++;
+      if (count >= 2) break;
+    }
+    if (count >= 2) setZoom(z);
+  };
+
+  const lastRow = filteredRows[filteredRows.length - 1] || null;
+  const prevRow = filteredRows.length >= 2 ? filteredRows[filteredRows.length - 2] : null;
+  const yoyRow = lastRow ? [...filteredRows].reverse().find(r => r.year === lastRow.year - 1 && r.month === lastRow.month) : null;
+  const pct = (a, b) => (a == null || b == null || b === 0) ? null : (a - b) / Math.abs(b);
+  const mom = pct(lastRow?.value, prevRow?.value);
+  const yoy = pct(lastRow?.value, yoyRow?.value);
+  const fmtPct = v => v == null ? '—' : (v >= 0 ? '+' : '') + (v * 100).toFixed(1).replace('.', ',') + '%';
+
+  const years = React.useMemo(() => {
+    if (!seasonalSummedRows.length) return [];
+    return availableYears(chartData, chartDataset, field);
+  }, [chartData, seasonalSummedRows]);
+  const selectedYears = React.useMemo(() => {
+    if (seasonalWindow === 'all') return years;
+    return years.slice(-parseInt(seasonalWindow, 10));
+  }, [years, seasonalWindow]);
+
+  if (!allRows.length) return null;
+
+  return (
+    <>
+      <section className="card card-full" data-card-id="card-weg-eie-exportacoes">
+        <div className="card-head">
+          <div>
+            <div className="card-eyebrow">SECEX · Exportações · {mainScopeLabel} · 1.000 US$</div>
+            <h3 className="card-title">Exportações EIE</h3>
+            <span style={{display:'block', marginTop:3, color:'var(--fg-dim)', fontSize:11, lineHeight:1.35}}>
+              {TransformerExportSummary({ selectedProducts: mainSelectedProducts })}
+            </span>
+            <div className="card-price">
+              <span className="card-value">{fmt(lastRow?.value, { decimals: 0 })}</span>
+              <span className="card-unit">1.000 US$</span>
+              <span className={`card-delta ${mom == null ? '' : mom >= 0 ? 'is-up' : 'is-down'}`}>
+                {fmtPct(mom)}<span className="card-delta-label"> MoM</span>
+              </span>
+              <span className={`card-delta ${yoy == null ? '' : yoy >= 0 ? 'is-up' : 'is-down'}`}>
+                {fmtPct(yoy)}<span className="card-delta-label"> YoY</span>
+              </span>
+            </div>
+          </div>
+
+          <div className="card-controls">
+            <TransformerExportControls scope={mainScope} setScope={setMainScope} selectedCodes={mainSelectedCodes} toggleCode={toggleMainCode} selectedProducts={mainSelectedProducts} products={EIE_PRODUCTS}/>
+            <div className="card-ctrl-row">
+              <div className="year-seg">
+                {[["3a","3"], ["5a","5"], ["10a","10"], ["Todos","all"]].map(([label, value]) => (
+                  <button key={value} className={`year-seg-btn ${!zoom && range === value ? 'is-on' : ''}`}
+                    onClick={() => { setZoom(null); setRange(value); }}>{label}</button>
+                ))}
+              </div>
+              {zoom && (
+                <button className="seg-btn weg-zoom-reset" onClick={() => setZoom(null)}
+                  title="Duplo-clique no gráfico também reseta">Reset zoom</button>
+              )}
+              <div className="seg">
+                {[["line","Linha"], ["area","Área"]].map(([value, label]) => (
+                  <button key={value} className={`seg-btn ${chartStyle === value ? 'is-on' : ''}`}
+                    onClick={() => setChartStyle(value)}>{label}</button>
+                ))}
+              </div>
+              <button className={`seg-btn weg-mm-toggle ${showMM ? 'is-on' : ''}`}
+                onClick={() => setShowMM(v => !v)}
+                title="Média móvel de 12 meses">MM12M</button>
+            </div>
+          </div>
+        </div>
+
+        <ContinuousChart
+          rows={filteredRows} field={field} accent={accent}
+          unit="1.000 US$" decimals={0} height={390}
+          chartStyle={chartStyle}
+          mmField="mm12" showMM={showMM} seriesLabel="Exportações"
+          endPaddingMonths={2}
+          bottomPadding={54}
+          connectGaps
+          onZoom={applyZoom}
+          onResetZoom={() => setZoom(null)}
+        />
+      </section>
+
+      <section className="card card-full" data-card-id="card-weg-eie-exportacoes-sazonal">
+        <div className="card-head">
+          <div>
+            <div className="card-eyebrow">SECEX · Sazonal · {seasonalScopeLabel}</div>
+            <h3 className="card-title">Exportações EIE · Sazonal</h3>
+            <span style={{display:'block', marginTop:3, color:'var(--fg-dim)', fontSize:11, lineHeight:1.35}}>
+              {TransformerExportSummary({ selectedProducts: seasonalSelectedProducts })}
+            </span>
+          </div>
+          <div className="card-controls">
+            <TransformerExportControls scope={seasonalScope} setScope={setSeasonalScope} selectedCodes={seasonalSelectedCodes} toggleCode={toggleSeasonalCode} selectedProducts={seasonalSelectedProducts} products={EIE_PRODUCTS}/>
+            <div className="card-ctrl-row">
+              <div className="year-seg">
+                {[["5a","5"], ["10a","10"], ["Todos","all"]].map(([label, value]) => (
+                  <button key={value} className={`year-seg-btn ${seasonalWindow === value ? 'is-on' : ''}`}
+                    onClick={() => setSeasonalWindow(value)}>{label}</button>
+                ))}
+              </div>
+              <div className="seg">
+                {[["line","Linha"], ["area","Área"], ["bars","Barras"]].map(([value, label]) => (
+                  <button key={value} className={`seg-btn ${seasonalStyle === value ? 'is-on' : ''}`}
+                    onClick={() => setSeasonalStyle(value)}>{label}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {selectedYears.length ? (
+          <SeasonalChart
+            data={chartData} dataset={chartDataset} field={field}
+            selectedYears={selectedYears}
+            showStats={false} showEvents={false} events={[]}
+            chartStyle={seasonalStyle} accent={TRANSFORMER_SEASONAL_ACCENT}
+            unit="1.000 US$" decimals={0} big={false}
+            height={340}
+            hideAvg
+          />
+        ) : (
+          <div style={{height:300, display:'flex', alignItems:'center', justifyContent:'center', color:'var(--fg-dim)', fontSize:13}}>
+            Sem dados para a seleção
+          </div>
+        )}
+      </section>
+    </>
+  );
+}
+
 const EmptyWeg = () => (
   <main className="main" style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,minHeight:'60vh',color:'var(--fg-dim)'}}>
     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -742,7 +950,8 @@ const WegTab = ({ data, accent, tab }) => {
   const hasTransfPrice = !!(data.weg_transformadores && data.weg_transformadores.length);
   const hasTransfExports = !!(data.weg_transformadores_exports && data.weg_transformadores_exports.length);
   const hasSecexPrice = !!(data.weg_transformadores_secex_price && data.weg_transformadores_secex_price.length);
-  const hasTransf = hasTransfPrice || hasTransfExports || hasSecexPrice;
+  const hasEieExports = !!(data.weg_eie_exports && data.weg_eie_exports.length);
+  const hasTransf = hasTransfPrice || hasTransfExports || hasSecexPrice || hasEieExports;
   const hasPeers  = !!(data.weg_peers && data.weg_peers.length);
   if (!hasTransf && !hasPeers) return <EmptyWeg />;
 
@@ -776,6 +985,7 @@ const WegTab = ({ data, accent, tab }) => {
             />
           )}
           {hasTransfExports && <WegTransformerExportsSection data={data} accent={accent}/>}
+          {hasEieExports && <WegEieExportsSection data={data} accent={accent}/>}
         </>
       )}
       {showPeers && (

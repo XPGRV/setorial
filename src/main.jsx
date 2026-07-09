@@ -40,7 +40,7 @@ const DATASET_DATA_KEYS = {
   poultry_br: ['frango', 'frango_mi_daily', 'feed_grain_daily', 'frango_spread_mi_daily', 'porco_mi_daily', 'processados'],
   poultry_us: ['broiler_production', 'frango_us_daily', 'frango_us_monthly', 'frango_us_nc_weekly', 'frango_us_nc_cols'],
   macro:      ['selic_snapshots'],
-  weg:        ['weg_transformadores', 'weg_transformadores_exports', 'weg_transformadores_secex_price', 'weg_peers'],
+  weg:        ['weg_transformadores', 'weg_transformadores_exports', 'weg_transformadores_secex_price', 'weg_eie_exports', 'weg_peers'],
   rental:     ['rental_car_prices', 'rental_peers'],
   transportes:['transport_grains', 'transport_freights'],
 }

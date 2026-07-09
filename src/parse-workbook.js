@@ -1088,6 +1088,35 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
   // Preços diários das ações (USD). Colunas F..O (idx 5..14):
   //   F=WEG G=ABB H=Nidec I=Regal Rexnord J=Eaton K=Siemens L=Schneider
   //   M=GE Vernova N=Hitachi O=Hyosung. A coluna de data é autodetectada (A..E).
+  // WEG · EIE (WEG - Setorial.xlsm · aba Motores)
+  if (findSheet('Motores')) {
+    const mRaw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('Motores')], { header: 1, raw: true });
+    const motorExportCols = [
+      ['850120', 3, 4], ['850131', 5, 6], ['850132', 7, 8], ['850133', 9, 10], ['850134', 11, 12],
+      ['850140', 13, 14], ['850151', 15, 16], ['850152', 17, 18], ['850153', 19, 20],
+      ['850440', 22, 23], ['850450', 24, 25], ['853620', 26, 27], ['853521', 28, 29], ['853641', 30, 31],
+      ['853649', 32, 33], ['853650', 34, 35], ['853690', 36, 37], ['853710', 38, 39], ['853720', 40, 41],
+    ];
+    const weg_eie_exports = [];
+    for (let i = 4; i < mRaw.length; i++) {
+      const r = mRaw[i];
+      if (!r) continue;
+      const md = parseDate(r[1]) || parseMonthTag(r[1]);
+      const off = i - 4;
+      const year = md?.year ?? 2000 + Math.floor(off / 12);
+      const month = md?.month ?? (off % 12) + 1;
+      const row = { year, month };
+      for (const [code, brCol, scCol] of motorExportCols) {
+        row[`br_${code}`] = parseNum(r[brCol]);
+        row[`sc_${code}`] = parseNum(r[scCol]);
+      }
+      if (Object.entries(row).some(([key, value]) => !['year','month'].includes(key) && value != null)) {
+        weg_eie_exports.push(row);
+      }
+    }
+    if (weg_eie_exports.length) result.weg_eie_exports = weg_eie_exports;
+  }
+
   if (!parseRental && findSheet('Peers')) {
     const pRaw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('Peers')], { header: 1, raw: true });
     // Preço: F..O (5..14). P/E: Q..Z (16..25). Mesma ordem de empresas.

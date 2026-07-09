@@ -32,6 +32,7 @@ function freightRoutePath(route) {
 }
 
 function FreightRouteMap({ pinnedSeries, setPinnedSeries, fields, lastRow }) {
+  const maskId = React.useId()
   const routes = fields.map(field => ({
     ...field,
     fromPoint: MAP_POINTS[field.from],
@@ -67,36 +68,51 @@ function FreightRouteMap({ pinnedSeries, setPinnedSeries, fields, lastRow }) {
 
       <div className="freight-map-viewport">
         <svg className="freight-brazil-map" viewBox="175 185 360 350" role="img" aria-label="Mapa do Brasil com rotas de frete">
-          <g className="freight-map-states">
-            {brazilMap.locations.map(state => (
-              <path key={state.id} className={`freight-map-state freight-map-state-${state.id}`} d={state.path}>
-                <title>{state.name}</title>
-              </path>
-            ))}
+          <defs>
+            <linearGradient id={`${maskId}-fade`} x1="0" y1="185" x2="0" y2="535" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="white" stopOpacity="0" />
+              <stop offset="11%" stopColor="white" stopOpacity="0.08" />
+              <stop offset="25%" stopColor="white" stopOpacity="1" />
+              <stop offset="77%" stopColor="white" stopOpacity="1" />
+              <stop offset="91%" stopColor="white" stopOpacity="0.08" />
+              <stop offset="100%" stopColor="white" stopOpacity="0" />
+            </linearGradient>
+            <mask id={`${maskId}-map-mask`} maskUnits="userSpaceOnUse" x="175" y="185" width="360" height="350">
+              <rect x="175" y="185" width="360" height="350" fill={`url(#${maskId}-fade)`} />
+            </mask>
+          </defs>
+          <g mask={`url(#${maskId}-map-mask)`}>
+            <g className="freight-map-states">
+              {brazilMap.locations.map(state => (
+                <path key={state.id} className={`freight-map-state freight-map-state-${state.id}`} d={state.path}>
+                  <title>{state.name}</title>
+                </path>
+              ))}
+            </g>
+            {routes.map(route => {
+              const isOn = active === route.key
+              const dimmed = active && !isOn
+              const d = freightRoutePath(route)
+              return (
+                <g key={route.key} className={`freight-map-route ${isOn ? 'is-on' : ''}`}
+                  style={{'--route-color': route.color, opacity: dimmed ? 0.18 : 1}}
+                  onClick={() => toggle(route.key)}>
+                  <path className="freight-map-route-glow" d={d} />
+                  <path className="freight-map-route-line" d={d} />
+                </g>
+              )
+            })}
+            {Object.entries(MAP_POINTS).map(([label, point]) => {
+              const dimmed = activeCities ? !activeCities.has(label) : false
+              return (
+                <g key={label} className={`freight-map-point${dimmed ? ' is-dimmed' : ''}`}>
+                  <circle cx={point.x} cy={point.y} r="5" />
+                  <text x={point.x + 9} y={point.y - 7}>{label}</text>
+                </g>
+              )
+            })}
+            <text className="freight-map-credit" x="530" y="560" textAnchor="end">Mapa: @svg-maps/brazil</text>
           </g>
-          {routes.map(route => {
-            const isOn = active === route.key
-            const dimmed = active && !isOn
-            const d = freightRoutePath(route)
-            return (
-              <g key={route.key} className={`freight-map-route ${isOn ? 'is-on' : ''}`}
-                style={{'--route-color': route.color, opacity: dimmed ? 0.18 : 1}}
-                onClick={() => toggle(route.key)}>
-                <path className="freight-map-route-glow" d={d} />
-                <path className="freight-map-route-line" d={d} />
-              </g>
-            )
-          })}
-          {Object.entries(MAP_POINTS).map(([label, point]) => {
-            const dimmed = activeCities ? !activeCities.has(label) : false
-            return (
-              <g key={label} className={`freight-map-point${dimmed ? ' is-dimmed' : ''}`}>
-                <circle cx={point.x} cy={point.y} r="5" />
-                <text x={point.x + 9} y={point.y - 7}>{label}</text>
-              </g>
-            )
-          })}
-          <text className="freight-map-credit" x="530" y="560" textAnchor="end">Mapa: @svg-maps/brazil</text>
         </svg>
       </div>
     </div>

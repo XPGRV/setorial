@@ -943,20 +943,21 @@ const EmptyWeg = () => (
   </main>
 );
 
-// Sub-aba controlada pela sidebar (prop `tab`, à la Poultry): 'peers' mostra os
-// dois gráficos de comparação; qualquer outro valor mostra Transformadores.
+// Sub-aba controlada pela sidebar (prop `tab`, à la Poultry):
+// 'eie' mostra exportações EIE, 'peers' mostra os comparativos e o resto cai em Transformadores.
 // Se a sub-aba pedida não tiver dados, cai graciosamente para a que tiver.
 const WegTab = ({ data, accent, tab }) => {
   const hasTransfPrice = !!(data.weg_transformadores && data.weg_transformadores.length);
   const hasTransfExports = !!(data.weg_transformadores_exports && data.weg_transformadores_exports.length);
   const hasSecexPrice = !!(data.weg_transformadores_secex_price && data.weg_transformadores_secex_price.length);
   const hasEieExports = !!(data.weg_eie_exports && data.weg_eie_exports.length);
-  const hasTransf = hasTransfPrice || hasTransfExports || hasSecexPrice || hasEieExports;
+  const hasTransf = hasTransfPrice || hasTransfExports || hasSecexPrice;
   const hasPeers  = !!(data.weg_peers && data.weg_peers.length);
-  if (!hasTransf && !hasPeers) return <EmptyWeg />;
+  if (!hasTransf && !hasEieExports && !hasPeers) return <EmptyWeg />;
 
-  const showPeers  = (tab === 'peers' && hasPeers) || (!hasTransf && hasPeers);
-  const showTransf = !showPeers && hasTransf;
+  const showEie = (tab === 'eie' && hasEieExports) || (!hasTransf && hasEieExports);
+  const showPeers  = !showEie && ((tab === 'peers' && hasPeers) || (!hasTransf && !hasEieExports && hasPeers));
+  const showTransf = !showEie && !showPeers && hasTransf;
 
   return (
     <main className="main">
@@ -985,9 +986,9 @@ const WegTab = ({ data, accent, tab }) => {
             />
           )}
           {hasTransfExports && <WegTransformerExportsSection data={data} accent={accent}/>}
-          {hasEieExports && <WegEieExportsSection data={data} accent={accent}/>}
         </>
       )}
+      {showEie && <WegEieExportsSection data={data} accent={accent}/>}
       {showPeers && (
         <>
           <WegPeersCard data={data} metric="price"/>

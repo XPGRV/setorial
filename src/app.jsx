@@ -472,9 +472,8 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
   const isTransportes = activeDataset === 'transportes';
   const rentalTab   = tab === 'peers' ? 'peers' : 'precos';
   const transportTab = tab === 'fretes' ? 'fretes' : 'graos';
-  // Sub-aba efetiva da WEG p/ destaque na sidebar — espelha o fallback do WegTab
-  // (qualquer valor que não seja 'peers' cai em Transformadores).
-  const wegTab      = tab === 'peers' ? 'peers' : 'transformadores';
+  // Sub-aba efetiva da WEG p/ destaque na sidebar — espelha o fallback do WegTab.
+  const wegTab      = tab === 'peers' ? 'peers' : tab === 'eie' ? 'eie' : 'transformadores';
 
   const PT_MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   const _now = new Date();
@@ -614,6 +613,10 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
                   </svg>
                 </span>
                 <span className="sidebar-item-label">Transformadores</span>
+              </button>
+              <button className={`sidebar-item ${isWeg && wegTab==='eie' ? 'is-on' : ''}`} onClick={() => onPick('weg', 'eie')}>
+                <span className="sidebar-item-icon">{SIcon.factory}</span>
+                <span className="sidebar-item-label">EIE</span>
               </button>
               <button className={`sidebar-item ${isWeg && wegTab==='peers' ? 'is-on' : ''}`} onClick={() => onPick('weg', 'peers')}>
                 <span className="sidebar-item-icon">{SIcon.peers}</span>

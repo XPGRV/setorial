@@ -71,10 +71,10 @@ function FreightRouteMap({ pinnedSeries, setPinnedSeries, fields, lastRow }) {
           <defs>
             <linearGradient id={`${maskId}-fade`} x1="0" y1="185" x2="0" y2="535" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="white" stopOpacity="0" />
-              <stop offset="11%" stopColor="white" stopOpacity="0.08" />
-              <stop offset="25%" stopColor="white" stopOpacity="1" />
-              <stop offset="77%" stopColor="white" stopOpacity="1" />
-              <stop offset="91%" stopColor="white" stopOpacity="0.08" />
+              <stop offset="3%" stopColor="white" stopOpacity="0.55" />
+              <stop offset="7%" stopColor="white" stopOpacity="1" />
+              <stop offset="93%" stopColor="white" stopOpacity="1" />
+              <stop offset="97%" stopColor="white" stopOpacity="0.55" />
               <stop offset="100%" stopColor="white" stopOpacity="0" />
             </linearGradient>
             <mask id={`${maskId}-map-mask`} maskUnits="userSpaceOnUse" x="175" y="185" width="360" height="350">

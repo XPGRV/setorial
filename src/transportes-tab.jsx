@@ -65,38 +65,40 @@ function FreightRouteMap({ pinnedSeries, setPinnedSeries, fields, lastRow }) {
         </div>
       </div>
 
-      <svg className="freight-brazil-map" viewBox="175 185 360 350" role="img" aria-label="Mapa do Brasil com rotas de frete">
-        <g className="freight-map-states">
-          {brazilMap.locations.map(state => (
-            <path key={state.id} className={`freight-map-state freight-map-state-${state.id}`} d={state.path}>
-              <title>{state.name}</title>
-            </path>
-          ))}
-        </g>
-        {routes.map(route => {
-          const isOn = active === route.key
-          const dimmed = active && !isOn
-          const d = freightRoutePath(route)
-          return (
-            <g key={route.key} className={`freight-map-route ${isOn ? 'is-on' : ''}`}
-              style={{'--route-color': route.color, opacity: dimmed ? 0.18 : 1}}
-              onClick={() => toggle(route.key)}>
-              <path className="freight-map-route-glow" d={d} />
-              <path className="freight-map-route-line" d={d} />
-            </g>
-          )
-        })}
-        {Object.entries(MAP_POINTS).map(([label, point]) => {
-          const dimmed = activeCities ? !activeCities.has(label) : false
-          return (
-            <g key={label} className={`freight-map-point${dimmed ? ' is-dimmed' : ''}`}>
-              <circle cx={point.x} cy={point.y} r="5" />
-              <text x={point.x + 9} y={point.y - 7}>{label}</text>
-            </g>
-          )
-        })}
-        <text className="freight-map-credit" x="530" y="560" textAnchor="end">Mapa: @svg-maps/brazil</text>
-      </svg>
+      <div className="freight-map-viewport">
+        <svg className="freight-brazil-map" viewBox="175 185 360 350" role="img" aria-label="Mapa do Brasil com rotas de frete">
+          <g className="freight-map-states">
+            {brazilMap.locations.map(state => (
+              <path key={state.id} className={`freight-map-state freight-map-state-${state.id}`} d={state.path}>
+                <title>{state.name}</title>
+              </path>
+            ))}
+          </g>
+          {routes.map(route => {
+            const isOn = active === route.key
+            const dimmed = active && !isOn
+            const d = freightRoutePath(route)
+            return (
+              <g key={route.key} className={`freight-map-route ${isOn ? 'is-on' : ''}`}
+                style={{'--route-color': route.color, opacity: dimmed ? 0.18 : 1}}
+                onClick={() => toggle(route.key)}>
+                <path className="freight-map-route-glow" d={d} />
+                <path className="freight-map-route-line" d={d} />
+              </g>
+            )
+          })}
+          {Object.entries(MAP_POINTS).map(([label, point]) => {
+            const dimmed = activeCities ? !activeCities.has(label) : false
+            return (
+              <g key={label} className={`freight-map-point${dimmed ? ' is-dimmed' : ''}`}>
+                <circle cx={point.x} cy={point.y} r="5" />
+                <text x={point.x + 9} y={point.y - 7}>{label}</text>
+              </g>
+            )
+          })}
+          <text className="freight-map-credit" x="530" y="560" textAnchor="end">Mapa: @svg-maps/brazil</text>
+        </svg>
+      </div>
     </div>
   )
 }

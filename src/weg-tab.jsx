@@ -672,7 +672,7 @@ function WegTransformerExportsSection({ data, accent }) {
           unit="1.000 US$" decimals={0} height={390}
           chartStyle={chartStyle}
           mmField="mm12" showMM={showMM} seriesLabel="Exportações"
-          endPaddingMonths={2}
+          endPaddingMonths={0}
           bottomPadding={54}
           connectGaps
           onZoom={applyZoom}
@@ -877,7 +877,7 @@ function WegEieExportsSection({ data, accent }) {
           unit="1.000 US$" decimals={0} height={390}
           chartStyle={chartStyle}
           mmField="mm12" showMM={showMM} seriesLabel="Exportações"
-          endPaddingMonths={2}
+          endPaddingMonths={0}
           bottomPadding={54}
           connectGaps
           onZoom={applyZoom}

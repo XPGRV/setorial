@@ -609,9 +609,6 @@ function WegTransformerExportsSection({ data, accent }) {
           <div>
             <div className="card-eyebrow">SECEX · Exportações · {mainScopeLabel} · 1.000 US$</div>
             <h3 className="card-title">Exportações de Transformadores</h3>
-            <span style={{display:'block', marginTop:3, color:'var(--fg-dim)', fontSize:11, lineHeight:1.35}}>
-              {TransformerExportSummary({ selectedProducts: mainSelectedProducts })}
-            </span>
             <div className="card-price">
               <span className="card-value">{fmt(lastRow?.value, { decimals: 0 })}</span>
               <span className="card-unit">1.000 US$</span>
@@ -622,7 +619,6 @@ function WegTransformerExportsSection({ data, accent }) {
                 {fmtPct(yoy)}<span className="card-delta-label"> YoY</span>
               </span>
             </div>
-            <BacktestInfoNote text="OBS: No back-test contra a receita da WEG de GTD Mercado Externo (exportado do Brasil) a aderência não foi tão boa."/>
           </div>
 
           <div className="card-controls">
@@ -662,6 +658,7 @@ function WegTransformerExportsSection({ data, accent }) {
           onZoom={applyZoom}
           onResetZoom={() => setZoom(null)}
         />
+        <BacktestInfoNote text="OBS: No back-test contra a receita da WEG de GTD Mercado Externo (exportado do Brasil) a aderência não foi tão boa."/>
       </section>
     </>
   );
@@ -740,9 +737,6 @@ function WegEieExportsSection({ data, accent }) {
           <div>
             <div className="card-eyebrow">SECEX · Exportações · {mainScopeLabel} · 1.000 US$</div>
             <h3 className="card-title">Exportações EIE</h3>
-            <span style={{display:'block', marginTop:3, color:'var(--fg-dim)', fontSize:11, lineHeight:1.35}}>
-              {TransformerExportSummary({ selectedProducts: mainSelectedProducts })}
-            </span>
             <div className="card-price">
               <span className="card-value">{fmt(lastRow?.value, { decimals: 0 })}</span>
               <span className="card-unit">1.000 US$</span>
@@ -753,7 +747,6 @@ function WegEieExportsSection({ data, accent }) {
                 {fmtPct(yoy)}<span className="card-delta-label"> YoY</span>
               </span>
             </div>
-            <BacktestInfoNote text="OBS: No back-test contra a receita da WEG de EIE Mercado Externo (exportado do Brasil) a aderência foi boa, ou seja, a soma do valor exportado nos três meses de um trimestre chega próximo da receita da WEG de EIE ME exportado do Brasil."/>
           </div>
 
           <div className="card-controls">
@@ -794,6 +787,7 @@ function WegEieExportsSection({ data, accent }) {
           onZoom={applyZoom}
           onResetZoom={() => setZoom(null)}
         />
+        <BacktestInfoNote text="OBS: No back-test contra a receita da WEG de EIE Mercado Externo (exportado do Brasil) a aderência foi boa, ou seja, a soma do valor exportado nos três meses de um trimestre chega próximo da receita da WEG de EIE ME exportado do Brasil."/>
       </section>
     </>
   );

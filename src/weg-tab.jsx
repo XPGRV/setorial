@@ -1,6 +1,7 @@
 import React from 'react'
 import { MONTHS_PT, fmt, useFadeOut } from './data-utils.jsx'
 import { ContinuousCard, ContinuousChart, computeMM12, computeMovingAverage } from './continuous-chart.jsx'
+import { WEG_BACKTEST_CHARTS } from './weg-backtest-data.js'
 
 // Aba WEG (provisória) — dados da planilha WEG - Setorial.xlsm
 
@@ -501,16 +502,66 @@ function TransformerExportSummary({ selectedProducts }) {
   return selectedProducts.map(p => p.label).join(' + ');
 }
 
-function BacktestInfoNote({ text }) {
+function BacktestMiniChart({ chart }) {
+  if (!chart?.points?.length) return null;
+  const W = 460, H = 210;
+  const pad = { l: 36, r: 12, t: 16, b: 26 };
+  const series = chart.series.map(s => {
+    const base = chart.points.find(p => p[s.key] != null)?.[s.key] || null;
+    return {
+      ...s,
+      values: chart.points.map((p, i) => ({
+        i,
+        q: p.q,
+        raw: p[s.key],
+        value: base ? (p[s.key] / base) * 100 : null,
+      })).filter(p => p.value != null),
+    };
+  });
+  const all = series.flatMap(s => s.values.map(p => p.value));
+  const min = Math.min(...all, 85);
+  const max = Math.max(...all, 115);
+  const span = Math.max(1, max - min);
+  const yMin = Math.max(0, min - span * 0.08);
+  const yMax = max + span * 0.08;
+  const x = i => pad.l + (i / Math.max(1, chart.points.length - 1)) * (W - pad.l - pad.r);
+  const y = v => pad.t + (1 - (v - yMin) / (yMax - yMin)) * (H - pad.t - pad.b);
+  const line = values => values.map((p, idx) => (idx ? 'L' : 'M') + x(p.i).toFixed(1) + ',' + y(p.value).toFixed(1)).join(' ');
+  const ticks = [100, Math.round((yMin + yMax) / 2), Math.round(yMax)].filter((v, i, arr) => v >= yMin && v <= yMax && arr.indexOf(v) === i);
+
+  return (
+    <span className="weg-backtest-chart">
+      <span className="weg-backtest-chart-sub">Base 100 = 1Q11</span>
+      <svg viewBox={'0 0 ' + W + ' ' + H} role="img" aria-label={chart.title}>
+        {ticks.map(t => (
+          <g key={t}>
+            <line x1={pad.l} x2={W - pad.r} y1={y(t)} y2={y(t)} className="weg-backtest-grid"/>
+            <text x={pad.l - 8} y={y(t) + 3} textAnchor="end" className="weg-backtest-axis">{t}</text>
+          </g>
+        ))}
+        {[0, 20, 40, 60].map(i => chart.points[i] && (
+          <text key={i} x={x(i)} y={H - 7} textAnchor="middle" className="weg-backtest-axis">{chart.points[i].q}</text>
+        ))}
+        {series.map(s => (
+          <path key={s.key} d={line(s.values)} fill="none" stroke={s.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        ))}
+      </svg>
+      <span className="weg-backtest-legend">
+        {series.map(s => <span key={s.key}><i style={{background:s.color}}/>{s.label}</span>)}
+      </span>
+    </span>
+  );
+}
+
+function BacktestInfoNote({ text, chartKey }) {
+  const chart = WEG_BACKTEST_CHARTS[chartKey];
   return (
     <div className="weg-backtest-note">
       <span>{text}</span>
       <span className="weg-info-tip" tabIndex={0} aria-label="Ver back-test">(i)
         <span className="weg-info-panel">
-          <span className="weg-info-panel-title">Back-test</span>
-          <span className="weg-info-placeholder">
-            Imagem do back-test entra aqui quando os dados forem adicionados.
-          </span>
+          <span className="weg-info-panel-title">{chart?.title || 'Back-test'}</span>
+          <BacktestMiniChart chart={chart}/>
         </span>
       </span>
     </div>
@@ -658,7 +709,7 @@ function WegTransformerExportsSection({ data, accent }) {
           onZoom={applyZoom}
           onResetZoom={() => setZoom(null)}
         />
-        <BacktestInfoNote text="OBS: No back-test contra a receita da WEG de GTD Mercado Externo (exportado do Brasil) a aderência não foi tão boa."/>
+        <BacktestInfoNote chartKey="gtd" text="OBS: No back-test contra a receita da WEG de GTD Mercado Externo (exportado do Brasil) a aderência não foi tão boa."/>
       </section>
     </>
   );
@@ -787,7 +838,7 @@ function WegEieExportsSection({ data, accent }) {
           onZoom={applyZoom}
           onResetZoom={() => setZoom(null)}
         />
-        <BacktestInfoNote text="OBS: No back-test contra a receita da WEG de EIE Mercado Externo (exportado do Brasil) a aderência foi boa, ou seja, a soma do valor exportado nos três meses de um trimestre chega próximo da receita da WEG de EIE ME exportado do Brasil."/>
+        <BacktestInfoNote chartKey="eie" text="OBS: No back-test contra a receita da WEG de EIE Mercado Externo (exportado do Brasil) a aderência foi boa, ou seja, a soma do valor exportado nos três meses de um trimestre chega próximo da receita da WEG de EIE ME exportado do Brasil."/>
       </section>
     </>
   );

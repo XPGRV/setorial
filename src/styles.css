@@ -915,8 +915,8 @@ html.route-is-entering #root { animation: route-fade-in 280ms cubic-bezier(0.22,
   left: 50%;
   top: calc(100% + 10px);
   z-index: 30;
-  width: 320px;
-  min-height: 190px;
+  width: 540px;
+  min-height: 310px;
   padding: 12px;
   border: 1px solid var(--border-strong);
   border-radius: 8px;
@@ -944,18 +944,51 @@ html.route-is-entering #root { animation: route-fade-in 280ms cubic-bezier(0.22,
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
-.weg-info-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 140px;
-  padding: 16px;
-  border: 1px dashed var(--border-strong);
-  border-radius: 6px;
+.weg-backtest-chart {
+  display: block;
+  min-height: 250px;
+}
+.weg-backtest-chart-sub {
+  display: block;
+  margin-bottom: 7px;
   color: var(--fg-dim);
-  text-align: center;
-  line-height: 1.35;
-  background: var(--bg-inset);
+  font-size: 11px;
+}
+.weg-backtest-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: color-mix(in oklch, var(--bg-inset) 82%, transparent);
+}
+.weg-backtest-grid {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.weg-backtest-axis {
+  fill: var(--fg-dim);
+  font: 10px var(--font-mono);
+}
+.weg-backtest-legend {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 5px;
+  margin-top: 8px;
+  color: var(--fg-muted);
+  font-size: 11px;
+}
+.weg-backtest-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.weg-backtest-legend i {
+  width: 14px;
+  height: 2px;
+  border-radius: 999px;
+  flex-shrink: 0;
 }
 
 .seg {

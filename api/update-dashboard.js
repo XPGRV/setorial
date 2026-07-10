@@ -1,6 +1,7 @@
 import { google } from 'googleapis';
 import * as XLSX from 'xlsx';
 import { parseWorkbookData } from '../src/parse-workbook.js';
+import { validateDashboardPayload } from '../src/dashboard-validation.js';
 
 const SB_URL = process.env.SUPABASE_URL || 'https://wmxjdveucxbousoquwmc.supabase.co';
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE;
@@ -174,13 +175,8 @@ export default async function handler(req, res) {
     const wb = XLSX.read(buffer, { type: 'buffer', cellDates: true, cellStyles: true });
     const parsed = parseWorkbookData(wb, XLSX, cfg.opts);
 
-    if (dataset === 'beef_us') {
-      const rows = parsed.beef_us || [];
-      const femalePoints = rows.filter(row => row.pct_femeas != null).length;
-      if (!femalePoints) {
-        throw new Error('BeefUS sem dados do ciclo; upload anterior preservado.');
-      }
-    }
+    const validation = validateDashboardPayload(dataset, parsed);
+    if (!validation.ok) throw new Error(validation.message);
 
     // Cada dataset vive no proprio arquivo — nada de ler/mesclar o combinado,
     // o que tambem elimina a corrida entre atualizacoes simultaneas.

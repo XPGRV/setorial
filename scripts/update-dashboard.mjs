@@ -21,6 +21,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import * as XLSX from 'xlsx';
 import { parseWorkbookData } from '../src/parse-workbook.js';
+import { validateDashboardPayload } from '../src/dashboard-validation.js';
 
 const PASTA    = process.env.SETORIAL_DIR || 'G:\\Meu Drive\\Arquivos\\Setorial - Proteínas';
 const DB_DIR   = process.env.DATABASE_DIR || 'G:\\.shortcut-targets-by-id\\11q1ngdqbySnDMCQSP4fiwPztT6ju2F4Z\\Arquivos\\Setorial - Database';
@@ -101,6 +102,8 @@ async function main() {
       const wb = XLSX.read(buf, { type: 'buffer', cellDates: true, cellStyles: true });
       const { opts, metaKey, dataset } = flagsFor(nome);
       const parsed = parseWorkbookData(wb, XLSX, opts);
+      const validation = validateDashboardPayload(dataset, parsed);
+      if (!validation.ok) throw new Error(validation.message);
       const meta = { [metaKey]: { source: nome, updated: new Date().toISOString() } };
       const bytes = await uploadObject(`data-${dataset}.json`, { data: parsed, meta });
       okCount++;

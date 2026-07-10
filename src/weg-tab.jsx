@@ -549,10 +549,35 @@ function BacktestMiniChart({ chart }) {
 
 function BacktestInfoNote({ text, chartKey }) {
   const chart = WEG_BACKTEST_CHARTS[chartKey];
+  const [open, setOpen] = React.useState(false);
+  const timerRef = React.useRef(null);
+
+  const cancelClose = () => {
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+  };
+  const scheduleClose = () => {
+    cancelClose();
+    timerRef.current = setTimeout(() => setOpen(false), 1000);
+  };
+  React.useEffect(() => cancelClose, []);
+
   return (
     <div className="weg-backtest-note">
       <span>{text}</span>
-      <span className="weg-info-tip" tabIndex={0} aria-label="Ver back-test">(i)
+      <span
+        className={'weg-info-tip' + (open ? ' is-open' : '')}
+        role="button"
+        tabIndex={0}
+        aria-label="Ver back-test"
+        aria-expanded={open}
+        onClick={() => setOpen(o => !o)}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(o => !o); }
+          else if (e.key === 'Escape') setOpen(false);
+        }}
+        onMouseEnter={cancelClose}
+        onMouseLeave={scheduleClose}
+      >i
         <span className="weg-info-panel">
           <span className="weg-info-panel-title">{chart?.title || 'Back-test'}</span>
           <BacktestMiniChart chart={chart}/>

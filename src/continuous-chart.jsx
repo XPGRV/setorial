@@ -31,6 +31,15 @@ export function computeMM12(rows, field, outKey = 'mm12') {
   });
 }
 
+export function computeMovingAverage(rows, field, windowSize, outKey = `mm${windowSize}`) {
+  return rows.map((r, i) => {
+    if (i < windowSize - 1) return { ...r, [outKey]: null };
+    let sum = 0;
+    for (let j = i - windowSize + 1; j <= i; j++) sum += rows[j][field] ?? 0;
+    return { ...r, [outKey]: sum / windowSize };
+  });
+}
+
 function filterByRangeYears(rows, field, rangeYears) {
   const valid = rows.filter(r => r[field] != null);
   if (!valid.length || rangeYears === 'all') return valid;
@@ -39,7 +48,7 @@ function filterByRangeYears(rows, field, rangeYears) {
   return valid.filter(r => r.year * 12 + r.month - 1 > cutOrd);
 }
 
-function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height = 260, events = [], showEvents = true, chartStyle = 'line', zeroBaseline = false, highlightZero = false, endPaddingMonths = 0, bottomPadding = 32, connectGaps = false, onZoom, onResetZoom, mmField = null, showMM = false, mmLabel = 'MM12M', mmColor = 'oklch(0.78 0.16 70)', seriesLabel = 'Valor' }) {
+function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height = 260, events = [], showEvents = true, chartStyle = 'line', zeroBaseline = false, highlightZero = false, endPaddingMonths = 0, bottomPadding = 32, connectGaps = false, onZoom, onResetZoom, mmField = null, showMM = false, mmLabel = 'MM12M', mmColor = 'oklch(0.78 0.16 70)', seriesLabel = 'Valor', quarterMarkers = false, quarterMarkerField = null, quarterMarkerColor = 'oklch(0.68 0.22 25)' }) {
   const reactId = React.useId().replace(/[^a-z0-9-]/gi, '');
   const svgRef = React.useRef(null);
   const [hovered, setHovered] = React.useState(null); // { x, y, row, mouseY }
@@ -80,6 +89,8 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
 
   const vals   = valid.map(r => r[field]);
   if (showMMRender) for (const r of valid) { if (r[mmField] != null) vals.push(r[mmField]); }
+  const markerField = quarterMarkerField || mmField || field;
+  if (quarterMarkers) for (const r of valid) { if (r[markerField] != null) vals.push(r[markerField]); }
   const minV   = Math.min(...vals);
   const maxV   = Math.max(...vals);
   const { ticks: yTicks, lo: yMin, hi: yMax } = niceYTicks(minV, maxV);
@@ -301,6 +312,19 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
             <path d={mmPath} fill="none" stroke={mmColor} strokeWidth={2}
               strokeDasharray="7 5" strokeLinejoin="round" strokeLinecap="round"
               className={`rx-stat-mean${mmLeaving ? ' rx-stat-leaving' : ''}`}/>
+          </g>
+        )}
+
+        {quarterMarkers && (
+          <g clipPath={`url(#${clipId})`}>
+            {valid.filter(r => [3, 6, 9, 12].includes(r.month) && r[markerField] != null).map(r => (
+              <g key={`${r.year}-${r.month}`}>
+                <circle cx={xOf(r)} cy={yOf(r[markerField])} r={8}
+                  fill={quarterMarkerColor} opacity="0.16"/>
+                <circle cx={xOf(r)} cy={yOf(r[markerField])} r={4}
+                  fill={quarterMarkerColor} stroke="var(--bg-panel)" strokeWidth="1.5"/>
+              </g>
+            ))}
           </g>
         )}
 

@@ -174,6 +174,14 @@ export default async function handler(req, res) {
     const wb = XLSX.read(buffer, { type: 'buffer', cellDates: true, cellStyles: true });
     const parsed = parseWorkbookData(wb, XLSX, cfg.opts);
 
+    if (dataset === 'beef_us') {
+      const rows = parsed.beef_us || [];
+      const femalePoints = rows.filter(row => row.pct_femeas != null).length;
+      if (!femalePoints) {
+        throw new Error('BeefUS sem dados do ciclo; upload anterior preservado.');
+      }
+    }
+
     // Cada dataset vive no proprio arquivo — nada de ler/mesclar o combinado,
     // o que tambem elimina a corrida entre atualizacoes simultaneas.
     const meta = {

@@ -303,6 +303,8 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
   // Agregados mensais do BBG_Dados (col E=edgebeef, col F=câmbio): usados no BeefUS
   const bbgEdgebeefByMonth = {};
   const bbgCambioByMonth   = {};
+  const bbgLiveCattleSamplesByMonth = {};
+  const bbgLiveCattleByMonth = {};
   if (parseUS && findSheet('BBG_Dados')) {
     // Edgebeef diário: col D=data, col E=valor (Edge Beef Margin USD/cwt)
     // Câmbio: col F (índice 5)
@@ -326,12 +328,52 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
       // Câmbio (col F = índice 5): último valor do mês prevalece
       const usdbrl = parseNum(r[5]);
       if (usdbrl != null) bbgCambioByMonth[`${year}-${month}`] = usdbrl;
+      const liveCattle = parseNum(r[6]);
+      if (liveCattle != null) {
+        const key = `${year}-${month}`;
+        if (!bbgLiveCattleSamplesByMonth[key]) bbgLiveCattleSamplesByMonth[key] = [];
+        bbgLiveCattleSamplesByMonth[key].push(liveCattle);
+      }
+
       const value = parseNum(r[4]); // coluna E — EdgeBeef margin
       if (value == null) continue;
       bbgEdgebeefByMonth[`${year}-${month}`] = value; // último valor do mês
       edgebeef_daily.push({ year, month, day, value });
     }
     result.edgebeef_daily = edgebeef_daily;
+    const now = new Date();
+    const currentKey = `${now.getFullYear()}-${now.getMonth() + 1}`;
+    for (const [key, values] of Object.entries(bbgLiveCattleSamplesByMonth)) {
+      bbgLiveCattleByMonth[key] = key === currentKey
+        ? values[values.length - 1]
+        : values.reduce((sum, value) => sum + value, 0) / values.length;
+    }
+  }
+
+  // Formula cells can arrive without cached results, so rebuild the USDA
+  // aggregates directly from the source sheet.
+  const usSlaughterByMonth = {};
+  if (parseUS && findSheet('Abates')) {
+    const slaughterRaw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('Abates')], { header: 1, raw: true });
+    for (let i = 2; i < slaughterRaw.length; i++) {
+      const r = slaughterRaw[i];
+      if (!r) continue;
+      const pd = parseDate(r[1]);
+      if (!pd) continue;
+      const steers = parseNum(r[2]);
+      const heifers = parseNum(r[3]);
+      const beefCows = parseNum(r[4]);
+      const dairyCows = parseNum(r[5]);
+      const bulls = parseNum(r[6]);
+      const parts = [steers, heifers, beefCows, dairyCows, bulls];
+      if (parts.some(value => value == null)) continue;
+      const total = parts.reduce((sum, value) => sum + value, 0);
+      const females = heifers + beefCows + dairyCows;
+      usSlaughterByMonth[`${pd.year}-${pd.month}`] = {
+        total,
+        pctFemales: total > 0 ? (females / total) * 100 : null,
+      };
+    }
   }
 
   if (parseUS && findSheet('BeefUS')) {
@@ -382,6 +424,36 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
       const usdbrl           = bbgCambioByMonth[`${year}-${month}`]   ?? null;
       const edgebeef_value   = bbgEdgebeefByMonth[`${year}-${month}`] ?? null;
       beef_us.push({ year, month, pct_femeas, boi_bezerro_mm12, abates_total, preco_boi, preco_bezerro, usdbrl, edgebeef_value, raw: r.slice(0, 20) });
+    }
+
+    const cattleRatios = beef_us.map(row => {
+      const key = `${row.year}-${row.month}`;
+      const slaughter = usSlaughterByMonth[key];
+      if (row.pct_femeas == null && slaughter?.pctFemales != null) {
+        row.pct_femeas = Math.round(slaughter.pctFemales * 10) / 10;
+      }
+      if (row.abates_total == null && slaughter?.total != null) {
+        row.abates_total = Math.round(slaughter.total * 1000);
+      }
+      if (row.preco_boi == null && bbgLiveCattleByMonth[key] != null) {
+        row.preco_boi = bbgLiveCattleByMonth[key];
+      }
+      const cachedRatio = parseNum(row.raw?.[14]);
+      if (cachedRatio != null) return cachedRatio;
+      return row.preco_boi != null && row.preco_bezerro != null && row.preco_bezerro !== 0
+        ? row.preco_boi / row.preco_bezerro
+        : null;
+    });
+
+    // Rebuild the formula in column P when its cached result is unavailable.
+    for (let i = 0; i < beef_us.length; i++) {
+      if (beef_us[i].boi_bezerro_mm12 != null) continue;
+      const window = cattleRatios
+        .slice(Math.max(0, i - 11), i + 1)
+        .filter(value => value != null && Number.isFinite(value));
+      if (window.length === 12) {
+        beef_us[i].boi_bezerro_mm12 = window.reduce((sum, value) => sum + value, 0) / window.length;
+      }
     }
     result.beef_us = beef_us;
   }

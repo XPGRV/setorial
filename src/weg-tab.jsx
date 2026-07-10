@@ -863,6 +863,7 @@ const WegTab = ({ data, accent, tab }) => {
               field="value" unit="unid" decimals={0}
               enableZoom
               enableMM mmDefaultOn seriesLabel="Volume"
+              yMaxWhenAll={50}
             />
           )}
           {hasTransfExports && <WegTransformerExportsSection data={data} accent={accent}/>}

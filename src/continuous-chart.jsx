@@ -48,7 +48,7 @@ function filterByRangeYears(rows, field, rangeYears) {
   return valid.filter(r => r.year * 12 + r.month - 1 > cutOrd);
 }
 
-function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height = 260, events = [], showEvents = true, chartStyle = 'line', zeroBaseline = false, highlightZero = false, endPaddingMonths = 0, bottomPadding = 32, connectGaps = false, onZoom, onResetZoom, mmField = null, showMM = false, mmLabel = 'MM12M', mmColor = 'oklch(0.78 0.16 70)', seriesLabel = 'Valor', quarterMarkers = false, quarterMarkerField = null, quarterMarkerColor = 'oklch(0.68 0.22 25)' }) {
+function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height = 260, events = [], showEvents = true, chartStyle = 'line', zeroBaseline = false, highlightZero = false, endPaddingMonths = 0, bottomPadding = 32, connectGaps = false, onZoom, onResetZoom, mmField = null, showMM = false, mmLabel = 'MM12M', mmColor = 'oklch(0.78 0.16 70)', seriesLabel = 'Valor', quarterMarkers = false, quarterMarkerField = null, quarterMarkerColor = 'oklch(0.68 0.22 25)', yMaxOverride = null }) {
   const reactId = React.useId().replace(/[^a-z0-9-]/gi, '');
   const svgRef = React.useRef(null);
   const [hovered, setHovered] = React.useState(null); // { x, y, row, mouseY }
@@ -93,7 +93,10 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
   if (quarterMarkers) for (const r of valid) { if (r[markerField] != null) vals.push(r[markerField]); }
   const minV   = Math.min(...vals);
   const maxV   = Math.max(...vals);
-  const { ticks: yTicks, lo: yMin, hi: yMax } = niceYTicks(minV, maxV);
+  const yTickInfo = niceYTicks(minV, yMaxOverride ?? maxV);
+  const yMin = yTickInfo.lo;
+  const yMax = yMaxOverride ?? yTickInfo.hi;
+  const yTicks = yTickInfo.ticks.filter(v => v <= yMax + 1e-9);
 
   const firstOrd  = valid[0].year * 12 + valid[0].month - 1;
   const lastOrd   = valid[valid.length - 1].year * 12 + valid[valid.length - 1].month - 1;
@@ -389,7 +392,7 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
 }
 
 // ── ContinuousCard ────────────────────────────────────────────────────────────
-function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit = '', decimals = 1, height = 260, events: eventsProp, footerNote, rebaseBase100 = false, enableZoom = false, enableMM = false, mmDefaultOn = false, seriesLabel = 'Valor' }) {
+function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit = '', decimals = 1, height = 260, events: eventsProp, footerNote, rebaseBase100 = false, enableZoom = false, enableMM = false, mmDefaultOn = false, seriesLabel = 'Valor', yMaxWhenAll = null }) {
   const [range, setRange]           = React.useState('5');
   const [chartStyle, setChartStyle] = React.useState('area');
   const [zoom, setZoom]             = React.useState(null);
@@ -499,6 +502,7 @@ function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit
         events={eventsData} showEvents={false}
         chartStyle={chartStyle}
         mmField={enableMM ? 'mm12' : null} showMM={enableMM && showMM} seriesLabel={seriesLabel}
+        yMaxOverride={!zoom && range === 'all' ? yMaxWhenAll : null}
         onZoom={enableZoom ? applyZoom : undefined}
         onResetZoom={enableZoom ? () => setZoom(null) : undefined}
       />

@@ -906,9 +906,8 @@ html.route-is-entering #root { animation: route-fade-in 280ms cubic-bezier(0.22,
   border: 1px solid var(--border-strong);
   border-radius: 999px;
   color: var(--accent);
-  font-family: var(--font-serif, Georgia, serif);
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 11px;
-  font-style: italic;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
@@ -922,29 +921,28 @@ html.route-is-entering #root { animation: route-fade-in 280ms cubic-bezier(0.22,
   color: var(--bg);
 }
 .weg-info-panel {
+  display: none;
   position: absolute;
   left: 50%;
-  top: calc(100% + 10px);
+  bottom: calc(100% + 10px);
   z-index: 30;
   width: 540px;
-  min-height: 310px;
   padding: 12px;
   border: 1px solid var(--border-strong);
   border-radius: 8px;
   background: var(--bg-panel);
   box-shadow: var(--shadow-card);
-  opacity: 0;
-  visibility: hidden;
-  transform: translate(-50%, -4px);
-  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0.18s;
-  pointer-events: none;
+  color: var(--fg-dim);
+  transform: translateX(-50%);
+  pointer-events: auto;
 }
 .weg-info-tip.is-open .weg-info-panel {
-  opacity: 1;
-  visibility: visible;
-  transform: translate(-50%, 0);
-  transition: opacity 0.18s ease, transform 0.18s ease;
-  pointer-events: auto;
+  display: block;
+  animation: weg-info-panel-in 0.16s ease;
+}
+@keyframes weg-info-panel-in {
+  from { opacity: 0; transform: translate(-50%, 4px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
 }
 .weg-info-panel-title {
   display: block;
@@ -986,7 +984,7 @@ html.route-is-entering #root { animation: route-fade-in 280ms cubic-bezier(0.22,
   grid-template-columns: 1fr;
   gap: 5px;
   margin-top: 8px;
-  color: var(--fg-muted);
+  color: var(--fg-dim);
   font-size: 11px;
 }
 .weg-backtest-legend span {

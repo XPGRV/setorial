@@ -506,32 +506,26 @@ function BacktestMiniChart({ chart }) {
   if (!chart?.points?.length) return null;
   const W = 460, H = 210;
   const pad = { l: 36, r: 12, t: 16, b: 26 };
-  const series = chart.series.map(s => {
-    const base = chart.points.find(p => p[s.key] != null)?.[s.key] || null;
-    return {
-      ...s,
-      values: chart.points.map((p, i) => ({
-        i,
-        q: p.q,
-        raw: p[s.key],
-        value: base ? (p[s.key] / base) * 100 : null,
-      })).filter(p => p.value != null),
-    };
-  });
+  const series = chart.series.map(s => ({
+    ...s,
+    values: chart.points.map((p, i) => ({
+      i,
+      q: p.q,
+      value: p[s.key],
+    })).filter(p => p.value != null),
+  }));
   const all = series.flatMap(s => s.values.map(p => p.value));
-  const min = Math.min(...all, 85);
-  const max = Math.max(...all, 115);
-  const span = Math.max(1, max - min);
-  const yMin = Math.max(0, min - span * 0.08);
-  const yMax = max + span * 0.08;
+  const max = Math.max(...all);
+  const yMin = 0;
+  const yMax = max * 1.08;
   const x = i => pad.l + (i / Math.max(1, chart.points.length - 1)) * (W - pad.l - pad.r);
   const y = v => pad.t + (1 - (v - yMin) / (yMax - yMin)) * (H - pad.t - pad.b);
   const line = values => values.map((p, idx) => (idx ? 'L' : 'M') + x(p.i).toFixed(1) + ',' + y(p.value).toFixed(1)).join(' ');
-  const ticks = [100, Math.round((yMin + yMax) / 2), Math.round(yMax)].filter((v, i, arr) => v >= yMin && v <= yMax && arr.indexOf(v) === i);
+  const ticks = [0, Math.round(yMax / 2), Math.round(yMax)].filter((v, i, arr) => arr.indexOf(v) === i);
 
   return (
     <span className="weg-backtest-chart">
-      <span className="weg-backtest-chart-sub">Base 100 = 1Q11</span>
+      <span className="weg-backtest-chart-sub">US$ milhões</span>
       <svg viewBox={'0 0 ' + W + ' ' + H} role="img" aria-label={chart.title}>
         {ticks.map(t => (
           <g key={t}>

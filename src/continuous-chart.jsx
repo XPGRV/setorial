@@ -378,7 +378,7 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
               )}
               {hoverIsQuarter && (
                 <div className="hover-row" style={{ color: quarterMarkerColor, fontSize: '10px' }}>
-                  ≈ proxy da receita WEG (fim de trimestre)
+                  ≈ proxy da média trimestral WEG
                 </div>
               )}
             </div>
@@ -395,7 +395,7 @@ function ContinuousChart({ rows, field, accent, unit = '', decimals = 1, height 
           <span className="legend-year" style={hoverIsQuarter ? { color: quarterMarkerColor, fontWeight: 600 } : undefined}>
             <span className="legend-line" style={{background: hoverIsQuarter ? quarterMarkerColor : mmColor}}/>
             {mmLabel}
-            {hoverIsQuarter && <span style={{ color: quarterMarkerColor }}> · ≈ proxy da receita WEG</span>}
+            {hoverIsQuarter && <span style={{ color: quarterMarkerColor }}> · ≈ proxy da média trimestral WEG</span>}
           </span>
         </div>
       )}

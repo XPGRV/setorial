@@ -1078,6 +1078,7 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
         const off = i - 4;
         const year = md?.year ?? 2000 + Math.floor(off / 12);
         const month = md?.month ?? (off % 12) + 1;
+        if (year === 2016 && month === 10) continue;
         weg_transformadores_secex_price.push({ year, month, value: val });
       }
       if (weg_transformadores_secex_price.length) result.weg_transformadores_secex_price = weg_transformadores_secex_price;
@@ -1092,6 +1093,7 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
         const off = i - 4;
         const year = md?.year ?? 2000 + Math.floor(off / 12);
         const month = md?.month ?? (off % 12) + 1;
+        if (year === 2016 && month === 10) continue;
         weg_transformadores_secex_units.push({ year, month, value: val });
       }
       if (weg_transformadores_secex_units.length) result.weg_transformadores_secex_units = weg_transformadores_secex_units;

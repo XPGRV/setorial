@@ -809,14 +809,22 @@ const EmptyWeg = () => (
   </main>
 );
 
+const withoutOct2016 = rows => (rows || []).filter(r => !(r.year === 2016 && r.month === 10));
+
 // Sub-aba controlada pela sidebar (prop `tab`, à la Poultry):
 // 'eie' mostra exportações EIE, 'peers' mostra os comparativos e o resto cai em Transformadores.
 // Se a sub-aba pedida não tiver dados, cai graciosamente para a que tiver.
 const WegTab = ({ data, accent, tab }) => {
+  const cleanData = React.useMemo(() => ({
+    ...data,
+    weg_transformadores_secex_price: withoutOct2016(data.weg_transformadores_secex_price),
+    weg_transformadores_secex_units: withoutOct2016(data.weg_transformadores_secex_units),
+  }), [data]);
+
   const hasTransfPrice = !!(data.weg_transformadores && data.weg_transformadores.length);
   const hasTransfExports = !!(data.weg_transformadores_exports && data.weg_transformadores_exports.length);
-  const hasSecexPrice = !!(data.weg_transformadores_secex_price && data.weg_transformadores_secex_price.length);
-  const hasSecexUnits = !!(data.weg_transformadores_secex_units && data.weg_transformadores_secex_units.length);
+  const hasSecexPrice = !!(cleanData.weg_transformadores_secex_price && cleanData.weg_transformadores_secex_price.length);
+  const hasSecexUnits = !!(cleanData.weg_transformadores_secex_units && cleanData.weg_transformadores_secex_units.length);
   const hasEieExports = !!(data.weg_eie_exports && data.weg_eie_exports.length);
   const hasTransf = hasTransfPrice || hasTransfExports || hasSecexPrice || hasSecexUnits;
   const hasPeers  = !!(data.weg_peers && data.weg_peers.length);
@@ -846,7 +854,7 @@ const WegTab = ({ data, accent, tab }) => {
               cardId="card-weg-transformadores-preco-secex"
               title="Preço Transformadores - SECEX"
               sub="SECEX · Transformadores Dielétricos Líquido > 10.000 kVA · US$/unid"
-              accent={accent} data={data} dataset="weg_transformadores_secex_price"
+              accent={accent} data={cleanData} dataset="weg_transformadores_secex_price"
               field="value" unit="US$/unid" decimals={0}
               enableZoom
               enableMM mmDefaultOn seriesLabel="Preço"
@@ -857,7 +865,7 @@ const WegTab = ({ data, accent, tab }) => {
               cardId="card-weg-transformadores-volume-unitario"
               title="Volume Unitário Transformadores - SECEX"
               sub="SECEX · Transformadores Dielétricos Líquido > 10.000 kVA · Volume unitário"
-              accent={accent} data={data} dataset="weg_transformadores_secex_units"
+              accent={accent} data={cleanData} dataset="weg_transformadores_secex_units"
               field="value" unit="unid" decimals={0}
               enableZoom
               enableMM mmDefaultOn seriesLabel="Volume"

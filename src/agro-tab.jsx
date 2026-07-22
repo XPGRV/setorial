@@ -194,6 +194,7 @@ function DiscountSeasonal({ rows, unit, decimals, cardId, title, sub, accent, ch
 // rodar em dez/26, já passou o nov-26, então mostra até nov-28. Sempre 2.
 function FuturesCurveCard({ series, cardId, title, sub, unit, scale = 1 }) {
   const [pinnedSeries, setPinnedSeries] = React.useState(null)
+  const [showPast, setShowPast] = React.useState(true)
 
   const rows = React.useMemo(() => {
     const src = series || []
@@ -233,6 +234,13 @@ function FuturesCurveCard({ series, cardId, title, sub, unit, scale = 1 }) {
   const lastRow = rows[0] // 1º vencimento (contrato mais próximo)
   const fmtVal = v => v == null ? '—' : Number(v).toFixed(2).replace('.', ',')
 
+  // Com as linhas passadas desligadas, mostra só a Atual — se uma delas
+  // estivesse pinada, o pin não faz mais sentido e é limpo.
+  const visibleFields = showPast ? FUTURES_FIELDS : FUTURES_FIELDS.filter(f => f.key === 'atual')
+  React.useEffect(() => {
+    if (!showPast && pinnedSeries && pinnedSeries !== 'atual') setPinnedSeries(null)
+  }, [showPast, pinnedSeries])
+
   return (
     <section className="card card-full" data-card-id={cardId}>
       <div className="card-head">
@@ -240,7 +248,7 @@ function FuturesCurveCard({ series, cardId, title, sub, unit, scale = 1 }) {
           <div className="card-eyebrow">{sub}</div>
           <h3 className="card-title">{title}</h3>
           <div className="card-price" style={{flexWrap:'wrap', gap:'8px 20px'}}>
-            {FUTURES_FIELDS.map(f => (
+            {visibleFields.map(f => (
               <span key={f.key} style={{display:'inline-flex', alignItems:'center', gap:4}}>
                 <span style={{width:8, height:8, borderRadius:'50%', background:f.color,
                   display:'inline-block', flexShrink:0}}/>
@@ -251,11 +259,18 @@ function FuturesCurveCard({ series, cardId, title, sub, unit, scale = 1 }) {
             ))}
           </div>
         </div>
+        <div className="card-controls" style={{alignSelf:'center'}}>
+          <div className="ctrl-btn-group">
+            <button className={`ctrl-btn ${showPast ? 'is-on' : ''}`} onClick={() => setShowPast(v => !v)}>
+              LINHAS PASSADAS
+            </button>
+          </div>
+        </div>
       </div>
 
       <MultiContinuousChart
         rows={rows}
-        fields={FUTURES_FIELDS}
+        fields={visibleFields}
         unit={unit}
         decimals={2}
         height={330}
@@ -268,7 +283,7 @@ function FuturesCurveCard({ series, cardId, title, sub, unit, scale = 1 }) {
       />
 
       <div className="ciclo-legend" style={{marginTop: 8}}>
-        {FUTURES_FIELDS.map(f => (
+        {visibleFields.map(f => (
           <span key={f.key} className="legend-year"
             style={{
               userSelect:'none', padding:'2px 6px', cursor:'pointer',

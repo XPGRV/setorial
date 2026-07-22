@@ -12,16 +12,16 @@ const COTTON_ACCENT = 'rgb(0 117 72)'
 // rotas de frete), Barreiras num verde mais claro que o accent p/ leitura no dark.
 const COTTON_LINE_GREEN = 'rgb(0 176 112)'
 const COTTON_PRICE_FIELDS = [
-  { key: 'cbot', label: 'Cotton CBOT', color: 'rgb(108 173 223)' },
-  { key: 'barreiras', label: 'Cotton Barreiras', color: COTTON_LINE_GREEN },
+  { key: 'cbot', label: 'CT1 - Cotton CBOT', color: 'rgb(108 173 223)' },
+  { key: 'barreiras', label: 'BACRBARR - Cotton Barreiras', color: COTTON_LINE_GREEN },
 ]
 
 // Linhas do gráfico de preço da soja — CBOT no mesmo azul do algodão,
 // Paranaguá no âmbar do accent da aba, Sorriso no verde padrão dos gráficos.
 const SOY_PRICE_FIELDS = [
-  { key: 'cbot', label: 'Soybean CBOT', color: 'rgb(108 173 223)' },
-  { key: 'paranagua', label: 'Soybean Paranaguá', color: SOJA_ACCENT },
-  { key: 'sorriso', label: 'Soybean Sorriso', color: COTTON_LINE_GREEN },
+  { key: 'cbot', label: 'S 1 - Soybean CBOT', color: 'rgb(108 173 223)' },
+  { key: 'paranagua', label: 'BASMSBPA - Soybean Paranaguá', color: SOJA_ACCENT },
+  { key: 'sorriso', label: 'BASMSBSO - Soybean Sorriso', color: COTTON_LINE_GREEN },
 ]
 
 // Curvas de futuros — Atual no verde esmeralda padrão; 1 semana atrás em
@@ -92,6 +92,7 @@ function DiscountCard({ series, cardId, title, sub, nominalUnit, nominalLabel, c
         zeroBaseline
         domainStart={domainStart}
         headerExtra={<>{viewToggle}{metricToggle}</>}
+        showLegend={false}
       />
     )
   }
@@ -303,7 +304,7 @@ function CottonCharts({ data }) {
       <MultiContinuousCard
         cardId="card-agro-cotton-price"
         title="Preço do Algodão"
-        sub="Bloomberg · CT1 Comdty × BACRBARR Index · diário"
+        sub="Bloomberg · CT1 Comdty × BACRBARR Index"
         rows={rows}
         fields={COTTON_PRICE_FIELDS}
         unit={currency === 'usd' ? 'USd/lp' : 'BRL/lp'}
@@ -322,7 +323,7 @@ function CottonCharts({ data }) {
         series={data.agro_cotton_daily || []}
         cardId="card-agro-cotton-discount"
         title="Desconto do Algodão"
-        sub="Bloomberg · Barreiras − CBOT · diário"
+        sub="Bloomberg · Desconto Algodão Barreiras vs. CBOT"
         nominalUnit="USd/lp" nominalLabel="USd"
         color={COTTON_LINE_GREEN}
       />
@@ -331,7 +332,7 @@ function CottonCharts({ data }) {
         series={data.agro_cotton_futures}
         cardId="card-agro-cotton-futures"
         title="Futuros do Algodão"
-        sub="Bloomberg · CT Comdty · Atual × 1 semana × 1 mês"
+        sub="Bloomberg · CT Comdty · Contratos Futuros."
         unit="USd/lp"
       />
     </main>
@@ -368,7 +369,7 @@ function SojaCharts({ data }) {
       <MultiContinuousCard
         cardId="card-agro-soy-price"
         title="Preço da Soja"
-        sub="Bloomberg · S 1 Comdty × BASMSBPA × BASMSBSO · diário"
+        sub="Bloomberg · S 1 Comdty × BASMSBPA Index × BASMSBSO Index"
         rows={rows}
         fields={SOY_PRICE_FIELDS}
         unit={currency === 'usd' ? 'USD/bu' : 'BRL/sc'}
@@ -387,7 +388,7 @@ function SojaCharts({ data }) {
         series={data.agro_soy_daily || []}
         cardId="card-agro-soy-discount"
         title="Desconto da Soja"
-        sub="Bloomberg · Paranaguá − CBOT · diário"
+        sub="Bloomberg · Desconto Soja Paranaguá vs. CBOT"
         nominalUnit="USD/bu" nominalLabel="US$"
         color={COTTON_LINE_GREEN}
       />
@@ -396,7 +397,7 @@ function SojaCharts({ data }) {
         series={data.agro_soy_futures}
         cardId="card-agro-soy-futures"
         title="Futuros da Soja"
-        sub="Bloomberg · S Comdty · Atual × 1 semana × 1 mês"
+        sub="Bloomberg · S Comdty · Contratos Futuros."
         unit="USD/bu"
         scale={0.01}
       />

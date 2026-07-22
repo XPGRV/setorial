@@ -868,7 +868,7 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
 }
 
 // ── MultiContinuousCard ───────────────────────────────────────────────────────
-function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', decimals = 2, height = 360, defaultRange = '5', beforeChart = null, headerExtra = null, highlightZero = false, zeroBaseline = false, domainStart = null }) {
+function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', decimals = 2, height = 360, defaultRange = '5', beforeChart = null, headerExtra = null, highlightZero = false, zeroBaseline = false, domainStart = null, showLegend = true }) {
   const [range, setRange]             = React.useState(defaultRange);
   const [chartStyle, setChartStyle]   = React.useState('area');
   const [pinnedSeries, setPinnedSeries] = React.useState(null);
@@ -945,21 +945,23 @@ function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', deci
         domainStart={rangeNum === 'all' ? domainStart : null}
       />
 
-      <div className="ciclo-legend" style={{marginTop: 8}}>
-        {fields.map(f => (
-          <span key={f.key} className="legend-year"
-            style={{
-              userSelect:'none', padding:'2px 6px', cursor:'pointer',
-              opacity: pinnedSeries && pinnedSeries !== f.key ? 0.3 : 1,
-              outline: pinnedSeries === f.key ? `1px solid ${f.color}` : 'none',
-              borderRadius: 4,
-            }}
-            onClick={() => setPinnedSeries(p => p === f.key ? null : f.key)}>
-            <span className="legend-line" style={{background: f.color}}/>
-            {f.label}
-          </span>
-        ))}
-      </div>
+      {showLegend && (
+        <div className="ciclo-legend" style={{marginTop: 8}}>
+          {fields.map(f => (
+            <span key={f.key} className="legend-year"
+              style={{
+                userSelect:'none', padding:'2px 6px', cursor:'pointer',
+                opacity: pinnedSeries && pinnedSeries !== f.key ? 0.3 : 1,
+                outline: pinnedSeries === f.key ? `1px solid ${f.color}` : 'none',
+                borderRadius: 4,
+              }}
+              onClick={() => setPinnedSeries(p => p === f.key ? null : f.key)}>
+              <span className="legend-line" style={{background: f.color}}/>
+              {f.label}
+            </span>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

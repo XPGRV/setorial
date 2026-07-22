@@ -16,6 +16,14 @@ const COTTON_PRICE_FIELDS = [
   { key: 'barreiras', label: 'Cotton Barreiras', color: COTTON_LINE_GREEN },
 ]
 
+// Linhas do gráfico de preço da soja — CBOT no mesmo azul do algodão,
+// Paranaguá no âmbar do accent da aba, Sorriso no lima (mesmo das rotas IMEA).
+const SOY_PRICE_FIELDS = [
+  { key: 'cbot', label: 'Soybean CBOT', color: 'rgb(108 173 223)' },
+  { key: 'paranagua', label: 'Soybean Paranaguá', color: 'rgb(255 203 112)' },
+  { key: 'sorriso', label: 'Soybean Sorriso', color: 'rgb(204 242 97)' },
+]
+
 const MONTH_DOY = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
 const NO_EVENTS = []
 
@@ -215,24 +223,56 @@ function CottonCharts({ data }) {
   )
 }
 
-function SojaCharts() {
+function SojaCharts({ data }) {
+  const [currency, setCurrency] = React.useState('usd')
+
+  // Mesmas chaves nas duas moedas — trocar US$↔R$ preserva range, estilo e
+  // série pinada. Atenção: a unidade muda junto (USD/bu ↔ BRL/sc).
+  const rows = React.useMemo(() => {
+    const usd = currency === 'usd'
+    return (data.agro_soy_daily || [])
+      .map(r => ({
+        year: r.year, month: r.month, day: r.day,
+        cbot: usd ? r.cbot_usd_bu : r.cbot_brl_sc,
+        paranagua: usd ? r.paranagua_usd_bu : r.paranagua_brl_sc,
+        sorriso: usd ? r.sorriso_usd_bu : r.sorriso_brl_sc,
+      }))
+      .filter(r => r.cbot != null || r.paranagua != null || r.sorriso != null)
+  }, [data.agro_soy_daily, currency])
+
+  if (!rows.length) {
+    return <main className="main"><section className="card card-full"><div className="card-head"><div>
+      <div className="card-eyebrow">Agro · Soja</div>
+      <h3 className="card-title">Sem dados de soja</h3>
+      <div style={{fontSize:13,color:'var(--fg-dim)',marginTop:8}}>Atualize a planilha Agro.xlsm para carregar as séries diárias da Bloomberg.</div>
+    </div></div></section></main>
+  }
+
   return (
     <main className="main">
-      <section className="card card-full">
-        <div className="card-head"><div>
-          <div className="card-eyebrow">Agro · Soja</div>
-          <h3 className="card-title">Em breve</h3>
-          <div style={{fontSize:13,color:'var(--fg-dim)',marginTop:8}}>
-            Os gráficos de preço e desconto da soja (CBOT, Paranaguá e Sorriso) serão adicionados aqui.
+      <MultiContinuousCard
+        cardId="card-agro-soy-price"
+        title="Preço da Soja"
+        sub="Bloomberg · S 1 Comdty × BASMSBPA × BASMSBSO · diário"
+        rows={rows}
+        fields={SOY_PRICE_FIELDS}
+        unit={currency === 'usd' ? 'USD/bu' : 'BRL/sc'}
+        decimals={2}
+        height={330}
+        defaultRange="5"
+        headerExtra={
+          <div className="currency-toggle">
+            <button className={`cur-btn ${currency==='usd'?'is-on':''}`} onClick={() => setCurrency('usd')}>US$</button>
+            <button className={`cur-btn ${currency==='brl'?'is-on':''}`} onClick={() => setCurrency('brl')}>R$</button>
           </div>
-        </div></div>
-      </section>
+        }
+      />
     </main>
   )
 }
 
 export function AgroTab({ data, accent, tab }) {
-  return tab === 'soja' ? <SojaCharts/> : <CottonCharts data={data}/>
+  return tab === 'soja' ? <SojaCharts data={data}/> : <CottonCharts data={data}/>
 }
 
 export { SOJA_ACCENT, COTTON_ACCENT }

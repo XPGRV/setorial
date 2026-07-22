@@ -188,19 +188,30 @@ function DiscountSeasonal({ rows, unit, decimals, cardId, title, sub, accent, ch
 // ── Curva de futuros (Soja e Algodão) ─────────────────────────────────────────
 // Eixo X = vencimento do contrato (decodificado do ticker na planilha); três
 // curvas comparando a precificação atual com 1 semana e 1 mês atrás. Janela:
-// ano corrente + ano seguinte — rola sozinha com o tempo.
+// Janela: sempre os 2 próximos vencimentos do "mês terminal" do ciclo (Nov
+// pra soja, Dez pro algodão — descoberto direto da série, sem hardcode por
+// commodity). Contando o mais próximo: hoje (jul/26) mostra até nov-27; se
+// rodar em dez/26, já passou o nov-26, então mostra até nov-28. Sempre 2.
 function FuturesCurveCard({ series, cardId, title, sub, unit, scale = 1 }) {
   const [pinnedSeries, setPinnedSeries] = React.useState(null)
 
   const rows = React.useMemo(() => {
+    const src = series || []
+    if (!src.length) return []
     const now = new Date()
     const curOrd = now.getFullYear() * 12 + now.getMonth()
-    const maxYear = now.getFullYear() + 1
+    const terminalMonth = Math.max(...src.map(r => r.month))
+    const terminalOrds = src
+      .filter(r => r.month === terminalMonth)
+      .map(r => r.year * 12 + r.month - 1)
+      .filter(ord => ord >= curOrd)
+      .sort((a, b) => a - b)
+    const cutoffOrd = terminalOrds[1] ?? terminalOrds[0] ?? Infinity
     const sc = v => v == null ? null : v * scale
-    return (series || [])
+    return src
       .filter(r => {
         const ord = r.year * 12 + r.month - 1
-        return ord >= curOrd && r.year <= maxYear
+        return ord >= curOrd && ord <= cutoffOrd
       })
       .map(r => ({ ...r, atual: sc(r.atual), week_ago: sc(r.week_ago), month_ago: sc(r.month_ago) }))
   }, [series, scale])

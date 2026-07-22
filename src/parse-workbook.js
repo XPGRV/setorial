@@ -133,7 +133,7 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
   // D=data diária; Algodão: E=CT1 USd/lp, F=CT1 BRL/lp, G=BACRBARR USd/lp,
   // H=BACRBARR BRL/lp, I=Desconto USd/lp, J=Desconto %.
   // Soja: K=CBOT USD/bu, L=CBOT BRL/sc, M=Paranaguá USD/bu, N=Paranaguá BRL/sc,
-  // O=Sorriso USD/bu, P=Sorriso BRL/sc.
+  // O=Sorriso USD/bu, P=Sorriso BRL/sc, Q=Desconto USD/bu, R=Desconto %.
   if (parseAgro && findSheet('BBG_Dados')) {
     const raw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('BBG_Dados')], { header: 1, raw: true });
     // Séries diárias longas (~10k linhas): arredonda p/ 5 casas p/ reduzir o JSON.
@@ -171,6 +171,8 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
         paranagua_brl_sc: r5(r[13]), // N — Soybean Paranaguá BRL/sc
         sorriso_usd_bu:   r5(r[14]), // O — Soybean Sorriso USD/bu
         sorriso_brl_sc:   r5(r[15]), // P — Soybean Sorriso BRL/sc
+        discount_usd:     r5(r[16]), // Q — Desconto USD/bu (Paranaguá − CBOT)
+        discount_pct:     r5(r[17]), // R — Desconto %
       };
       if (Object.entries(soy).some(([k, v]) => !['year','month','day'].includes(k) && v != null)) {
         agro_soy_daily.push(soy);

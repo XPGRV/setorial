@@ -17,46 +17,46 @@ const COTTON_PRICE_FIELDS = [
 ]
 
 // Linhas do gráfico de preço da soja — CBOT no mesmo azul do algodão,
-// Paranaguá no âmbar do accent da aba, Sorriso no lima (mesmo das rotas IMEA).
+// Paranaguá no âmbar do accent da aba, Sorriso no verde padrão dos gráficos.
 const SOY_PRICE_FIELDS = [
   { key: 'cbot', label: 'Soybean CBOT', color: 'rgb(108 173 223)' },
-  { key: 'paranagua', label: 'Soybean Paranaguá', color: 'rgb(255 203 112)' },
-  { key: 'sorriso', label: 'Soybean Sorriso', color: 'rgb(204 242 97)' },
+  { key: 'paranagua', label: 'Soybean Paranaguá', color: SOJA_ACCENT },
+  { key: 'sorriso', label: 'Soybean Sorriso', color: COTTON_LINE_GREEN },
 ]
 
 const MONTH_DOY = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
 const NO_EVENTS = []
 
-// ── Desconto do Algodão (Barreiras − CBOT) ────────────────────────────────────
+// ── Card de desconto (algodão: Barreiras − CBOT · soja: Paranaguá − CBOT) ─────
 // Um card, dois modos de visualização (Contínuo / Sazonal) e duas métricas
-// (USd/lp nominal / %). A série vem de agro_cotton_daily (colunas I e J).
-function CottonDiscountCard({ data }) {
+// (nominal / %). A série vem de discount_usd / discount_pct do dataset diário.
+function DiscountCard({ series, cardId, title, sub, nominalUnit, nominalLabel, color }) {
   const [metric, setMetric] = React.useState('usd')    // 'usd' | 'pct'
   const [view, setView]     = React.useState('continuo') // 'continuo' | 'sazonal'
 
-  const rows = React.useMemo(() => (data.agro_cotton_daily || [])
+  const rows = React.useMemo(() => series
     .map(r => ({
       year: r.year, month: r.month, day: r.day,
       value: metric === 'usd'
         ? r.discount_usd
         : r.discount_pct == null ? null : r.discount_pct * 100,
     }))
-    .filter(r => r.value != null), [data.agro_cotton_daily, metric])
+    .filter(r => r.value != null), [series, metric])
 
-  const unit = metric === 'usd' ? 'USd/lp' : '%'
+  const unit = metric === 'usd' ? nominalUnit : '%'
   const decimals = metric === 'usd' ? 2 : 1
 
-  // No "Todos", o eixo X começa junto com a série de preço (jan/2000) — o
-  // desconto só existe a partir de nov/2003 e, sem isso, os dois cards ficam
-  // descasados na comparação visual.
-  const priceFirst = (data.agro_cotton_daily || [])[0]
+  // No "Todos", o eixo X começa junto com a série de preço acima — o desconto
+  // pode começar depois (ex: Barreiras só a partir de nov/2003) e, sem isso,
+  // os dois cards ficam descasados na comparação visual.
+  const priceFirst = series[0]
   const domainStart = priceFirst
     ? { year: priceFirst.year, month: priceFirst.month, day: priceFirst.day }
     : null
 
   const metricToggle = (
     <div className="currency-toggle">
-      <button className={`cur-btn ${metric==='usd'?'is-on':''}`} onClick={() => setMetric('usd')}>USd</button>
+      <button className={`cur-btn ${metric==='usd'?'is-on':''}`} onClick={() => setMetric('usd')}>{nominalLabel}</button>
       <button className={`cur-btn ${metric==='pct'?'is-on':''}`} onClick={() => setMetric('pct')}>%</button>
     </div>
   )
@@ -70,11 +70,11 @@ function CottonDiscountCard({ data }) {
   if (view === 'continuo') {
     return (
       <MultiContinuousCard
-        cardId="card-agro-cotton-discount"
-        title="Desconto do Algodão"
-        sub="Bloomberg · Barreiras − CBOT · diário"
+        cardId={cardId}
+        title={title}
+        sub={sub}
         rows={rows}
-        fields={[{ key: 'value', label: 'Desconto', color: COTTON_LINE_GREEN }]}
+        fields={[{ key: 'value', label: 'Desconto', color }]}
         unit={unit}
         decimals={decimals}
         height={330}
@@ -87,9 +87,10 @@ function CottonDiscountCard({ data }) {
     )
   }
   return (
-    <CottonDiscountSeasonal
+    <DiscountSeasonal
       rows={rows} unit={unit} decimals={decimals}
-      chartId={`card-agro-cotton-discount-${metric}`}
+      cardId={cardId} title={title} sub={sub} accent={color}
+      chartId={`${cardId}-${metric}`}
       toggles={<>{viewToggle}{metricToggle}</>}
     />
   )
@@ -97,7 +98,7 @@ function CottonDiscountCard({ data }) {
 
 // Visão sazonal do desconto — mesma mecânica do DailySeasonalCard (EdgeBeef):
 // uma linha por ano sobre o dia-do-ano, com presets de anos, média+faixa etc.
-function CottonDiscountSeasonal({ rows, unit, decimals, chartId, toggles }) {
+function DiscountSeasonal({ rows, unit, decimals, cardId, title, sub, accent, chartId, toggles }) {
   const byYear = React.useMemo(() => {
     const out = {}
     for (const r of rows) {
@@ -132,11 +133,11 @@ function CottonDiscountSeasonal({ rows, unit, decimals, chartId, toggles }) {
   React.useEffect(() => { setPinnedYear(null) }, [selectedYears.join(',')])
 
   return (
-    <section className="card card-full" data-card-id="card-agro-cotton-discount">
+    <section className="card card-full" data-card-id={cardId}>
       <div className="card-head">
         <div>
-          <div className="card-eyebrow">Bloomberg · Barreiras − CBOT · diário</div>
-          <h3 className="card-title">Desconto do Algodão</h3>
+          <div className="card-eyebrow">{sub}</div>
+          <h3 className="card-title">{title}</h3>
           <div className="card-price">
             {latestRaw && (<>
               <span className="card-value">{fmt(latestRaw.value, { decimals })}</span>
@@ -165,7 +166,7 @@ function CottonDiscountSeasonal({ rows, unit, decimals, chartId, toggles }) {
         chartStyle={chartStyle}
         showStats={showStats} showEvents={showEvents}
         events={NO_EVENTS}
-        accent={COTTON_LINE_GREEN}
+        accent={accent}
         unit={unit}
         decimals={decimals}
         chartId={chartId}
@@ -218,7 +219,14 @@ function CottonCharts({ data }) {
         }
       />
 
-      <CottonDiscountCard data={data}/>
+      <DiscountCard
+        series={data.agro_cotton_daily || []}
+        cardId="card-agro-cotton-discount"
+        title="Desconto do Algodão"
+        sub="Bloomberg · Barreiras − CBOT · diário"
+        nominalUnit="USd/lp" nominalLabel="USd"
+        color={COTTON_LINE_GREEN}
+      />
     </main>
   )
 }
@@ -266,6 +274,15 @@ function SojaCharts({ data }) {
             <button className={`cur-btn ${currency==='brl'?'is-on':''}`} onClick={() => setCurrency('brl')}>R$</button>
           </div>
         }
+      />
+
+      <DiscountCard
+        series={data.agro_soy_daily || []}
+        cardId="card-agro-soy-discount"
+        title="Desconto da Soja"
+        sub="Bloomberg · Paranaguá − CBOT · diário"
+        nominalUnit="USD/bu" nominalLabel="US$"
+        color={SOJA_ACCENT}
       />
     </main>
   )

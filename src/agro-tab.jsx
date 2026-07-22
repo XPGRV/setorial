@@ -333,8 +333,7 @@ function CottonCharts({ data }) {
         cardId="card-agro-cotton-futures"
         title="Futuros do Algodão"
         sub="Bloomberg · CT Comdty · Atual × 1 semana × 1 mês"
-        unit="USD/lp"
-        scale={10}
+        unit="USd/lp"
       />
     </main>
   )

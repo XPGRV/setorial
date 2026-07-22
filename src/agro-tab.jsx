@@ -38,6 +38,14 @@ function CottonDiscountCard({ data }) {
   const unit = metric === 'usd' ? 'USd/lp' : '%'
   const decimals = metric === 'usd' ? 2 : 1
 
+  // No "Todos", o eixo X começa junto com a série de preço (jan/2000) — o
+  // desconto só existe a partir de nov/2003 e, sem isso, os dois cards ficam
+  // descasados na comparação visual.
+  const priceFirst = (data.agro_cotton_daily || [])[0]
+  const domainStart = priceFirst
+    ? { year: priceFirst.year, month: priceFirst.month, day: priceFirst.day }
+    : null
+
   const metricToggle = (
     <div className="currency-toggle">
       <button className={`cur-btn ${metric==='usd'?'is-on':''}`} onClick={() => setMetric('usd')}>USd</button>
@@ -64,6 +72,7 @@ function CottonDiscountCard({ data }) {
         height={330}
         defaultRange="5"
         highlightZero
+        domainStart={domainStart}
         headerExtra={<>{viewToggle}{metricToggle}</>}
       />
     )

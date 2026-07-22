@@ -531,7 +531,7 @@ function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit
 
 
 // ── MultiContinuousChart ──────────────────────────────────────────────────────
-function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 260, chartId = 'mc', chartStyle = 'line', pinnedSeries, setPinnedSeries, highlightZero = false }) {
+function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 260, chartId = 'mc', chartStyle = 'line', pinnedSeries, setPinnedSeries, highlightZero = false, domainStart = null }) {
   const svgRef = React.useRef(null);
   const [hovered, setHovered] = React.useState(null);
   const [svgW, setSvgW] = React.useState(760);
@@ -578,10 +578,13 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
   const { ticks: yTicks, lo: yMin, hi: yMax } = niceYTicks(minV, maxV);
 
   const tOf = row => row.year + (row.month - 1) / 12 + ((row.day || 1) - 1) / 365.25;
-  const firstT = tOf(valid[0]);
+  // domainStart estende o eixo X p/ antes do 1º ponto da série — usado p/
+  // alinhar visualmente cards empilhados cujas séries começam em datas diferentes.
+  const startRow = domainStart && tOf(domainStart) < tOf(valid[0]) ? domainStart : valid[0];
+  const firstT = tOf(startRow);
   const lastT = tOf(valid[valid.length - 1]);
   const totalT = lastT - firstT || 1;
-  const firstOrd  = valid[0].year * 12 + valid[0].month - 1;
+  const firstOrd  = startRow.year * 12 + startRow.month - 1;
   const lastOrd   = valid[valid.length - 1].year * 12 + valid[valid.length - 1].month - 1;
 
   const xOf     = row => padL + ((tOf(row) - firstT) / totalT) * chartW;
@@ -811,7 +814,7 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
 }
 
 // ── MultiContinuousCard ───────────────────────────────────────────────────────
-function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', decimals = 2, height = 360, defaultRange = '5', beforeChart = null, headerExtra = null, highlightZero = false }) {
+function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', decimals = 2, height = 360, defaultRange = '5', beforeChart = null, headerExtra = null, highlightZero = false, domainStart = null }) {
   const [range, setRange]             = React.useState(defaultRange);
   const [chartStyle, setChartStyle]   = React.useState('area');
   const [pinnedSeries, setPinnedSeries] = React.useState(null);
@@ -884,6 +887,7 @@ function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', deci
         pinnedSeries={pinnedSeries}
         setPinnedSeries={setPinnedSeries}
         highlightZero={highlightZero}
+        domainStart={rangeNum === 'all' ? domainStart : null}
       />
 
       <div className="ciclo-legend" style={{marginTop: 8}}>

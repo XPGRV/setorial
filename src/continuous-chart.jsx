@@ -745,6 +745,7 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
               )}
               <path d={linePath} fill="none" stroke={f.color}
                 strokeWidth={lineWidth(f.key)} strokeLinejoin="round"
+                strokeDasharray={f.dash || undefined} strokeLinecap="round"
                 opacity={lineOpacity(f.key)}
                 style={{transition:'opacity 0.25s ease'}}
                 clipPath={`url(#${clipId})`}/>
@@ -752,15 +753,30 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
               <path d={linePath} fill="none" stroke="transparent" strokeWidth={12}
                 style={{cursor:'pointer'}} clipPath={`url(#${clipId})`}
                 onClick={() => toggle(f.key)}/>
-              {/* Pontos em cada observação (curvas de futuros: cada contrato) */}
-              {showDots && valid.map((r, i) => r[f.key] != null && (
-                <circle key={i} cx={xOf(r)} cy={yOf(r[f.key])} r={3.2}
-                  fill={f.color} stroke="var(--bg-panel)" strokeWidth={1}
-                  opacity={lineOpacity(f.key)}
-                  style={{transition:'opacity 0.25s ease', cursor:'pointer'}}
-                  clipPath={`url(#${clipId})`}
-                  onClick={() => toggle(f.key)}/>
-              ))}
+              {/* Markers em cada observação (curvas de futuros: cada contrato).
+                  Forma por série via f.marker: circle (padrão) | square | triangle */}
+              {showDots && valid.map((r, i) => {
+                if (r[f.key] == null) return null;
+                const cx = xOf(r), cy = yOf(r[f.key]);
+                const s = f.marker ? 6.4 : 3.2; // raio (dobro quando a série define forma)
+                const mProps = {
+                  fill: f.color, stroke: 'var(--bg-panel)', strokeWidth: 1,
+                  opacity: lineOpacity(f.key),
+                  style: {transition:'opacity 0.25s ease', cursor:'pointer'},
+                  clipPath: `url(#${clipId})`,
+                  onClick: () => toggle(f.key),
+                };
+                if (f.marker === 'square') {
+                  const a = s * 0.9;
+                  return <rect key={i} x={cx - a} y={cy - a} width={a * 2} height={a * 2} {...mProps}/>;
+                }
+                if (f.marker === 'triangle') {
+                  return <polygon key={i}
+                    points={`${cx},${cy - s * 1.1} ${cx - s},${cy + s * 0.8} ${cx + s},${cy + s * 0.8}`}
+                    {...mProps}/>;
+                }
+                return <circle key={i} cx={cx} cy={cy} r={s} {...mProps}/>;
+              })}
             </g>
           );
         })}

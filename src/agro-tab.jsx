@@ -25,11 +25,12 @@ const SOY_PRICE_FIELDS = [
 ]
 
 // Curvas de futuros — Atual no verde esmeralda padrão; 1 semana atrás em
-// laranja e 1 mês atrás em azul (mesmas referências visuais da Bloomberg).
+// laranja e 1 mês atrás em azul. As curvas passadas vão em pontilhado e cada
+// série tem um marker próprio (bola / quadrado / triângulo).
 const FUTURES_FIELDS = [
-  { key: 'atual', label: 'Atual', color: 'rgb(0 176 112)' },
-  { key: 'week_ago', label: '1 sem. atrás', color: 'rgb(255 137 74)' },
-  { key: 'month_ago', label: '1 mês atrás', color: 'rgb(108 173 223)' },
+  { key: 'atual', label: 'Atual', color: 'rgb(0 176 112)', marker: 'circle' },
+  { key: 'week_ago', label: '1 sem. atrás', color: 'rgb(255 137 74)', marker: 'square', dash: '2 5' },
+  { key: 'month_ago', label: '1 mês atrás', color: 'rgb(108 173 223)', marker: 'triangle', dash: '2 5' },
 ]
 
 const MONTH_DOY = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
@@ -187,18 +188,21 @@ function DiscountSeasonal({ rows, unit, decimals, cardId, title, sub, accent, ch
 // Eixo X = vencimento do contrato (decodificado do ticker na planilha); três
 // curvas comparando a precificação atual com 1 semana e 1 mês atrás. Janela:
 // ano corrente + ano seguinte — rola sozinha com o tempo.
-function FuturesCurveCard({ series, cardId, title, sub, unit }) {
+function FuturesCurveCard({ series, cardId, title, sub, unit, scale = 1 }) {
   const [pinnedSeries, setPinnedSeries] = React.useState(null)
 
   const rows = React.useMemo(() => {
     const now = new Date()
     const curOrd = now.getFullYear() * 12 + now.getMonth()
     const maxYear = now.getFullYear() + 1
-    return (series || []).filter(r => {
-      const ord = r.year * 12 + r.month - 1
-      return ord >= curOrd && r.year <= maxYear
-    })
-  }, [series])
+    const sc = v => v == null ? null : v * scale
+    return (series || [])
+      .filter(r => {
+        const ord = r.year * 12 + r.month - 1
+        return ord >= curOrd && r.year <= maxYear
+      })
+      .map(r => ({ ...r, atual: sc(r.atual), week_ago: sc(r.week_ago), month_ago: sc(r.month_ago) }))
+  }, [series, scale])
 
   if (!rows.length) {
     return (
@@ -329,7 +333,8 @@ function CottonCharts({ data }) {
         cardId="card-agro-cotton-futures"
         title="Futuros do Algodão"
         sub="Bloomberg · CT Comdty · Atual × 1 semana × 1 mês"
-        unit="USd/lp"
+        unit="USD/lp"
+        scale={10}
       />
     </main>
   )
@@ -394,7 +399,8 @@ function SojaCharts({ data }) {
         cardId="card-agro-soy-futures"
         title="Futuros da Soja"
         sub="Bloomberg · S Comdty · Atual × 1 semana × 1 mês"
-        unit="USd/bu"
+        unit="USD/bu"
+        scale={10}
       />
     </main>
   )

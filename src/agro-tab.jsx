@@ -332,7 +332,7 @@ function CottonCharts({ data }) {
         series={data.agro_cotton_futures}
         cardId="card-agro-cotton-futures"
         title="Futuros do Algodão"
-        sub="Bloomberg · CT Comdty · Contratos Futuros."
+        sub="Bloomberg · CT Comdty · Contratos Futuros"
         unit="USd/lp"
       />
     </main>
@@ -397,7 +397,7 @@ function SojaCharts({ data }) {
         series={data.agro_soy_futures}
         cardId="card-agro-soy-futures"
         title="Futuros da Soja"
-        sub="Bloomberg · S Comdty · Contratos Futuros."
+        sub="Bloomberg · S Comdty · Contratos Futuros"
         unit="USD/bu"
         scale={0.01}
       />

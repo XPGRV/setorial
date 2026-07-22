@@ -399,7 +399,7 @@ function SojaCharts({ data }) {
         title="Futuros da Soja"
         sub="Bloomberg · S Comdty · Atual × 1 semana × 1 mês"
         unit="USD/bu"
-        scale={10}
+        scale={0.01}
       />
     </main>
   )

@@ -282,7 +282,7 @@ function SojaCharts({ data }) {
         title="Desconto da Soja"
         sub="Bloomberg · Paranaguá − CBOT · diário"
         nominalUnit="USD/bu" nominalLabel="US$"
-        color={SOJA_ACCENT}
+        color={COTTON_LINE_GREEN}
       />
     </main>
   )

@@ -531,7 +531,7 @@ function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit
 
 
 // ── MultiContinuousChart ──────────────────────────────────────────────────────
-function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 260, chartId = 'mc', chartStyle = 'line', pinnedSeries, setPinnedSeries }) {
+function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 260, chartId = 'mc', chartStyle = 'line', pinnedSeries, setPinnedSeries, highlightZero = false }) {
   const svgRef = React.useRef(null);
   const [hovered, setHovered] = React.useState(null);
   const [svgW, setSvgW] = React.useState(760);
@@ -685,6 +685,13 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
 
         <line x1={padL} x2={W - padR} y1={padT + chartH} y2={padT + chartH} stroke="var(--border)" strokeWidth={1}/>
 
+        {/* Linha do zero em destaque (séries que oscilam entre + e −) */}
+        {highlightZero && yMin < 0 && yMax > 0 && (
+          <line x1={padL} x2={W - padR} y1={yOf(0)} y2={yOf(0)}
+            stroke="var(--fg-dim)" strokeWidth={1.5} opacity={0.55}
+            clipPath={`url(#${clipId})`}/>
+        )}
+
         {xTicks.map((t, i) => (
           <g key={i}>
             <line x1={t.x} x2={t.x} y1={padT + chartH} y2={padT + chartH + 4} stroke="var(--fg-dim)" strokeWidth={0.5}/>
@@ -804,7 +811,7 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
 }
 
 // ── MultiContinuousCard ───────────────────────────────────────────────────────
-function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', decimals = 2, height = 360, defaultRange = '5', beforeChart = null, headerExtra = null }) {
+function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', decimals = 2, height = 360, defaultRange = '5', beforeChart = null, headerExtra = null, highlightZero = false }) {
   const [range, setRange]             = React.useState(defaultRange);
   const [chartStyle, setChartStyle]   = React.useState('area');
   const [pinnedSeries, setPinnedSeries] = React.useState(null);
@@ -876,6 +883,7 @@ function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', deci
         chartStyle={chartStyle}
         pinnedSeries={pinnedSeries}
         setPinnedSeries={setPinnedSeries}
+        highlightZero={highlightZero}
       />
 
       <div className="ciclo-legend" style={{marginTop: 8}}>

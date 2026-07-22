@@ -59,6 +59,7 @@ const RAW_ITEMS = [
   ['agro','soja',null,'Agro · Soja','soja soybean cbot paranagua sorriso preco desconto'],
   ['agro','algodao',null,'Agro · Algodão','algodao cotton cbot barreiras preco desconto'],
   ['agro','algodao','card-agro-cotton-price','Preço do Algodão','algodao cotton cbot barreiras ct1 bacrbarr preco diario usd brl pluma'],
+  ['agro','algodao','card-agro-cotton-discount','Desconto do Algodão','algodao cotton desconto discount basis barreiras cbot nominal percentual sazonal continuo'],
   ['weg','transformadores','card-weg-transformadores','Preço de Transformadores','transformador transformadores transformer ppi electric power specialty manufacturing'],
   ['weg','transformadores','card-weg-transformadores-preco-secex','Preço Transformadores - SECEX','transformador transformadores preco secex us unid'],
   ['weg','transformadores','card-weg-transformadores-volume-unitario','Volume Unitário Transformadores - SECEX','transformador transformadores volume unitario unidades secex'],

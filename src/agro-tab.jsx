@@ -237,7 +237,6 @@ function FuturesCurveCard({ series, cardId, title, sub, unit, scale = 1 }) {
                 <span style={{fontSize:11, color:'var(--fg-dim)', marginLeft:2}}>{f.label}</span>
               </span>
             ))}
-            <span className="card-date">1º vcto {MONTHS_PT[lastRow.month - 1]}/{String(lastRow.year).slice(-2)}</span>
           </div>
         </div>
       </div>

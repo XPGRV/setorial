@@ -531,7 +531,7 @@ function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit
 
 
 // ── MultiContinuousChart ──────────────────────────────────────────────────────
-function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 260, chartId = 'mc', chartStyle = 'line', pinnedSeries, setPinnedSeries, highlightZero = false, domainStart = null }) {
+function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 260, chartId = 'mc', chartStyle = 'line', pinnedSeries, setPinnedSeries, highlightZero = false, zeroBaseline = false, domainStart = null }) {
   const svgRef = React.useRef(null);
   const [hovered, setHovered] = React.useState(null);
   const [svgW, setSvgW] = React.useState(760);
@@ -598,6 +598,15 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
   const lineOpacity = key => pinnedSeries ? (pinnedSeries === key ? 1 : 0.15) : 1;
   const lineWidth   = key => pinnedSeries === key ? 2.5 : 2;
 
+  // Baseline da área: no modo zeroBaseline (séries que oscilam entre + e −,
+  // ex: desconto) a área fecha na linha do zero — mesmo conceito do gráfico
+  // Poultry/Beef, que ancora área e fade na linha de referência.
+  const zeroY       = yOf(0);
+  const zeroInChart = zeroY >= padT && zeroY <= padT + chartH;
+  const useZeroBase = zeroBaseline && zeroInChart;
+  const areaBaseY   = useZeroBase ? zeroY : padT + chartH;
+  const zeroPct     = ((zeroY - padT) / chartH * 100).toFixed(1);
+
   const spanMons = Math.max(1, Math.round(totalT * 12));
   const stepMons = spanMons <= 72 ? 6 : 12;
   const xTicks = [];
@@ -628,7 +637,7 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
     if (!pts.length) return '';
     const line = pts.map(r => `${xOf(r).toFixed(1)},${yOf(r[key]).toFixed(1)}`).join('L');
     const x0 = xOf(pts[0]).toFixed(1), x1 = xOf(pts[pts.length - 1]).toFixed(1);
-    const base = (padT + chartH).toFixed(1);
+    const base = areaBaseY.toFixed(1);
     return `M${line}L${x1},${base}L${x0},${base}Z`;
   };
 
@@ -668,7 +677,16 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
           <clipPath id={clipId}>
             <rect x={padL} y={padT - 2} width={chartW} height={chartH + 6}/>
           </clipPath>
-          {fields.map(f => (
+          {fields.map(f => useZeroBase ? (
+            // 3 stops: opaco nos extremos, transparente na linha do zero —
+            // o fade irradia da referência (igual ao Poultry/Beef)
+            <linearGradient key={f.key} id={`mcc-grad-${chartId}-${f.key}`} x1="0" x2="0"
+              y1={padT} y2={padT + chartH} gradientUnits="userSpaceOnUse">
+              <stop offset="0%"          stopColor={f.color} stopOpacity={0.28}/>
+              <stop offset={`${zeroPct}%`} stopColor={f.color} stopOpacity={0}/>
+              <stop offset="100%"        stopColor={f.color} stopOpacity={0.28}/>
+            </linearGradient>
+          ) : (
             <linearGradient key={f.key} id={`mcc-grad-${chartId}-${f.key}`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%"   stopColor={f.color} stopOpacity={0.25}/>
               <stop offset="100%" stopColor={f.color} stopOpacity={0.01}/>
@@ -814,7 +832,7 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
 }
 
 // ── MultiContinuousCard ───────────────────────────────────────────────────────
-function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', decimals = 2, height = 360, defaultRange = '5', beforeChart = null, headerExtra = null, highlightZero = false, domainStart = null }) {
+function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', decimals = 2, height = 360, defaultRange = '5', beforeChart = null, headerExtra = null, highlightZero = false, zeroBaseline = false, domainStart = null }) {
   const [range, setRange]             = React.useState(defaultRange);
   const [chartStyle, setChartStyle]   = React.useState('area');
   const [pinnedSeries, setPinnedSeries] = React.useState(null);
@@ -887,6 +905,7 @@ function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', deci
         pinnedSeries={pinnedSeries}
         setPinnedSeries={setPinnedSeries}
         highlightZero={highlightZero}
+        zeroBaseline={zeroBaseline}
         domainStart={rangeNum === 'all' ? domainStart : null}
       />
 

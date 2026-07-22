@@ -72,6 +72,7 @@ function CottonDiscountCard({ data }) {
         height={330}
         defaultRange="5"
         highlightZero
+        zeroBaseline
         domainStart={domainStart}
         headerExtra={<>{viewToggle}{metricToggle}</>}
       />

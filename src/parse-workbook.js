@@ -134,10 +134,11 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
   // H=BACRBARR BRL/lp, I=Desconto USd/lp, J=Desconto %.
   // Soja: K=CBOT USD/bu, L=CBOT BRL/sc, M=Paranaguá USD/bu, N=Paranaguá BRL/sc,
   // O=Sorriso USD/bu, P=Sorriso BRL/sc, Q=Desconto USD/bu, R=Desconto %.
+  // Séries do Agro: arredonda p/ 5 casas p/ reduzir o JSON (~10k linhas diárias).
+  const r5 = v => { const n = parseNum(v); return n == null ? null : Math.round(n * 1e5) / 1e5; };
+
   if (parseAgro && findSheet('BBG_Dados')) {
     const raw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('BBG_Dados')], { header: 1, raw: true });
-    // Séries diárias longas (~10k linhas): arredonda p/ 5 casas p/ reduzir o JSON.
-    const r5 = v => { const n = parseNum(v); return n == null ? null : Math.round(n * 1e5) / 1e5; };
     const agro_cotton_daily = [];
     const agro_soy_daily = [];
     let curDate = null;
@@ -180,6 +181,45 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
     }
     if (agro_cotton_daily.length) result.agro_cotton_daily = agro_cotton_daily;
     if (agro_soy_daily.length)    result.agro_soy_daily    = agro_soy_daily;
+  }
+
+  // ── Curvas de futuros do Agro (abas "Soja" e "Algodão") ─────────────────────
+  // B=Ticker (ex: "S Q6 Comdty" / "CT Z7 Comdty"), C=Atual, D=1 sem. atrás,
+  // E=1 mês atrás. Vencimento decodificado do ticker: letra = mês
+  // (F,G,H,J,K,M,N,Q,U,V,X,Z = Jan..Dez), dígito = ano.
+  if (parseAgro) {
+    const MONTH_CODES = { F:1, G:2, H:3, J:4, K:5, M:6, N:7, Q:8, U:9, V:10, X:11, Z:12 };
+    const nowYear = new Date().getFullYear();
+    const parseFutures = sheetName => {
+      const sh = findSheet(sheetName);
+      if (!sh) return null;
+      const raw = XLSX.utils.sheet_to_json(wb.Sheets[sh], { header: 1, raw: true });
+      const out = [];
+      for (let i = 3; i < raw.length; i++) {
+        const r = raw[i];
+        if (!r || !r[1]) continue;
+        const m = String(r[1]).trim().match(/([FGHJKMNQUVXZ])(\d)\s+Comdty$/i);
+        if (!m) continue;
+        const month = MONTH_CODES[m[1].toUpperCase()];
+        // Dígito único do ano → resolve na década corrente (6 → 2026);
+        // se cair mais de 1 ano no passado, é da década seguinte.
+        let year = Math.floor(nowYear / 10) * 10 + parseInt(m[2], 10);
+        if (year < nowYear - 1) year += 10;
+        const row = {
+          year, month,
+          atual:     r5(r[2]), // C — precificação atual
+          week_ago:  r5(r[3]), // D — 1 semana atrás
+          month_ago: r5(r[4]), // E — 1 mês atrás
+        };
+        if (row.atual != null || row.week_ago != null || row.month_ago != null) out.push(row);
+      }
+      out.sort((a, b) => (a.year * 12 + a.month) - (b.year * 12 + b.month));
+      return out.length ? out : null;
+    };
+    const soyFutures    = parseFutures('Soja');
+    const cottonFutures = parseFutures('Algodão');
+    if (soyFutures)    result.agro_soy_futures    = soyFutures;
+    if (cottonFutures) result.agro_cotton_futures = cottonFutures;
   }
 
   // Rental · Carros (CarRental.xlsm · aba "Preço Carros")

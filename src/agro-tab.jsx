@@ -1,5 +1,5 @@
 import React from 'react'
-import { MultiContinuousCard } from './continuous-chart.jsx'
+import { MultiContinuousCard, MultiContinuousChart } from './continuous-chart.jsx'
 import { EdgebeeefChart, EdgebeeefControls } from './beef-us-tab.jsx'
 import { MONTHS_PT, fmt } from './data-utils.jsx'
 
@@ -22,6 +22,14 @@ const SOY_PRICE_FIELDS = [
   { key: 'cbot', label: 'Soybean CBOT', color: 'rgb(108 173 223)' },
   { key: 'paranagua', label: 'Soybean Paranaguá', color: SOJA_ACCENT },
   { key: 'sorriso', label: 'Soybean Sorriso', color: COTTON_LINE_GREEN },
+]
+
+// Curvas de futuros — Atual no verde esmeralda padrão; 1 semana atrás em
+// laranja e 1 mês atrás em azul (mesmas referências visuais da Bloomberg).
+const FUTURES_FIELDS = [
+  { key: 'atual', label: 'Atual', color: 'rgb(0 176 112)' },
+  { key: 'week_ago', label: '1 sem. atrás', color: 'rgb(255 137 74)' },
+  { key: 'month_ago', label: '1 mês atrás', color: 'rgb(108 173 223)' },
 ]
 
 const MONTH_DOY = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
@@ -175,6 +183,94 @@ function DiscountSeasonal({ rows, unit, decimals, cardId, title, sub, accent, ch
   )
 }
 
+// ── Curva de futuros (Soja e Algodão) ─────────────────────────────────────────
+// Eixo X = vencimento do contrato (decodificado do ticker na planilha); três
+// curvas comparando a precificação atual com 1 semana e 1 mês atrás. Janela:
+// ano corrente + ano seguinte — rola sozinha com o tempo.
+function FuturesCurveCard({ series, cardId, title, sub, unit }) {
+  const [pinnedSeries, setPinnedSeries] = React.useState(null)
+
+  const rows = React.useMemo(() => {
+    const now = new Date()
+    const curOrd = now.getFullYear() * 12 + now.getMonth()
+    const maxYear = now.getFullYear() + 1
+    return (series || []).filter(r => {
+      const ord = r.year * 12 + r.month - 1
+      return ord >= curOrd && r.year <= maxYear
+    })
+  }, [series])
+
+  if (!rows.length) {
+    return (
+      <section className="card card-full" data-card-id={cardId}>
+        <div className="card-head"><div>
+          <div className="card-eyebrow">{sub}</div>
+          <h3 className="card-title">{title}</h3>
+          <div style={{fontSize:13,color:'var(--fg-dim)',marginTop:8}}>
+            Sem dados — preencha as colunas Atual / 1 sem. / 1 mês na planilha Agro.xlsm e atualize.
+          </div>
+        </div></div>
+      </section>
+    )
+  }
+
+  const lastRow = rows[0] // 1º vencimento (contrato mais próximo)
+  const fmtVal = v => v == null ? '—' : Number(v).toFixed(2).replace('.', ',')
+
+  return (
+    <section className="card card-full" data-card-id={cardId}>
+      <div className="card-head">
+        <div>
+          <div className="card-eyebrow">{sub}</div>
+          <h3 className="card-title">{title}</h3>
+          <div className="card-price" style={{flexWrap:'wrap', gap:'8px 20px'}}>
+            {FUTURES_FIELDS.map(f => (
+              <span key={f.key} style={{display:'inline-flex', alignItems:'center', gap:4}}>
+                <span style={{width:8, height:8, borderRadius:'50%', background:f.color,
+                  display:'inline-block', flexShrink:0}}/>
+                <span className="card-value" style={{color: f.color}}>{fmtVal(lastRow?.[f.key])}</span>
+                <span className="card-unit">{unit}</span>
+                <span style={{fontSize:11, color:'var(--fg-dim)', marginLeft:2}}>{f.label}</span>
+              </span>
+            ))}
+            <span className="card-date">1º vcto {MONTHS_PT[lastRow.month - 1]}/{String(lastRow.year).slice(-2)}</span>
+          </div>
+        </div>
+      </div>
+
+      <MultiContinuousChart
+        rows={rows}
+        fields={FUTURES_FIELDS}
+        unit={unit}
+        decimals={2}
+        height={330}
+        chartId={cardId}
+        chartStyle="line"
+        showDots
+        monthlyTicks
+        pinnedSeries={pinnedSeries}
+        setPinnedSeries={setPinnedSeries}
+      />
+
+      <div className="ciclo-legend" style={{marginTop: 8}}>
+        {FUTURES_FIELDS.map(f => (
+          <span key={f.key} className="legend-year"
+            style={{
+              userSelect:'none', padding:'2px 6px', cursor:'pointer',
+              opacity: pinnedSeries && pinnedSeries !== f.key ? 0.3 : 1,
+              outline: pinnedSeries === f.key ? `1px solid ${f.color}` : 'none',
+              borderRadius: 4,
+            }}
+            onClick={() => setPinnedSeries(p => p === f.key ? null : f.key)}>
+            <span className="legend-line" style={{background: f.color}}/>
+            {f.label}
+          </span>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 function CottonCharts({ data }) {
   const [currency, setCurrency] = React.useState('usd')
 
@@ -226,6 +322,14 @@ function CottonCharts({ data }) {
         sub="Bloomberg · Barreiras − CBOT · diário"
         nominalUnit="USd/lp" nominalLabel="USd"
         color={COTTON_LINE_GREEN}
+      />
+
+      <FuturesCurveCard
+        series={data.agro_cotton_futures}
+        cardId="card-agro-cotton-futures"
+        title="Futuros do Algodão"
+        sub="Bloomberg · CT Comdty · Atual × 1 semana × 1 mês"
+        unit="USd/lp"
       />
     </main>
   )
@@ -283,6 +387,14 @@ function SojaCharts({ data }) {
         sub="Bloomberg · Paranaguá − CBOT · diário"
         nominalUnit="USD/bu" nominalLabel="US$"
         color={COTTON_LINE_GREEN}
+      />
+
+      <FuturesCurveCard
+        series={data.agro_soy_futures}
+        cardId="card-agro-soy-futures"
+        title="Futuros da Soja"
+        sub="Bloomberg · S Comdty · Atual × 1 semana × 1 mês"
+        unit="USd/bu"
       />
     </main>
   )

@@ -531,7 +531,7 @@ function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit
 
 
 // ── MultiContinuousChart ──────────────────────────────────────────────────────
-function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 260, chartId = 'mc', chartStyle = 'line', pinnedSeries, setPinnedSeries, highlightZero = false, zeroBaseline = false, domainStart = null }) {
+function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 260, chartId = 'mc', chartStyle = 'line', pinnedSeries, setPinnedSeries, highlightZero = false, zeroBaseline = false, domainStart = null, showDots = false, monthlyTicks = false }) {
   const svgRef = React.useRef(null);
   const [hovered, setHovered] = React.useState(null);
   const [svgW, setSvgW] = React.useState(760);
@@ -610,14 +610,25 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
   const spanMons = Math.max(1, Math.round(totalT * 12));
   const stepMons = spanMons <= 72 ? 6 : 12;
   const xTicks = [];
-  const tickStart = Math.ceil(firstOrd / stepMons) * stepMons;
-  for (let ord = tickStart; ord <= lastOrd; ord += stepMons) {
-    const yr = Math.floor(ord / 12);
-    const mo = (ord % 12) + 1;
-    const label = stepMons === 6
-      ? `${MONTHS_PT_ABR[mo - 1]}/${String(yr).slice(-2)}`
-      : String(yr);
-    xTicks.push({ x: xOf_ord(ord), label });
+  if (monthlyTicks) {
+    // Um tick por mês presente nos dados (curvas de futuros: cada contrato)
+    const seen = new Set();
+    for (const r of valid) {
+      const key = `${r.year}-${r.month}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      xTicks.push({ x: xOf(r), label: `${MONTHS_PT_ABR[r.month - 1]}/${String(r.year).slice(-2)}` });
+    }
+  } else {
+    const tickStart = Math.ceil(firstOrd / stepMons) * stepMons;
+    for (let ord = tickStart; ord <= lastOrd; ord += stepMons) {
+      const yr = Math.floor(ord / 12);
+      const mo = (ord % 12) + 1;
+      const label = stepMons === 6
+        ? `${MONTHS_PT_ABR[mo - 1]}/${String(yr).slice(-2)}`
+        : String(yr);
+      xTicks.push({ x: xOf_ord(ord), label });
+    }
   }
 
   const buildPath = key => {
@@ -741,6 +752,15 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
               <path d={linePath} fill="none" stroke="transparent" strokeWidth={12}
                 style={{cursor:'pointer'}} clipPath={`url(#${clipId})`}
                 onClick={() => toggle(f.key)}/>
+              {/* Pontos em cada observação (curvas de futuros: cada contrato) */}
+              {showDots && valid.map((r, i) => r[f.key] != null && (
+                <circle key={i} cx={xOf(r)} cy={yOf(r[f.key])} r={3.2}
+                  fill={f.color} stroke="var(--bg-panel)" strokeWidth={1}
+                  opacity={lineOpacity(f.key)}
+                  style={{transition:'opacity 0.25s ease', cursor:'pointer'}}
+                  clipPath={`url(#${clipId})`}
+                  onClick={() => toggle(f.key)}/>
+              ))}
             </g>
           );
         })}

@@ -59,6 +59,8 @@ const RAW_ITEMS = [
   ['agro','soja',null,'Agro · Soja','soja soybean cbot paranagua sorriso preco desconto'],
   ['agro','soja','card-agro-soy-price','Preço da Soja','soja soybean cbot paranagua sorriso basmsbpa basmsbso preco diario usd brl bushel saca'],
   ['agro','soja','card-agro-soy-discount','Desconto da Soja','soja soybean desconto discount basis paranagua cbot nominal percentual sazonal continuo'],
+  ['agro','soja','card-agro-soy-futures','Futuros da Soja','soja soybean futuros futures curva contratos vencimento curve'],
+  ['agro','algodao','card-agro-cotton-futures','Futuros do Algodão','algodao cotton futuros futures curva contratos vencimento curve'],
   ['agro','algodao',null,'Agro · Algodão','algodao cotton cbot barreiras preco desconto'],
   ['agro','algodao','card-agro-cotton-price','Preço do Algodão','algodao cotton cbot barreiras ct1 bacrbarr preco diario usd brl pluma'],
   ['agro','algodao','card-agro-cotton-discount','Desconto do Algodão','algodao cotton desconto discount basis barreiras cbot nominal percentual sazonal continuo'],

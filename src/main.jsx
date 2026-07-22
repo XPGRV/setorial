@@ -43,7 +43,7 @@ const DATASET_DATA_KEYS = {
   weg:        ['weg_transformadores', 'weg_transformadores_exports', 'weg_transformadores_secex_price', 'weg_transformadores_secex_units', 'weg_eie_exports', 'weg_peers'],
   rental:     ['rental_car_prices', 'rental_peers'],
   transportes:['transport_grains', 'transport_freights'],
-  agro:       ['agro_cotton_daily', 'agro_soy_daily'],
+  agro:       ['agro_cotton_daily', 'agro_soy_daily', 'agro_cotton_futures', 'agro_soy_futures'],
 }
 const DATASET_META_KEYS = {
   beef_us: 'us', beef_br: 'br', poultry_br: 'poultry_br',

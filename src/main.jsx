@@ -43,12 +43,14 @@ const DATASET_DATA_KEYS = {
   weg:        ['weg_transformadores', 'weg_transformadores_exports', 'weg_transformadores_secex_price', 'weg_transformadores_secex_units', 'weg_eie_exports', 'weg_peers'],
   rental:     ['rental_car_prices', 'rental_peers'],
   transportes:['transport_grains', 'transport_freights'],
+  agro:       ['agro_cotton_daily', 'agro_soy_daily'],
 }
 const DATASET_META_KEYS = {
   beef_us: 'us', beef_br: 'br', poultry_br: 'poultry_br',
   poultry_us: 'poultry_us', macro: 'selic', weg: 'weg',
   rental: 'rental',
   transportes: 'transportes',
+  agro: 'agro',
 }
 const SECTION_DATASETS = {
   proteinas:    ['beef_us', 'beef_br', 'poultry_br', 'poultry_us'],
@@ -56,6 +58,7 @@ const SECTION_DATASETS = {
   capitalgoods: ['weg'],
   rental:       ['rental'],
   transportes:  ['transportes'],
+  agro:         ['agro'],
 }
 
 const normalizeDashboardPayload = (data, meta) => {
@@ -228,7 +231,7 @@ function ProteinasRoute({ initialDataset = 'beef_us', dashboardSection = 'protei
   }, [dashboardSection, initialDataset])
 
   if (!ready) {
-    const label = dashboardSection === 'macro' ? 'Macro' : dashboardSection === 'capitalgoods' ? 'Capital Goods' : dashboardSection === 'rental' ? 'Rental' : dashboardSection === 'transportes' ? 'Transportes' : 'Proteinas'
+    const label = dashboardSection === 'macro' ? 'Macro' : dashboardSection === 'capitalgoods' ? 'Capital Goods' : dashboardSection === 'rental' ? 'Rental' : dashboardSection === 'transportes' ? 'Transportes' : dashboardSection === 'agro' ? 'Agro' : 'Proteinas'
     return <ProteinasLoading label={label} />
   }
   const { Component } = ready
@@ -256,6 +259,9 @@ root.render(
       } />
       <Route path="/transportes" element={
         <ProteinasRoute initialDataset="transportes" dashboardSection="transportes" />
+      } />
+      <Route path="/agro" element={
+        <ProteinasRoute initialDataset="agro" dashboardSection="agro" />
       } />
     </Routes>
   </BrowserRouter>

@@ -804,7 +804,7 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
 }
 
 // ── MultiContinuousCard ───────────────────────────────────────────────────────
-function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', decimals = 2, height = 360, defaultRange = '5', beforeChart = null }) {
+function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', decimals = 2, height = 360, defaultRange = '5', beforeChart = null, headerExtra = null }) {
   const [range, setRange]             = React.useState(defaultRange);
   const [chartStyle, setChartStyle]   = React.useState('area');
   const [pinnedSeries, setPinnedSeries] = React.useState(null);
@@ -859,6 +859,7 @@ function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', deci
                   onClick={() => setChartStyle(v)}>{l}</button>
               ))}
             </div>
+            {headerExtra}
           </div>
         </div>
       </div>

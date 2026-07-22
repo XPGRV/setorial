@@ -69,7 +69,7 @@ function trimSifLag(arr, field, lagMonths = 2) {
 
 // Recebe um workbook JÁ LIDO pelo SheetJS (com cellDates:true, cellStyles:true)
 // e a instância XLSX, e devolve o objeto de dados.
-export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, parsePoultryUS = false, parseSelic = false, parseRental = false, parseTransportes = false } = {}) {
+export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, parsePoultryUS = false, parseSelic = false, parseRental = false, parseTransportes = false, parseAgro = false } = {}) {
   _XLSX = XLSX;
   const sheets = wb.SheetNames;
   // Case-insensitive sheet lookup
@@ -127,6 +127,57 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
       }
     }
     if (transport_grains.length) result.transport_grains = transport_grains;
+  }
+
+  // ── Agro (Agro.xlsm · aba BBG_Dados) ────────────────────────────────────────
+  // D=data diária; Algodão: E=CT1 USd/lp, F=CT1 BRL/lp, G=BACRBARR USd/lp,
+  // H=BACRBARR BRL/lp, I=Desconto USd/lp, J=Desconto %.
+  // Soja: K=CBOT USD/bu, L=CBOT BRL/sc, M=Paranaguá USD/bu, N=Paranaguá BRL/sc,
+  // O=Sorriso USD/bu, P=Sorriso BRL/sc.
+  if (parseAgro && findSheet('BBG_Dados')) {
+    const raw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('BBG_Dados')], { header: 1, raw: true });
+    // Séries diárias longas (~10k linhas): arredonda p/ 5 casas p/ reduzir o JSON.
+    const r5 = v => { const n = parseNum(v); return n == null ? null : Math.round(n * 1e5) / 1e5; };
+    const agro_cotton_daily = [];
+    const agro_soy_daily = [];
+    let curDate = null;
+    for (let i = 3; i < raw.length; i++) {
+      const r = raw[i];
+      if (!r) continue;
+      const pd = parseDate(r[3]);
+      if (pd) {
+        curDate = new Date(Date.UTC(pd.year, pd.month - 1, pd.day));
+      } else if (curDate) {
+        curDate = new Date(curDate.getTime() + 86400000);
+      } else continue;
+      const year = curDate.getUTCFullYear(), month = curDate.getUTCMonth() + 1, day = curDate.getUTCDate();
+      const cotton = {
+        year, month, day,
+        cbot_usd:      r5(r[4]),  // E — Cotton CBOT USd/lp
+        cbot_brl:      r5(r[5]),  // F — Cotton CBOT BRL/lp
+        barreiras_usd: r5(r[6]),  // G — Cotton Barreiras USd/lp
+        barreiras_brl: r5(r[7]),  // H — Cotton Barreiras BRL/lp
+        discount_usd:  r5(r[8]),  // I — Desconto USd/lp
+        discount_pct:  r5(r[9]),  // J — Desconto %
+      };
+      if (Object.entries(cotton).some(([k, v]) => !['year','month','day'].includes(k) && v != null)) {
+        agro_cotton_daily.push(cotton);
+      }
+      const soy = {
+        year, month, day,
+        cbot_usd_bu:      r5(r[10]), // K — Soybean CBOT USD/bu
+        cbot_brl_sc:      r5(r[11]), // L — Soybean CBOT BRL/sc
+        paranagua_usd_bu: r5(r[12]), // M — Soybean Paranaguá USD/bu
+        paranagua_brl_sc: r5(r[13]), // N — Soybean Paranaguá BRL/sc
+        sorriso_usd_bu:   r5(r[14]), // O — Soybean Sorriso USD/bu
+        sorriso_brl_sc:   r5(r[15]), // P — Soybean Sorriso BRL/sc
+      };
+      if (Object.entries(soy).some(([k, v]) => !['year','month','day'].includes(k) && v != null)) {
+        agro_soy_daily.push(soy);
+      }
+    }
+    if (agro_cotton_daily.length) result.agro_cotton_daily = agro_cotton_daily;
+    if (agro_soy_daily.length)    result.agro_soy_daily    = agro_soy_daily;
   }
 
   // Rental · Carros (CarRental.xlsm · aba "Preço Carros")

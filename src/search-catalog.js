@@ -9,12 +9,14 @@ const DATASET_LABELS = {
   beef_br: 'Beef BR', beef_us: 'Beef US',
   poultry_br: 'Poultry BR', poultry_us: 'Poultry US',
   macro: 'Macro', weg: 'WEG', rental: 'Rental', transportes: 'Transportes',
+  agro: 'Agro',
 }
 
 const TAB_LABELS = {
   precos: 'Preços & Spreads', abates: 'Produção',
   ipca: 'Processados', producao: 'Produção',
   graos: 'Grãos', fretes: 'Fretes',
+  soja: 'Soja', algodao: 'Algodão',
   transformadores: 'Transformadores', eie: 'EIE', peers: 'Peers',
 }
 
@@ -27,6 +29,7 @@ const DATASET_KEYWORDS = {
   weg: 'weg capital goods bens de capital industria equipamentos transformadores motores',
   rental: 'rental locadoras carros automoveis veiculos pesados peers mobilidade',
   transportes: 'transportes logistica frete fretes graos soja milho exportacao secex',
+  agro: 'agro agricultura agronegocio commodities agricolas soja algodao cotton soybean',
 }
 
 const RAW_ITEMS = [
@@ -53,6 +56,9 @@ const RAW_ITEMS = [
   ['transportes','graos','card-transport-soy-mt-volume','Exportação Soja · MT','soja mato grosso mt volume exportado exportacao 1000 toneladas'],
   ['transportes','graos','card-transport-corn-volume','Exportação Milho','milho volume exportado exportacao 1000 toneladas'],
   ['transportes','graos','card-transport-corn-mt-volume','Exportação Milho · MT','milho mato grosso mt volume exportado exportacao 1000 toneladas'],
+  ['agro','soja',null,'Agro · Soja','soja soybean cbot paranagua sorriso preco desconto'],
+  ['agro','algodao',null,'Agro · Algodão','algodao cotton cbot barreiras preco desconto'],
+  ['agro','algodao','card-agro-cotton-price','Preço do Algodão','algodao cotton cbot barreiras ct1 bacrbarr preco diario usd brl pluma'],
   ['weg','transformadores','card-weg-transformadores','Preço de Transformadores','transformador transformadores transformer ppi electric power specialty manufacturing'],
   ['weg','transformadores','card-weg-transformadores-preco-secex','Preço Transformadores - SECEX','transformador transformadores preco secex us unid'],
   ['weg','transformadores','card-weg-transformadores-volume-unitario','Volume Unitário Transformadores - SECEX','transformador transformadores volume unitario unidades secex'],
@@ -131,5 +137,6 @@ export function dashboardPathForDataset(dataset) {
   if (dataset === 'weg') return '/capitalgoods'
   if (dataset === 'rental') return '/rental'
   if (dataset === 'transportes') return '/transportes'
+  if (dataset === 'agro') return '/agro'
   return '/proteinas'
 }

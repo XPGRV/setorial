@@ -58,6 +58,13 @@ const DATASETS = {
     metaKey: 'transportes',
     opts: { parseBR: false, parseUS: false, parsePoultryUS: false, parseSelic: false, parseTransportes: true },
   },
+  agro: {
+    fileName: 'Agro.xlsm',
+    fileIdEnv: 'GOOGLE_DRIVE_AGRO_FILE_ID',
+    folderIdEnv: 'GOOGLE_DRIVE_DATABASE_FOLDER_ID',
+    metaKey: 'agro',
+    opts: { parseBR: false, parseUS: false, parsePoultryUS: false, parseSelic: false, parseAgro: true },
+  },
 };
 
 function json(res, status, body) {

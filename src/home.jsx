@@ -159,7 +159,7 @@ const SECTORS = [
   { label: 'Rental',          sub: 'Dados de locadoras, frotas, preços e mobilidade.', icon: Car, route: '/rental', active: true },
   { label: 'Capital Goods',   sub: 'Acompanhamento setorial de empresas como: WEG, Marcopolo, Embraer, etc.', icon: Factory, route: '/capitalgoods', active: true },
   { label: 'Transportes',     sub: 'Acompanhamento de fretes, exportações e preços de grãos.', icon: Train, route: '/transportes', active: true },
-  { label: 'Agro',            sub: 'Acompanhamento de commodities agrícolas, produção, preços e empresas do agronegócio.', icon: Sprout },
+  { label: 'Agro',            sub: 'Acompanhamento de commodities agrícolas, produção, preços e empresas do agronegócio.', icon: Sprout, route: '/agro', active: true },
   { label: 'Food & Beverage', sub: 'Acompanhamento setorial de alimentos, bebidas, consumo e principais empresas.', icon: Utensils },
 ]
 const MACRO = [

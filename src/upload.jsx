@@ -25,6 +25,7 @@ async function refreshDashboard(onLoad, dataset) {
   const metaKeys = {
     beef_us: 'us', beef_br: 'br', poultry_us: 'poultry_us',
     poultry_br: 'poultry_br', macro: 'selic', weg: 'weg',
+    rental: 'rental', transportes: 'transportes', agro: 'agro',
   };
   const metaKey = metaKeys[dataset] || 'br';
   const expectedUpdate = json.meta?.[metaKey]?.updated;
@@ -112,6 +113,7 @@ const ALL_DATASETS = [
   { key: 'weg',       label: 'WEG'      },
   { key: 'rental',    label: 'Rental'   },
   { key: 'transportes', label: 'Transportes' },
+  { key: 'agro',      label: 'Agro'     },
 ];
 
 const SidebarRefresh = ({ onLoad }) => {

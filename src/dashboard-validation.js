@@ -72,6 +72,11 @@ const CHECKS = {
     { label: 'Fretes', min: 12, count: data => countAny(data, 'transport_freights', ['sorriso_santos', 'rondonopolis_santos', 'sorriso_rondonopolis']) },
     { label: 'Graos SECEX', min: 24, count: data => countAny(data, 'transport_grains', ['soy_volume_kt', 'soy_mt_volume_kt', 'corn_volume_kt', 'corn_mt_volume_kt']) },
   ],
+  agro: [
+    { label: 'Cotton CBOT diario', min: 20, count: data => countAny(data, 'agro_cotton_daily', ['cbot_usd', 'cbot_brl']) },
+    { label: 'Cotton Barreiras diario', min: 20, count: data => countAny(data, 'agro_cotton_daily', ['barreiras_usd', 'barreiras_brl']) },
+    { label: 'Soja diario', min: 20, count: data => countAny(data, 'agro_soy_daily', ['cbot_usd_bu', 'paranagua_usd_bu', 'sorriso_usd_bu']) },
+  ],
 };
 
 export function validateDashboardPayload(dataset, parsed) {

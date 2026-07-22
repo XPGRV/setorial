@@ -12,6 +12,7 @@ const DATASET_OBJECTS = {
   weg: 'data-weg.json',
   rental: 'data-rental.json',
   transportes: 'data-transportes.json',
+  agro: 'data-agro.json',
 };
 const LEGACY_OBJECT = 'data.json';
 

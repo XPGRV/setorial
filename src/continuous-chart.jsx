@@ -740,16 +740,7 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
           if (!linePath) return null;
           const isPinned = pinnedSeries === f.key;
           return (
-            <g key={f.key}
-              style={{
-                // Entrada: cada série se desenha da esquerda p/ direita via
-                // clip-path (preserva o pontilhado), com stagger por série
-                ...(drawIn ? {
-                  animation: 'rx-stat-mean-reveal 1.0s cubic-bezier(0.4, 0, 0.2, 1) both',
-                  animationDelay: `${fields.indexOf(f) * 0.18}s`,
-                } : {}),
-                pointerEvents: isHidden(f.key) ? 'none' : undefined,
-              }}>
+            <g key={f.key} style={{pointerEvents: isHidden(f.key) ? 'none' : undefined}}>
               {chartStyle === 'area' && (
                 <path d={buildAreaPath(f.key)} fill={`url(#mcc-grad-${chartId}-${f.key})`}
                   opacity={isHidden(f.key) ? 0 : pinnedSeries && !isPinned ? 0 : 1}
@@ -760,7 +751,15 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
                 strokeWidth={lineWidth(f.key)} strokeLinejoin="round"
                 strokeDasharray={f.dash || undefined} strokeLinecap="round"
                 opacity={lineOpacity(f.key)}
-                style={{transition:'opacity 0.4s ease'}}
+                style={{
+                  transition: 'opacity 0.4s ease',
+                  // Entrada: mesmo desenho dos gráficos sazonais — rx-draw
+                  // (dashoffset) na linha sólida; nas pontilhadas, reveal por
+                  // clip-path (igual às tracejadas do sazonal) p/ preservar o padrão
+                  ...(drawIn ? (f.dash
+                    ? { animation: 'rx-stat-mean-reveal 1.2s cubic-bezier(0.4, 0, 0.2, 1) both' }
+                    : { strokeDasharray: 'var(--len, 3000)', animation: 'rx-draw 1.2s cubic-bezier(0.4, 0, 0.2, 1) backwards' }) : {}),
+                }}
                 clipPath={`url(#${clipId})`}/>
               {/* transparent hit area */}
               <path d={linePath} fill="none" stroke="transparent" strokeWidth={12}
@@ -775,7 +774,11 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
                 const mProps = {
                   fill: f.color, stroke: 'var(--bg-panel)', strokeWidth: 1,
                   opacity: lineOpacity(f.key),
-                  style: {transition:'opacity 0.4s ease', cursor:'pointer'},
+                  style: {
+                    transition: 'opacity 0.4s ease', cursor: 'pointer',
+                    // Entrada: fade dos markers, igual aos dots dos outros gráficos
+                    ...(drawIn ? { animation: 'rx-fade-in 0.9s ease-out backwards', animationDelay: '0.25s' } : {}),
+                  },
                   clipPath: `url(#${clipId})`,
                   onClick: () => toggle(f.key),
                 };

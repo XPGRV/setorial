@@ -244,11 +244,10 @@ function FuturesCurveCard({ series, cardId, title, sub, unit, scale = 1 }) {
     if (!showPast && pinnedSeries && pinnedSeries !== 'atual') setPinnedSeries(null)
   }, [showPast, pinnedSeries])
 
-  // Colapso suave (opacidade + largura) dos itens de header/legenda das
-  // séries escondidas — some com fade em vez de "pular" do layout.
-  const collapseStyle = key => hiddenKeys.includes(key)
-    ? { opacity: 0, maxWidth: 0, paddingLeft: 0, paddingRight: 0, pointerEvents: 'none' }
-    : { opacity: 1, maxWidth: 320 }
+  // Fade rápido dos itens de header/legenda das séries escondidas
+  const fadeStyle = key => hiddenKeys.includes(key)
+    ? { opacity: 0, pointerEvents: 'none' }
+    : { opacity: 1 }
 
   return (
     <section className="card card-full" data-card-id={cardId}>
@@ -259,9 +258,7 @@ function FuturesCurveCard({ series, cardId, title, sub, unit, scale = 1 }) {
           <div className="card-price" style={{flexWrap:'wrap', gap:'8px 20px'}}>
             {FUTURES_FIELDS.map(f => (
               <span key={f.key} style={{display:'inline-flex', alignItems:'center', gap:4,
-                overflow:'hidden', whiteSpace:'nowrap',
-                transition:'opacity 0.4s ease, max-width 0.4s ease',
-                ...collapseStyle(f.key)}}>
+                transition:'opacity 0.25s ease', ...fadeStyle(f.key)}}>
                 <span style={{width:8, height:8, borderRadius:'50%', background:f.color,
                   display:'inline-block', flexShrink:0}}/>
                 <span className="card-value" style={{color: f.color}}>{fmtVal(lastRow?.[f.key])}</span>
@@ -301,11 +298,10 @@ function FuturesCurveCard({ series, cardId, title, sub, unit, scale = 1 }) {
           <span key={f.key} className="legend-year"
             style={{
               userSelect:'none', padding:'2px 6px', cursor:'pointer',
-              overflow:'hidden', whiteSpace:'nowrap',
-              transition:'opacity 0.4s ease, max-width 0.4s ease, padding 0.4s ease',
+              transition:'opacity 0.25s ease',
               outline: pinnedSeries === f.key ? `1px solid ${f.color}` : 'none',
               borderRadius: 4,
-              ...collapseStyle(f.key),
+              ...fadeStyle(f.key),
               ...(pinnedSeries && pinnedSeries !== f.key && !hiddenKeys.includes(f.key) ? { opacity: 0.3 } : {}),
             }}
             onClick={() => setPinnedSeries(p => p === f.key ? null : f.key)}>

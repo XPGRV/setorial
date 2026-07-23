@@ -209,7 +209,9 @@ function FuturesCurveCard({ series, cardId, title, sub, unit, scale = 1 }) {
       .map(r => r.year * 12 + r.month - 1)
       .filter(ord => ord >= curOrd)
       .sort((a, b) => a - b)
-    const cutoffOrd = terminalOrds[1] ?? terminalOrds[0] ?? Infinity
+    // Sem o 2º vencimento terminal na série (ex: dólar coletado só até
+    // out/27), mostra tudo que houver em vez de cortar no 1º dezembro.
+    const cutoffOrd = terminalOrds.length >= 2 ? terminalOrds[1] : Infinity
     const sc = v => v == null ? null : v * scale
     return src
       .filter(r => {
@@ -374,6 +376,15 @@ function CottonCharts({ data }) {
         sub="Bloomberg · CT Comdty · Contratos Futuros"
         unit="USd/lp"
       />
+
+      <FuturesCurveCard
+        series={data.agro_dollar_futures}
+        cardId="card-agro-cotton-dollar-futures"
+        title="Futuros do Dólar"
+        sub="Bloomberg · UC Curncy · Contratos Futuros"
+        unit="R$/US$"
+        scale={0.001}
+      />
     </main>
   )
 }
@@ -439,6 +450,15 @@ function SojaCharts({ data }) {
         sub="Bloomberg · S Comdty · Contratos Futuros"
         unit="USD/bu"
         scale={0.01}
+      />
+
+      <FuturesCurveCard
+        series={data.agro_dollar_futures}
+        cardId="card-agro-soy-dollar-futures"
+        title="Futuros do Dólar"
+        sub="Bloomberg · UC Curncy · Contratos Futuros"
+        unit="R$/US$"
+        scale={0.001}
       />
     </main>
   )

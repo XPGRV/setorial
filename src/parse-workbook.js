@@ -183,43 +183,61 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
     if (agro_soy_daily.length)    result.agro_soy_daily    = agro_soy_daily;
   }
 
-  // ── Curvas de futuros do Agro (abas "Soja" e "Algodão") ─────────────────────
-  // B=Ticker (ex: "S Q6 Comdty" / "CT Z7 Comdty"), C=Atual, D=1 sem. atrás,
-  // E=1 mês atrás. Vencimento decodificado do ticker: letra = mês
-  // (F,G,H,J,K,M,N,Q,U,V,X,Z = Jan..Dez), dígito = ano.
+  // ── Curvas de futuros do Agro (aba "Futuros"; legado: abas "Soja"/"Algodão") ──
+  // Três blocos lado a lado na aba Futuros — Soja (ticker na col B), Algodão
+  // (col K) e Dólar (col T); em cada bloco: ticker, Atual, 1 sem., 1 mês.
+  // Vencimento decodificado do ticker: letra = mês (F,G,H,J,K,M,N,Q,U,V,X,Z =
+  // Jan..Dez) e ano com 1 dígito ("S Q6 Comdty") ou 2 ("UCQ26 Curncy").
   if (parseAgro) {
     const MONTH_CODES = { F:1, G:2, H:3, J:4, K:5, M:6, N:7, Q:8, U:9, V:10, X:11, Z:12 };
     const nowYear = new Date().getFullYear();
-    const parseFutures = sheetName => {
+    const parseFuturesBlock = (sheetName, tickerCol) => {
       const sh = findSheet(sheetName);
       if (!sh) return null;
       const raw = XLSX.utils.sheet_to_json(wb.Sheets[sh], { header: 1, raw: true });
       const out = [];
+      // O bloco de exibição é contíguo a partir da linha 5; abaixo dele (após
+      // uma linha vazia) fica a lista auxiliar da coleta com os mesmos tickers
+      // — parar no primeiro gap evita duplicar os contratos.
+      let started = false;
       for (let i = 3; i < raw.length; i++) {
         const r = raw[i];
-        if (!r || !r[1]) continue;
-        const m = String(r[1]).trim().match(/([FGHJKMNQUVXZ])(\d)\s+Comdty$/i);
+        const ticker = r && r[tickerCol];
+        if (!ticker) {
+          if (started) break;
+          continue;
+        }
+        const m = String(ticker).trim().match(/([FGHJKMNQUVXZ])(\d{1,2})\s+(?:Comdty|Curncy)$/i);
         if (!m) continue;
+        started = true;
         const month = MONTH_CODES[m[1].toUpperCase()];
-        // Dígito único do ano → resolve na década corrente (6 → 2026);
-        // se cair mais de 1 ano no passado, é da década seguinte.
-        let year = Math.floor(nowYear / 10) * 10 + parseInt(m[2], 10);
-        if (year < nowYear - 1) year += 10;
+        let year;
+        if (m[2].length === 2) {
+          year = 2000 + parseInt(m[2], 10); // 2 dígitos: 26 → 2026
+        } else {
+          // Dígito único → resolve na década corrente (6 → 2026);
+          // se cair mais de 1 ano no passado, é da década seguinte.
+          year = Math.floor(nowYear / 10) * 10 + parseInt(m[2], 10);
+          if (year < nowYear - 1) year += 10;
+        }
         const row = {
           year, month,
-          atual:     r5(r[2]), // C — precificação atual
-          week_ago:  r5(r[3]), // D — 1 semana atrás
-          month_ago: r5(r[4]), // E — 1 mês atrás
+          atual:     r5(r[tickerCol + 1]), // Atual
+          week_ago:  r5(r[tickerCol + 2]), // 1 semana atrás
+          month_ago: r5(r[tickerCol + 3]), // 1 mês atrás
         };
         if (row.atual != null || row.week_ago != null || row.month_ago != null) out.push(row);
       }
       out.sort((a, b) => (a.year * 12 + a.month) - (b.year * 12 + b.month));
       return out.length ? out : null;
     };
-    const soyFutures    = parseFutures('Soja');
-    const cottonFutures = parseFutures('Algodão');
+    const hasFuturos = !!findSheet('Futuros');
+    const soyFutures    = hasFuturos ? parseFuturesBlock('Futuros', 1)  : parseFuturesBlock('Soja', 1);
+    const cottonFutures = hasFuturos ? parseFuturesBlock('Futuros', 10) : parseFuturesBlock('Algodão', 1);
+    const dollarFutures = hasFuturos ? parseFuturesBlock('Futuros', 19) : null;
     if (soyFutures)    result.agro_soy_futures    = soyFutures;
     if (cottonFutures) result.agro_cotton_futures = cottonFutures;
+    if (dollarFutures) result.agro_dollar_futures = dollarFutures;
   }
 
   // Rental · Carros (CarRental.xlsm · aba "Preço Carros")

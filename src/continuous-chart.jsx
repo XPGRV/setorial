@@ -632,7 +632,11 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
       const label = stepMons === 6
         ? `${MONTHS_PT_ABR[mo - 1]}/${String(yr).slice(-2)}`
         : String(yr);
-      xTicks.push({ x: xOf_ord(ord), label });
+      const x = xOf_ord(ord);
+      // Janela pode começar no meio do mês (zoom/range) — o tick do início
+      // daquele mês cairia antes do eixo e vazaria pra fora do gráfico
+      if (x < padL - 1 || x > padL + chartW + 1) continue;
+      xTicks.push({ x, label });
     }
   }
 

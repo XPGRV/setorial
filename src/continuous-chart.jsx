@@ -684,9 +684,17 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
   const visFields = (pinnedSeries ? fields.filter(f => f.key === pinnedSeries) : fields)
     .filter(f => !isHidden(f.key));
 
+  // drawIn: classe chart-svg traz as animações de entrada padrão (rx-draw nas
+  // linhas sólidas, fade em dots/textos/grid) e o key remonta o svg quando os
+  // dados mudam — redisparando o desenho, igual aos gráficos sazonais.
+  const dataKey = drawIn
+    ? `${valid[0].year}-${valid[0].month}-${valid.length}`
+    : undefined;
+
   return (
     <div style={{position:'relative', animation:'rx-fade-in 0.5s ease-out'}}>
-      <svg ref={svgRef} width="100%" height={H} style={{display:'block', overflow:'visible'}}
+      <svg key={dataKey} ref={svgRef} className={drawIn ? 'chart-svg' : undefined}
+        width="100%" height={H} style={{display:'block', overflow:'visible'}}
         onMouseMove={onMouseMove} onMouseLeave={() => setHovered(null)}>
         <defs>
           <clipPath id={clipId}>
@@ -747,19 +755,15 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
                   style={{transition:'opacity 0.4s ease'}}
                   clipPath={`url(#${clipId})`}/>
               )}
+              {/* Entrada (drawIn): a linha sólida se desenha via rx-draw (CSS do
+                  chart-svg); as pontilhadas usam rx-dashed-line — reveal por
+                  clip-path que preserva o padrão, igual às tracejadas do sazonal */}
               <path d={linePath} fill="none" stroke={f.color}
+                className={drawIn && f.dash ? 'rx-dashed-line' : undefined}
                 strokeWidth={lineWidth(f.key)} strokeLinejoin="round"
                 strokeDasharray={f.dash || undefined} strokeLinecap="round"
                 opacity={lineOpacity(f.key)}
-                style={{
-                  transition: 'opacity 0.4s ease',
-                  // Entrada: mesmo desenho dos gráficos sazonais — rx-draw
-                  // (dashoffset) na linha sólida; nas pontilhadas, reveal por
-                  // clip-path (igual às tracejadas do sazonal) p/ preservar o padrão
-                  ...(drawIn ? (f.dash
-                    ? { animation: 'rx-stat-mean-reveal 1.2s cubic-bezier(0.4, 0, 0.2, 1) both' }
-                    : { strokeDasharray: 'var(--len, 3000)', animation: 'rx-draw 1.2s cubic-bezier(0.4, 0, 0.2, 1) backwards' }) : {}),
-                }}
+                style={{transition:'opacity 0.4s ease'}}
                 clipPath={`url(#${clipId})`}/>
               {/* transparent hit area */}
               <path d={linePath} fill="none" stroke="transparent" strokeWidth={12}
@@ -774,11 +778,7 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
                 const mProps = {
                   fill: f.color, stroke: 'var(--bg-panel)', strokeWidth: 1,
                   opacity: lineOpacity(f.key),
-                  style: {
-                    transition: 'opacity 0.4s ease', cursor: 'pointer',
-                    // Entrada: fade dos markers, igual aos dots dos outros gráficos
-                    ...(drawIn ? { animation: 'rx-fade-in 0.9s ease-out backwards', animationDelay: '0.25s' } : {}),
-                  },
+                  style: {transition:'opacity 0.4s ease', cursor:'pointer'},
                   clipPath: `url(#${clipId})`,
                   onClick: () => toggle(f.key),
                 };

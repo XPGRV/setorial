@@ -352,6 +352,7 @@ function CottonCharts({ data }) {
         decimals={2}
         height={330}
         defaultRange="5"
+        enableZoom
         headerExtra={
           <div className="currency-toggle">
             <button className={`cur-btn ${currency==='usd'?'is-on':''}`} onClick={() => setCurrency('usd')}>USd</button>
@@ -426,6 +427,7 @@ function SojaCharts({ data }) {
         decimals={2}
         height={330}
         defaultRange="5"
+        enableZoom
         headerExtra={
           <div className="currency-toggle">
             <button className={`cur-btn ${currency==='usd'?'is-on':''}`} onClick={() => setCurrency('usd')}>US$</button>

@@ -531,10 +531,12 @@ function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit
 
 
 // ── MultiContinuousChart ──────────────────────────────────────────────────────
-function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 260, chartId = 'mc', chartStyle = 'line', pinnedSeries, setPinnedSeries, highlightZero = false, zeroBaseline = false, domainStart = null, showDots = false, monthlyTicks = false, hiddenSeries = [], drawIn = false }) {
+function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 260, chartId = 'mc', chartStyle = 'line', pinnedSeries, setPinnedSeries, highlightZero = false, zeroBaseline = false, domainStart = null, showDots = false, monthlyTicks = false, hiddenSeries = [], drawIn = false, onZoom = null, onResetZoom = null }) {
   const svgRef = React.useRef(null);
   const [hovered, setHovered] = React.useState(null);
   const [svgW, setSvgW] = React.useState(760);
+  const dragRef = React.useRef(null); // px inicial do arraste do brush (ou null)
+  const selRef  = React.useRef(null); // <rect> da seleção, atualizado imperativamente
   const { shouldRender: showLabels, isLeaving: labelsLeaving } = useFadeOut(!!pinnedSeries, 150);
   const lastPinnedRef = React.useRef(pinnedSeries);
   if (pinnedSeries) lastPinnedRef.current = pinnedSeries;
@@ -655,9 +657,34 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
     return `M${line}L${x1},${base}L${x0},${base}Z`;
   };
 
+  // ── Brush zoom (mesmo mecanismo do WegPeersChart) ──────────────────────────
+  const clampX = px => Math.max(padL, Math.min(padL + chartW, px));
+  const tAtPx  = px => firstT + ((clampX(px) - padL) / chartW) * totalT;
+  // Atualiza o retângulo direto no DOM — sem setState, sem re-render, zero lag.
+  const drawRect = (x0, x1) => {
+    const el = selRef.current; if (!el) return;
+    const x = Math.min(x0, x1), w = Math.abs(x1 - x0);
+    el.setAttribute('x', x);
+    el.setAttribute('width', w);
+    el.style.visibility = w > 1 ? 'visible' : 'hidden';
+  };
+  const hideRect = () => { if (selRef.current) selRef.current.style.visibility = 'hidden'; };
+
+  const onMouseDown = e => {
+    if (e.button !== 0 || !onZoom || !svgRef.current) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    dragRef.current = clampX(e.clientX - rect.left);
+    setHovered(null);
+    drawRect(dragRef.current, dragRef.current);
+  };
+
   const onMouseMove = e => {
     if (!svgRef.current) return;
     const rect = svgRef.current.getBoundingClientRect();
+    if (dragRef.current != null) {
+      drawRect(dragRef.current, clampX(e.clientX - rect.left));
+      return;
+    }
     const px = (e.clientX - rect.left - padL) / chartW;
     const t = firstT + px * totalT;
     let best = null, bestD = Infinity;
@@ -671,6 +698,25 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
         ? prev
         : { x: xOf(best), row: best, mouseY: my });
     }
+  };
+
+  const onMouseUp = e => {
+    const start = dragRef.current;
+    if (start == null || !svgRef.current) return;
+    dragRef.current = null;
+    hideRect();
+    const rect = svgRef.current.getBoundingClientRect();
+    const end = clampX(e.clientX - rect.left);
+    // Só dá zoom se o arraste for significativo (evita conflito com clique simples)
+    if (Math.abs(end - start) >= 6 && onZoom) {
+      onZoom({ t0: tAtPx(Math.min(start, end)), t1: tAtPx(Math.max(start, end)) });
+    }
+  };
+
+  const onMouseLeave = () => {
+    dragRef.current = null;
+    hideRect();
+    setHovered(null);
   };
 
   const toggle = key => setPinnedSeries(p => p === key ? null : key);
@@ -695,7 +741,9 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
     <div style={{position:'relative', animation:'rx-fade-in 0.5s ease-out'}}>
       <svg key={dataKey} ref={svgRef} className={drawIn ? 'chart-svg' : undefined}
         width="100%" height={H} style={{display:'block', overflow:'visible'}}
-        onMouseMove={onMouseMove} onMouseLeave={() => setHovered(null)}>
+        onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp}
+        onMouseLeave={onMouseLeave}
+        onDoubleClick={() => onResetZoom && onResetZoom()}>
         <defs>
           <clipPath id={clipId}>
             <rect x={padL} y={padT - 2} width={chartW} height={chartH + 6}/>
@@ -834,6 +882,11 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
           );
         })()}
 
+        {/* Retângulo de seleção do brush (zoom) — posicionado imperativamente via ref */}
+        <rect ref={selRef} className="rx-no-anim" x={padL} y={padT} width={0} height={chartH}
+          fill="var(--accent)" fillOpacity="0.12" stroke="var(--accent)" strokeOpacity="0.5"
+          strokeWidth="1" pointerEvents="none" style={{ visibility: 'hidden' }}/>
+
         {/* Hover crosshair + dots */}
         {hovered && (
           <g>
@@ -884,19 +937,33 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
 }
 
 // ── MultiContinuousCard ───────────────────────────────────────────────────────
-function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', decimals = 2, height = 360, defaultRange = '5', beforeChart = null, headerExtra = null, highlightZero = false, zeroBaseline = false, domainStart = null, showLegend = true }) {
+function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', decimals = 2, height = 360, defaultRange = '5', beforeChart = null, headerExtra = null, highlightZero = false, zeroBaseline = false, domainStart = null, showLegend = true, enableZoom = false }) {
   const [range, setRange]             = React.useState(defaultRange);
   const [chartStyle, setChartStyle]   = React.useState('area');
   const [pinnedSeries, setPinnedSeries] = React.useState(null);
+  const [zoom, setZoom]               = React.useState(null); // { t0, t1 } | null — brush zoom
   const rangeNum = range === 'all' ? 'all' : parseInt(range);
 
+  const tOfRow = row => row.year + (row.month - 1) / 12 + ((row.day || 1) - 1) / 365.25;
+
   const filteredRows = React.useMemo(() => {
-    if (!rows.length || rangeNum === 'all') return rows;
-    const last = rows[rows.length - 1];
-    const tOf = row => row.year + (row.month - 1) / 12 + ((row.day || 1) - 1) / 365.25;
-    const cutT = tOf(last) - rangeNum;
-    return rows.filter(r => tOf(r) > cutT);
-  }, [rows, rangeNum]);
+    if (!rows.length) return rows;
+    if (zoom) return rows.filter(r => { const t = tOfRow(r); return t >= zoom.t0 && t <= zoom.t1; });
+    if (rangeNum === 'all') return rows;
+    const cutT = tOfRow(rows[rows.length - 1]) - rangeNum;
+    return rows.filter(r => tOfRow(r) > cutT);
+  }, [rows, rangeNum, zoom]);
+
+  // Aplica o zoom só se houver pelo menos 2 pontos na janela (evita zoom vazio).
+  const applyZoom = z => {
+    let cnt = 0;
+    for (const r of rows) {
+      const t = tOfRow(r);
+      if (t >= z.t0 && t <= z.t1 && fields.some(f => r[f.key] != null)) cnt++;
+      if (cnt >= 2) break;
+    }
+    if (cnt >= 2) setZoom(z);
+  };
 
   const lastRow = filteredRows[filteredRows.length - 1] || null;
   const fmt = v => v == null ? '—' : Number(v).toFixed(decimals).replace('.', ',');
@@ -925,12 +992,18 @@ function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', deci
             <div className="year-seg">
               {[['3a',3],['5a',5],['10a',10],['Todos','all']].map(([label, val]) => (
                 <button key={label}
-                  className={`year-seg-btn ${range === String(val) ? 'is-on' : ''}`}
-                  onClick={() => setRange(String(val))}>
+                  className={`year-seg-btn ${!zoom && range === String(val) ? 'is-on' : ''}`}
+                  onClick={() => { setZoom(null); setRange(String(val)); }}>
                   {label}
                 </button>
               ))}
             </div>
+            {zoom && (
+              <button className="seg-btn weg-zoom-reset" onClick={() => setZoom(null)}
+                title="Duplo-clique no gráfico também reseta">
+                ⤢ Reset zoom
+              </button>
+            )}
           </div>
           <div className="card-ctrl-row">
             <div className="seg">
@@ -958,7 +1031,9 @@ function MultiContinuousCard({ cardId, title, sub, rows, fields, unit = '', deci
         setPinnedSeries={setPinnedSeries}
         highlightZero={highlightZero}
         zeroBaseline={zeroBaseline}
-        domainStart={rangeNum === 'all' ? domainStart : null}
+        domainStart={rangeNum === 'all' && !zoom ? domainStart : null}
+        onZoom={enableZoom ? applyZoom : null}
+        onResetZoom={enableZoom ? () => setZoom(null) : null}
       />
 
       {showLegend && (

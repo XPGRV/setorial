@@ -35,6 +35,8 @@ const FUTURES_FIELDS = [
 
 const MONTH_DOY = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
 const NO_EVENTS = []
+const NO_HIDDEN = []
+const PAST_KEYS = ['week_ago', 'month_ago']
 
 // ── Card de desconto (algodão: Barreiras − CBOT · soja: Paranaguá − CBOT) ─────
 // Um card, dois modos de visualização (Contínuo / Sazonal) e duas métricas
@@ -234,12 +236,19 @@ function FuturesCurveCard({ series, cardId, title, sub, unit, scale = 1 }) {
   const lastRow = rows[0] // 1º vencimento (contrato mais próximo)
   const fmtVal = v => v == null ? '—' : Number(v).toFixed(2).replace('.', ',')
 
-  // Com as linhas passadas desligadas, mostra só a Atual — se uma delas
-  // estivesse pinada, o pin não faz mais sentido e é limpo.
-  const visibleFields = showPast ? FUTURES_FIELDS : FUTURES_FIELDS.filter(f => f.key === 'atual')
+  // Com as linhas passadas desligadas, elas seguem montadas e escondidas via
+  // hiddenSeries — o fade in/out fica por conta das transições de opacidade.
+  // Se uma delas estivesse pinada, o pin não faz mais sentido e é limpo.
+  const hiddenKeys = showPast ? NO_HIDDEN : PAST_KEYS
   React.useEffect(() => {
     if (!showPast && pinnedSeries && pinnedSeries !== 'atual') setPinnedSeries(null)
   }, [showPast, pinnedSeries])
+
+  // Colapso suave (opacidade + largura) dos itens de header/legenda das
+  // séries escondidas — some com fade em vez de "pular" do layout.
+  const collapseStyle = key => hiddenKeys.includes(key)
+    ? { opacity: 0, maxWidth: 0, paddingLeft: 0, paddingRight: 0, pointerEvents: 'none' }
+    : { opacity: 1, maxWidth: 320 }
 
   return (
     <section className="card card-full" data-card-id={cardId}>
@@ -248,8 +257,11 @@ function FuturesCurveCard({ series, cardId, title, sub, unit, scale = 1 }) {
           <div className="card-eyebrow">{sub}</div>
           <h3 className="card-title">{title}</h3>
           <div className="card-price" style={{flexWrap:'wrap', gap:'8px 20px'}}>
-            {visibleFields.map(f => (
-              <span key={f.key} style={{display:'inline-flex', alignItems:'center', gap:4}}>
+            {FUTURES_FIELDS.map(f => (
+              <span key={f.key} style={{display:'inline-flex', alignItems:'center', gap:4,
+                overflow:'hidden', whiteSpace:'nowrap',
+                transition:'opacity 0.4s ease, max-width 0.4s ease',
+                ...collapseStyle(f.key)}}>
                 <span style={{width:8, height:8, borderRadius:'50%', background:f.color,
                   display:'inline-block', flexShrink:0}}/>
                 <span className="card-value" style={{color: f.color}}>{fmtVal(lastRow?.[f.key])}</span>
@@ -270,7 +282,7 @@ function FuturesCurveCard({ series, cardId, title, sub, unit, scale = 1 }) {
 
       <MultiContinuousChart
         rows={rows}
-        fields={visibleFields}
+        fields={FUTURES_FIELDS}
         unit={unit}
         decimals={2}
         height={330}
@@ -278,18 +290,23 @@ function FuturesCurveCard({ series, cardId, title, sub, unit, scale = 1 }) {
         chartStyle="line"
         showDots
         monthlyTicks
+        drawIn
+        hiddenSeries={hiddenKeys}
         pinnedSeries={pinnedSeries}
         setPinnedSeries={setPinnedSeries}
       />
 
       <div className="ciclo-legend" style={{marginTop: 8}}>
-        {visibleFields.map(f => (
+        {FUTURES_FIELDS.map(f => (
           <span key={f.key} className="legend-year"
             style={{
               userSelect:'none', padding:'2px 6px', cursor:'pointer',
-              opacity: pinnedSeries && pinnedSeries !== f.key ? 0.3 : 1,
+              overflow:'hidden', whiteSpace:'nowrap',
+              transition:'opacity 0.4s ease, max-width 0.4s ease, padding 0.4s ease',
               outline: pinnedSeries === f.key ? `1px solid ${f.color}` : 'none',
               borderRadius: 4,
+              ...collapseStyle(f.key),
+              ...(pinnedSeries && pinnedSeries !== f.key && !hiddenKeys.includes(f.key) ? { opacity: 0.3 } : {}),
             }}
             onClick={() => setPinnedSeries(p => p === f.key ? null : f.key)}>
             <span className="legend-line" style={{background: f.color}}/>

@@ -531,7 +531,7 @@ function ContinuousCard({ cardId, title, sub, accent, data, dataset, field, unit
 
 
 // ── MultiContinuousChart ──────────────────────────────────────────────────────
-function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 260, chartId = 'mc', chartStyle = 'line', pinnedSeries, setPinnedSeries, highlightZero = false, zeroBaseline = false, domainStart = null, showDots = false, monthlyTicks = false }) {
+function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 260, chartId = 'mc', chartStyle = 'line', pinnedSeries, setPinnedSeries, highlightZero = false, zeroBaseline = false, domainStart = null, showDots = false, monthlyTicks = false, hiddenSeries = [], drawIn = false }) {
   const svgRef = React.useRef(null);
   const [hovered, setHovered] = React.useState(null);
   const [svgW, setSvgW] = React.useState(760);
@@ -595,7 +595,10 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
     return padL + ((yr + (mo - 1) / 12 - firstT) / totalT) * chartW;
   };
 
-  const lineOpacity = key => pinnedSeries ? (pinnedSeries === key ? 1 : 0.15) : 1;
+  // Séries escondidas (ex: toggle "linhas passadas") ficam montadas com
+  // opacity 0 — a transição de opacidade dos elementos faz o fade in/out.
+  const isHidden    = key => hiddenSeries.includes(key);
+  const lineOpacity = key => isHidden(key) ? 0 : pinnedSeries ? (pinnedSeries === key ? 1 : 0.15) : 1;
   const lineWidth   = key => pinnedSeries === key ? 2.5 : 2;
 
   // Baseline da área: no modo zeroBaseline (séries que oscilam entre + e −,
@@ -678,7 +681,8 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
     : `${MONTHS_PT_ABR[r.month - 1]}/${r.year}`;
   const clipId = `mcc-clip-${chartId}`;
 
-  const visFields = pinnedSeries ? fields.filter(f => f.key === pinnedSeries) : fields;
+  const visFields = (pinnedSeries ? fields.filter(f => f.key === pinnedSeries) : fields)
+    .filter(f => !isHidden(f.key));
 
   return (
     <div style={{position:'relative', animation:'rx-fade-in 0.5s ease-out'}}>
@@ -736,18 +740,27 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
           if (!linePath) return null;
           const isPinned = pinnedSeries === f.key;
           return (
-            <g key={f.key}>
+            <g key={f.key}
+              style={{
+                // Entrada: cada série se desenha da esquerda p/ direita via
+                // clip-path (preserva o pontilhado), com stagger por série
+                ...(drawIn ? {
+                  animation: 'rx-stat-mean-reveal 1.0s cubic-bezier(0.4, 0, 0.2, 1) both',
+                  animationDelay: `${fields.indexOf(f) * 0.18}s`,
+                } : {}),
+                pointerEvents: isHidden(f.key) ? 'none' : undefined,
+              }}>
               {chartStyle === 'area' && (
                 <path d={buildAreaPath(f.key)} fill={`url(#mcc-grad-${chartId}-${f.key})`}
-                  opacity={pinnedSeries && !isPinned ? 0 : 1}
-                  style={{transition:'opacity 0.25s ease'}}
+                  opacity={isHidden(f.key) ? 0 : pinnedSeries && !isPinned ? 0 : 1}
+                  style={{transition:'opacity 0.4s ease'}}
                   clipPath={`url(#${clipId})`}/>
               )}
               <path d={linePath} fill="none" stroke={f.color}
                 strokeWidth={lineWidth(f.key)} strokeLinejoin="round"
                 strokeDasharray={f.dash || undefined} strokeLinecap="round"
                 opacity={lineOpacity(f.key)}
-                style={{transition:'opacity 0.25s ease'}}
+                style={{transition:'opacity 0.4s ease'}}
                 clipPath={`url(#${clipId})`}/>
               {/* transparent hit area */}
               <path d={linePath} fill="none" stroke="transparent" strokeWidth={12}
@@ -762,7 +775,7 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
                 const mProps = {
                   fill: f.color, stroke: 'var(--bg-panel)', strokeWidth: 1,
                   opacity: lineOpacity(f.key),
-                  style: {transition:'opacity 0.25s ease', cursor:'pointer'},
+                  style: {transition:'opacity 0.4s ease', cursor:'pointer'},
                   clipPath: `url(#${clipId})`,
                   onClick: () => toggle(f.key),
                 };
@@ -825,7 +838,7 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
               stroke="var(--fg)" strokeOpacity={0.2} strokeWidth={1}/>
             {fields.map(f => {
               const v = hovered.row[f.key];
-              if (v == null) return null;
+              if (v == null || isHidden(f.key)) return null;
               const isPinned = pinnedSeries === f.key;
               const dimmed   = pinnedSeries && !isPinned;
               return (

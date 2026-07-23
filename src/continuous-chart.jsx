@@ -674,21 +674,41 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
   };
   const hideRect = () => { if (selRef.current) selRef.current.style.visibility = 'hidden'; };
 
+  // O arraste é rastreado em listeners de window: sair do svg (tooltip na
+  // frente, borda direita, soltar fora do card) não cancela mais o brush.
   const onMouseDown = e => {
     if (e.button !== 0 || !onZoom || !svgRef.current) return;
-    const rect = svgRef.current.getBoundingClientRect();
-    dragRef.current = clampX(e.clientX - rect.left);
+    e.preventDefault(); // evita seleção de texto durante o arraste
+    const rect0 = svgRef.current.getBoundingClientRect();
+    dragRef.current = clampX(e.clientX - rect0.left);
     setHovered(null);
     drawRect(dragRef.current, dragRef.current);
+    const move = ev => {
+      if (dragRef.current == null || !svgRef.current) return;
+      const rect = svgRef.current.getBoundingClientRect();
+      drawRect(dragRef.current, clampX(ev.clientX - rect.left));
+    };
+    const up = ev => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+      const start = dragRef.current;
+      if (start == null || !svgRef.current) return;
+      dragRef.current = null;
+      hideRect();
+      const rect = svgRef.current.getBoundingClientRect();
+      const end = clampX(ev.clientX - rect.left);
+      // Só dá zoom se o arraste for significativo (evita conflito com clique simples)
+      if (Math.abs(end - start) >= 6) {
+        onZoom({ t0: tAtPx(Math.min(start, end)), t1: tAtPx(Math.max(start, end)) });
+      }
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
   };
 
   const onMouseMove = e => {
-    if (!svgRef.current) return;
+    if (!svgRef.current || dragRef.current != null) return;
     const rect = svgRef.current.getBoundingClientRect();
-    if (dragRef.current != null) {
-      drawRect(dragRef.current, clampX(e.clientX - rect.left));
-      return;
-    }
     const px = (e.clientX - rect.left - padL) / chartW;
     const t = firstT + px * totalT;
     let best = null, bestD = Infinity;
@@ -704,24 +724,7 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
     }
   };
 
-  const onMouseUp = e => {
-    const start = dragRef.current;
-    if (start == null || !svgRef.current) return;
-    dragRef.current = null;
-    hideRect();
-    const rect = svgRef.current.getBoundingClientRect();
-    const end = clampX(e.clientX - rect.left);
-    // Só dá zoom se o arraste for significativo (evita conflito com clique simples)
-    if (Math.abs(end - start) >= 6 && onZoom) {
-      onZoom({ t0: tAtPx(Math.min(start, end)), t1: tAtPx(Math.max(start, end)) });
-    }
-  };
-
-  const onMouseLeave = () => {
-    dragRef.current = null;
-    hideRect();
-    setHovered(null);
-  };
+  const onMouseLeave = () => setHovered(null);
 
   const toggle = key => setPinnedSeries(p => p === key ? null : key);
 
@@ -745,8 +748,7 @@ function MultiContinuousChart({ rows, fields, unit = '', decimals = 2, height = 
     <div style={{position:'relative', animation:'rx-fade-in 0.5s ease-out'}}>
       <svg key={dataKey} ref={svgRef} className={drawIn ? 'chart-svg' : undefined}
         width="100%" height={H} style={{display:'block', overflow:'visible'}}
-        onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp}
-        onMouseLeave={onMouseLeave}
+        onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseLeave={onMouseLeave}
         onDoubleClick={() => onResetZoom && onResetZoom()}>
         <defs>
           <clipPath id={clipId}>

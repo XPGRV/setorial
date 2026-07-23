@@ -133,7 +133,6 @@ function DiscountSeasonal({ rows, unit, decimals, cardId, title, sub, accent, ch
   const [selectedYears, setSelectedYears] = React.useState(() => allYears.slice(-5))
   const [chartStyle, setChartStyle]       = React.useState('line')
   const [showStats, setShowStats]         = React.useState(false)
-  const [showEvents, setShowEvents]       = React.useState(false)
   const [pinnedYear, setPinnedYear]       = React.useState(null)
 
   React.useEffect(() => {
@@ -165,7 +164,6 @@ function DiscountSeasonal({ rows, unit, decimals, cardId, title, sub, accent, ch
             years={allYears}
             selectedYears={selectedYears} setSelectedYears={setSelectedYears}
             showStats={showStats} setShowStats={setShowStats}
-            showEvents={showEvents} setShowEvents={setShowEvents}
             chartStyle={chartStyle} setChartStyle={setChartStyle}
           />
           <div style={{display:'flex', alignItems:'center', gap:8}}>{toggles}</div>
@@ -176,7 +174,7 @@ function DiscountSeasonal({ rows, unit, decimals, cardId, title, sub, accent, ch
         selectedYears={selectedYears}
         pinnedYear={pinnedYear} setPinnedYear={setPinnedYear}
         chartStyle={chartStyle}
-        showStats={showStats} showEvents={showEvents}
+        showStats={showStats} showEvents={false}
         events={NO_EVENTS}
         accent={accent}
         unit={unit}

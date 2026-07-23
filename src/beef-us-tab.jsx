@@ -463,7 +463,10 @@ function EdgebeeefControls({
       <div className="card-ctrl-row">
         <div className="ctrl-btn-group">
           <button className={`ctrl-btn ${showStats ? 'is-on' : ''}`} onClick={() => setShowStats(s => !s)}>MÉDIA + FAIXA</button>
-          <button className={`ctrl-btn ${showEvents ? 'is-on' : ''}`} onClick={() => setShowEvents(s => !s)}>EVENTOS</button>
+          {/* Sem setShowEvents (ex: descontos do Agro, que não têm eventos), o botão some */}
+          {setShowEvents && (
+            <button className={`ctrl-btn ${showEvents ? 'is-on' : ''}`} onClick={() => setShowEvents(s => !s)}>EVENTOS</button>
+          )}
         </div>
         <div style={{marginLeft: 16}}>
           <div className="seg">

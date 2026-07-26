@@ -1,6 +1,8 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChartSpline, Cog, Sprout, Wheat } from 'lucide-react'
+import Icon from '@mdi/react'
+import { mdiCorn } from '@mdi/js'
 import { searchDestinations as searchCatalog } from './search-catalog.js'
 import { runRouteTransition } from './route-transition.js'
 import { THEMES, ThemePicker } from './reactive.js'
@@ -393,7 +395,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
 const SIcon = {
   grains: <Wheat size={16} strokeWidth={1.8}/>,
   soy: <Sprout size={16} strokeWidth={1.8}/>,
-  corn: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c0-5 0-9 0-13"/><path d="M12 9c0-3.5 2-6 5-6 0 3.5-2 6-5 6z"/><path d="M12 13c0-3.5-2-6-5-6 0 3.5 2 6 5 6z"/><path d="M12 16c0-3-1.6-5-4-5 0 3 1.6 5 4 5z"/><path d="M12 16c0-3 1.6-5 4-5 0 3-1.6 5-4 5z"/></svg>,
+  // size=2/3 → 1.5*(2/3)rem = 1rem = 16px, igual aos demais ícones da sidebar
+  corn: <Icon path={mdiCorn} size={2/3}/>,
   cotton: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 13.5V21"/><path d="M12 21c0-2.4 1.9-4.3 4.3-4.3"/><circle cx="9" cy="8" r="3.1"/><circle cx="15" cy="8" r="3.1"/><circle cx="12" cy="10.8" r="3.1"/></svg>,
   peers: <ChartSpline size={16} strokeWidth={1.8}/>,
   motor: <Cog size={16} strokeWidth={1.8}/>,

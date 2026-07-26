@@ -4,9 +4,10 @@ import { EdgebeeefChart, EdgebeeefControls } from './beef-us-tab.jsx'
 import { MONTHS_PT, fmt } from './data-utils.jsx'
 
 // Accents das sub-abas do Agro: Soja herda o tom âmbar dos Grãos (Transportes);
-// Algodão usa o verde da cultura (RGB 0,117,72).
+// Algodão usa o verde da cultura (RGB 0,117,72); Milho num dourado/mostarda.
 const SOJA_ACCENT = 'rgb(255 203 112)'
 const COTTON_ACCENT = 'rgb(0 117 72)'
+const CORN_ACCENT = 'rgb(232 176 35)'
 
 // Cores das linhas do gráfico de preço do algodão — CBOT em azul (mesmo tom das
 // rotas de frete), Barreiras num verde mais claro que o accent p/ leitura no dark.
@@ -22,6 +23,13 @@ const SOY_PRICE_FIELDS = [
   { key: 'cbot', label: 'S 1 - Soybean CBOT', color: 'rgb(108 173 223)' },
   { key: 'paranagua', label: 'BASMSBPA - Soybean Paranaguá', color: SOJA_ACCENT },
   { key: 'sorriso', label: 'BASMSBSO - Soybean Sorriso', color: COTTON_LINE_GREEN },
+]
+
+// Milho — CBOT azul, Campinas no dourado do accent da aba, Sorriso no verde padrão.
+const CORN_PRICE_FIELDS = [
+  { key: 'cbot', label: 'C 1 - Corn CBOT', color: 'rgb(108 173 223)' },
+  { key: 'campinas', label: 'BAINCORN - Corn Campinas', color: CORN_ACCENT },
+  { key: 'sorriso', label: 'BACNSORR - Corn Sorriso', color: COTTON_LINE_GREEN },
 ]
 
 // Curvas de futuros — Atual no verde esmeralda padrão; 1 semana atrás em
@@ -464,8 +472,84 @@ function SojaCharts({ data }) {
   )
 }
 
-export function AgroTab({ data, accent, tab }) {
-  return tab === 'soja' ? <SojaCharts data={data}/> : <CottonCharts data={data}/>
+function MilhoCharts({ data }) {
+  const [currency, setCurrency] = React.useState('usd')
+
+  // Milho: USd/bu (cents) ou BRL/sc — a unidade muda com a moeda.
+  const rows = React.useMemo(() => {
+    const usd = currency === 'usd'
+    return (data.agro_corn_daily || [])
+      .map(r => ({
+        year: r.year, month: r.month, day: r.day,
+        cbot: usd ? r.cbot_usd_bu : r.cbot_brl_sc,
+        campinas: usd ? r.campinas_usd_bu : r.campinas_brl_sc,
+        sorriso: usd ? r.sorriso_usd_bu : r.sorriso_brl_sc,
+      }))
+      .filter(r => r.cbot != null || r.campinas != null || r.sorriso != null)
+  }, [data.agro_corn_daily, currency])
+
+  if (!rows.length) {
+    return <main className="main"><section className="card card-full"><div className="card-head"><div>
+      <div className="card-eyebrow">Agro · Milho</div>
+      <h3 className="card-title">Sem dados de milho</h3>
+      <div style={{fontSize:13,color:'var(--fg-dim)',marginTop:8}}>Atualize a planilha Agro.xlsm para carregar as séries diárias da Bloomberg.</div>
+    </div></div></section></main>
+  }
+
+  return (
+    <main className="main">
+      <MultiContinuousCard
+        cardId="card-agro-corn-price"
+        title="Preço do Milho"
+        sub="Bloomberg · C 1 Comdty × BAINCORN Index × BACNSORR Index"
+        rows={rows}
+        fields={CORN_PRICE_FIELDS}
+        unit={currency === 'usd' ? 'USd/bu' : 'BRL/sc'}
+        decimals={2}
+        height={330}
+        defaultRange="5"
+        enableZoom
+        headerExtra={
+          <div className="currency-toggle">
+            <button className={`cur-btn ${currency==='usd'?'is-on':''}`} onClick={() => setCurrency('usd')}>USd</button>
+            <button className={`cur-btn ${currency==='brl'?'is-on':''}`} onClick={() => setCurrency('brl')}>R$</button>
+          </div>
+        }
+      />
+
+      <DiscountCard
+        series={data.agro_corn_daily || []}
+        cardId="card-agro-corn-discount"
+        title="Desconto do Milho"
+        sub="Bloomberg · Desconto Milho Campinas vs. CBOT"
+        nominalUnit="USd/bu" nominalLabel="USd"
+        color={COTTON_LINE_GREEN}
+      />
+
+      <FuturesCurveCard
+        series={data.agro_corn_futures}
+        cardId="card-agro-corn-futures"
+        title="Futuros do Milho"
+        sub="Bloomberg · C Comdty · Contratos Futuros"
+        unit="USd/bu"
+      />
+
+      <FuturesCurveCard
+        series={data.agro_dollar_futures}
+        cardId="card-agro-corn-dollar-futures"
+        title="Futuros do Dólar"
+        sub="Bloomberg · UC Curncy · Contratos Futuros"
+        unit="R$/US$"
+        scale={0.001}
+      />
+    </main>
+  )
 }
 
-export { SOJA_ACCENT, COTTON_ACCENT }
+export function AgroTab({ data, accent, tab }) {
+  return tab === 'soja' ? <SojaCharts data={data}/>
+    : tab === 'milho' ? <MilhoCharts data={data}/>
+    : <CottonCharts data={data}/>
+}
+
+export { SOJA_ACCENT, COTTON_ACCENT, CORN_ACCENT }

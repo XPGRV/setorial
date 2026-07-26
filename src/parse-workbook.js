@@ -134,6 +134,8 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
   // H=BACRBARR BRL/lp, I=Desconto USd/lp, J=Desconto %.
   // Soja: K=CBOT USD/bu, L=CBOT BRL/sc, M=Paranaguá USD/bu, N=Paranaguá BRL/sc,
   // O=Sorriso USD/bu, P=Sorriso BRL/sc, Q=Desconto USD/bu, R=Desconto %.
+  // Milho: S=CBOT USd/bu, T=CBOT BRL/sc, U=Campinas USd/bu, V=Campinas BRL/sc,
+  // W=Sorriso USd/bu, X=Sorriso BRL/sc, Y=Desconto USd/bu, Z=Desconto %.
   // Séries do Agro: arredonda p/ 5 casas p/ reduzir o JSON (~10k linhas diárias).
   const r5 = v => { const n = parseNum(v); return n == null ? null : Math.round(n * 1e5) / 1e5; };
 
@@ -141,6 +143,7 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
     const raw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('BBG_Dados')], { header: 1, raw: true });
     const agro_cotton_daily = [];
     const agro_soy_daily = [];
+    const agro_corn_daily = [];
     let curDate = null;
     for (let i = 3; i < raw.length; i++) {
       const r = raw[i];
@@ -178,9 +181,24 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
       if (Object.entries(soy).some(([k, v]) => !['year','month','day'].includes(k) && v != null)) {
         agro_soy_daily.push(soy);
       }
+      const corn = {
+        year, month, day,
+        cbot_usd_bu:      r5(r[18]), // S — Corn CBOT USd/bu
+        cbot_brl_sc:      r5(r[19]), // T — Corn CBOT BRL/sc
+        campinas_usd_bu:  r5(r[20]), // U — Corn Campinas USd/bu
+        campinas_brl_sc:  r5(r[21]), // V — Corn Campinas BRL/sc
+        sorriso_usd_bu:   r5(r[22]), // W — Corn Sorriso USd/bu
+        sorriso_brl_sc:   r5(r[23]), // X — Corn Sorriso BRL/sc
+        discount_usd:     r5(r[24]), // Y — Desconto USd/bu (Campinas − CBOT)
+        discount_pct:     r5(r[25]), // Z — Desconto %
+      };
+      if (Object.entries(corn).some(([k, v]) => !['year','month','day'].includes(k) && v != null)) {
+        agro_corn_daily.push(corn);
+      }
     }
     if (agro_cotton_daily.length) result.agro_cotton_daily = agro_cotton_daily;
     if (agro_soy_daily.length)    result.agro_soy_daily    = agro_soy_daily;
+    if (agro_corn_daily.length)   result.agro_corn_daily   = agro_corn_daily;
   }
 
   // ── Curvas de futuros do Agro (aba "Futuros"; legado: abas "Soja"/"Algodão") ──
@@ -231,13 +249,16 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
       out.sort((a, b) => (a.year * 12 + a.month) - (b.year * 12 + b.month));
       return out.length ? out : null;
     };
+    // Blocos lado a lado na aba Futuros: Soja(B), Algodão(K), Dólar(T), Milho(AC).
     const hasFuturos = !!findSheet('Futuros');
     const soyFutures    = hasFuturos ? parseFuturesBlock('Futuros', 1)  : parseFuturesBlock('Soja', 1);
     const cottonFutures = hasFuturos ? parseFuturesBlock('Futuros', 10) : parseFuturesBlock('Algodão', 1);
     const dollarFutures = hasFuturos ? parseFuturesBlock('Futuros', 19) : null;
+    const cornFutures   = hasFuturos ? parseFuturesBlock('Futuros', 28) : null;
     if (soyFutures)    result.agro_soy_futures    = soyFutures;
     if (cottonFutures) result.agro_cotton_futures = cottonFutures;
     if (dollarFutures) result.agro_dollar_futures = dollarFutures;
+    if (cornFutures)   result.agro_corn_futures   = cornFutures;
   }
 
   // Rental · Carros (CarRental.xlsm · aba "Preço Carros")

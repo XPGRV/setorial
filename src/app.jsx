@@ -12,7 +12,7 @@ import { MacroTab } from './macro-tab.jsx'
 import { WegTab } from './weg-tab.jsx'
 import { RentalTab } from './rental-tab.jsx'
 import { TransportesTab } from './transportes-tab.jsx'
-import { AgroTab, SOJA_ACCENT, COTTON_ACCENT } from './agro-tab.jsx'
+import { AgroTab, SOJA_ACCENT, COTTON_ACCENT, CORN_ACCENT } from './agro-tab.jsx'
 import { CicloDoBoi } from './ciclo-boi.jsx'
 import { EVENTS, MONTHS_PT, availableYears, fmt, latestNonNull } from './data-utils.jsx'
 import { PriceCard, DailySeasonalCard } from './price-card.jsx'
@@ -80,7 +80,7 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
   const [tab, setTab] = useState(() => dashboardSection === 'transportes' ? 'fretes' : dashboardSection === 'agro' ? 'soja' : 'precos');
   const rentalAccent = tab === 'peers' ? 'rgb(255 80 0)' : 'rgb(120 222 31)';
   const transportAccent = tab === 'fretes' ? 'rgb(108 173 223)' : 'rgb(255 203 112)';
-  const agroAccent = tab === 'soja' ? SOJA_ACCENT : COTTON_ACCENT;
+  const agroAccent = tab === 'soja' ? SOJA_ACCENT : tab === 'milho' ? CORN_ACCENT : COTTON_ACCENT;
   // Dataset inicial: aceita ?dataset=... da URL (ex: home → /proteinas?dataset=macro)
   const [activeDataset, setActiveDataset] = useState(() => {
     try {
@@ -393,6 +393,7 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
 const SIcon = {
   grains: <Wheat size={16} strokeWidth={1.8}/>,
   soy: <Sprout size={16} strokeWidth={1.8}/>,
+  corn: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c0-5 0-9 0-13"/><path d="M12 9c0-3.5 2-6 5-6 0 3.5-2 6-5 6z"/><path d="M12 13c0-3.5-2-6-5-6 0 3.5 2 6 5 6z"/><path d="M12 16c0-3-1.6-5-4-5 0 3 1.6 5 4 5z"/><path d="M12 16c0-3 1.6-5 4-5 0 3-1.6 5-4 5z"/></svg>,
   cotton: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 13.5V21"/><path d="M12 21c0-2.4 1.9-4.3 4.3-4.3"/><circle cx="9" cy="8" r="3.1"/><circle cx="15" cy="8" r="3.1"/><circle cx="12" cy="10.8" r="3.1"/></svg>,
   peers: <ChartSpline size={16} strokeWidth={1.8}/>,
   motor: <Cog size={16} strokeWidth={1.8}/>,
@@ -492,7 +493,7 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
   const isAgro      = activeDataset === 'agro';
   const rentalTab   = tab === 'peers' ? 'peers' : 'precos';
   const transportTab = tab === 'fretes' ? 'fretes' : 'graos';
-  const agroTab     = tab === 'soja' ? 'soja' : 'algodao';
+  const agroTab     = tab === 'soja' ? 'soja' : tab === 'milho' ? 'milho' : 'algodao';
   // Sub-aba efetiva da WEG p/ destaque na sidebar — espelha o fallback do WegTab.
   const wegTab      = tab === 'peers' ? 'peers' : tab === 'eie' ? 'eie' : 'transformadores';
 
@@ -687,6 +688,10 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
           <button className={`sidebar-item ${isAgro && agroTab === 'soja' ? 'is-on' : ''}`} onClick={() => onPick('agro', 'soja')}>
             <span className={`sidebar-item-icon${isAgro && agroTab === 'soja' ? ' is-icon-breathing' : ''}`}>{SIcon.soy}</span>
             <span className="sidebar-item-label">Soja</span>
+          </button>
+          <button className={`sidebar-item ${isAgro && agroTab === 'milho' ? 'is-on' : ''}`} onClick={() => onPick('agro', 'milho')}>
+            <span className={`sidebar-item-icon${isAgro && agroTab === 'milho' ? ' is-icon-breathing' : ''}`}>{SIcon.corn}</span>
+            <span className="sidebar-item-label">Milho</span>
           </button>
           <button className={`sidebar-item ${isAgro && agroTab === 'algodao' ? 'is-on' : ''}`} onClick={() => onPick('agro', 'algodao')}>
             <span className={`sidebar-item-icon${isAgro && agroTab === 'algodao' ? ' is-icon-breathing' : ''}`}>{SIcon.cotton}</span>

@@ -689,13 +689,13 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
             <span className={`sidebar-item-icon${isAgro && agroTab === 'soja' ? ' is-icon-breathing' : ''}`}>{SIcon.soy}</span>
             <span className="sidebar-item-label">Soja</span>
           </button>
-          <button className={`sidebar-item ${isAgro && agroTab === 'milho' ? 'is-on' : ''}`} onClick={() => onPick('agro', 'milho')}>
-            <span className={`sidebar-item-icon${isAgro && agroTab === 'milho' ? ' is-icon-breathing' : ''}`}>{SIcon.corn}</span>
-            <span className="sidebar-item-label">Milho</span>
-          </button>
           <button className={`sidebar-item ${isAgro && agroTab === 'algodao' ? 'is-on' : ''}`} onClick={() => onPick('agro', 'algodao')}>
             <span className={`sidebar-item-icon${isAgro && agroTab === 'algodao' ? ' is-icon-breathing' : ''}`}>{SIcon.cotton}</span>
             <span className="sidebar-item-label">Algodão</span>
+          </button>
+          <button className={`sidebar-item ${isAgro && agroTab === 'milho' ? 'is-on' : ''}`} onClick={() => onPick('agro', 'milho')}>
+            <span className={`sidebar-item-icon${isAgro && agroTab === 'milho' ? ' is-icon-breathing' : ''}`}>{SIcon.corn}</span>
+            <span className="sidebar-item-label">Milho</span>
           </button>
         </>}
       </div>}

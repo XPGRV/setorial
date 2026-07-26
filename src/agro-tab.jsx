@@ -388,7 +388,7 @@ function CottonCharts({ data }) {
         series={data.agro_dollar_futures}
         cardId="card-agro-cotton-dollar-futures"
         title="Futuros do Dólar"
-        sub="Bloomberg · UC Curncy · Contratos Futuros"
+        sub="Bloomberg · UC Curncy · Contratos Futuros B3"
         unit="R$/US$"
         scale={0.001}
       />
@@ -464,7 +464,7 @@ function SojaCharts({ data }) {
         series={data.agro_dollar_futures}
         cardId="card-agro-soy-dollar-futures"
         title="Futuros do Dólar"
-        sub="Bloomberg · UC Curncy · Contratos Futuros"
+        sub="Bloomberg · UC Curncy · Contratos Futuros B3"
         unit="R$/US$"
         scale={0.001}
       />
@@ -530,15 +530,15 @@ function MilhoCharts({ data }) {
         series={data.agro_corn_futures}
         cardId="card-agro-corn-futures"
         title="Futuros do Milho"
-        sub="Bloomberg · C Comdty · Contratos Futuros"
-        unit="USd/bu"
+        sub="Bloomberg · CRD Comdty · Contratos Futuros B3"
+        unit="BRL/sc"
       />
 
       <FuturesCurveCard
         series={data.agro_dollar_futures}
         cardId="card-agro-corn-dollar-futures"
         title="Futuros do Dólar"
-        sub="Bloomberg · UC Curncy · Contratos Futuros"
+        sub="Bloomberg · UC Curncy · Contratos Futuros B3"
         unit="R$/US$"
         scale={0.001}
       />

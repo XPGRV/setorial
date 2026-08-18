@@ -8,9 +8,11 @@ name: Atualiza dados da dashboard
 #   DASHBOARD_URL      — URL de produção no Vercel (ex: https://minha-dash.vercel.app)
 #   UPDATE_CRON_SECRET — mesmo valor da env CRON_SECRET configurada no Vercel
 
+# Sem cron: quem dispara e o esteira.py, no PC do Bloomberg, depois de
+# recalcular as planilhas no Excel. Publicar antes desse passe grava serie
+# vazia, porque o openpyxl dos coletores deixa as formulas sem valor em cache.
+
 on:
-  schedule:
-    - cron: '0 11 * * 1-5'  # dias úteis, 11h UTC (8h BRT)
   workflow_dispatch:
 
 jobs:

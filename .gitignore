@@ -3,3 +3,7 @@ dist/
 .env
 .env.local
 .vercel
+
+# Config local de ferramentas / editor
+.claude/
+Dashboard.code-workspace

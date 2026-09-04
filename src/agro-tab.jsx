@@ -13,7 +13,7 @@ const CORN_ACCENT = 'rgb(232 176 35)'
 // rotas de frete), Barreiras num verde mais claro que o accent p/ leitura no dark.
 const COTTON_LINE_GREEN = 'rgb(0 176 112)'
 const COTTON_PRICE_FIELDS = [
-  { key: 'cbot', label: 'CT1 - Cotton CBOT', color: 'rgb(108 173 223)' },
+  { key: 'cbot', label: 'CT1 - Cotton NYB', color: 'rgb(108 173 223)' },
   { key: 'barreiras', label: 'BACRBARR - Cotton Barreiras', color: COTTON_LINE_GREEN },
 ]
 

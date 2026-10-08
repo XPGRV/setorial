@@ -8,19 +8,18 @@ import { Dropdown, WegPeersChart } from './weg-tab.jsx'
 // TOTVS é a empresa-referência (análoga à WEG em Capital Goods): sempre
 // preservada ao aplicar um grupo. IGV (software) e SOXX (semicondutores) são
 // índices de benchmark: sem classificação ERP/Non-ERP e sem P/E.
-// Cores espalhadas no círculo de matiz (nenhuma linha parecida com a vizinha);
-// as de marca que colidiriam (Oracle/Adobe/Microsoft são todas vermelho-laranja,
-// TOTVS/SAP/Salesforce todas azuis) foram afastadas.
+// Cores das empresas = cores oficiais de marca (definidas pelo usuário); TOTVS usa
+// um roxo do universo TOTVS. IGV/SOXX: cinza e teal, fora da paleta das marcas.
 const ENTITIES = [
-  { key: 'totvs',      label: 'TOTVS',      kind: 'subject', color: 'oklch(0.62 0.17 255)' },
-  { key: 'sap',        label: 'SAP',        kind: 'company', color: 'oklch(0.76 0.13 205)' },
-  { key: 'sage',       label: 'SAGE',       kind: 'company', color: 'oklch(0.72 0.19 150)' },
-  { key: 'oracle',     label: 'Oracle',     kind: 'company', color: 'oklch(0.62 0.21 25)'  },
-  { key: 'salesforce', label: 'Salesforce', kind: 'company', color: 'oklch(0.64 0.18 295)' },
-  { key: 'adobe',      label: 'Adobe',      kind: 'company', color: 'oklch(0.66 0.21 350)' },
-  { key: 'microsoft',  label: 'Microsoft',  kind: 'company', color: 'oklch(0.76 0.17 65)'  },
-  { key: 'igv',        label: 'IGV',        kind: 'index',   color: 'oklch(0.62 0.02 250)' },
-  { key: 'soxx',       label: 'SOXX',       kind: 'index',   color: 'oklch(0.78 0.17 115)' },
+  { key: 'totvs',      label: 'TOTVS',      kind: 'subject', color: '#8A4FFF' },
+  { key: 'sap',        label: 'SAP',        kind: 'company', color: '#011449' },
+  { key: 'sage',       label: 'SAGE',       kind: 'company', color: '#00D639' },
+  { key: 'oracle',     label: 'Oracle',     kind: 'company', color: '#C74634' },
+  { key: 'salesforce', label: 'Salesforce', kind: 'company', color: '#00A1E0' },
+  { key: 'adobe',      label: 'Adobe',      kind: 'company', color: '#FF0000' },
+  { key: 'microsoft',  label: 'Microsoft',  kind: 'company', color: '#FFB900' },
+  { key: 'igv',        label: 'IGV',        kind: 'index',   color: '#8B8F99' },
+  { key: 'soxx',       label: 'SOXX',       kind: 'index',   color: '#1FB5A8' },
 ]
 
 const GROUPS = [

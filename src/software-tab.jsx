@@ -12,7 +12,7 @@ import { Dropdown, WegPeersChart } from './weg-tab.jsx'
 // um roxo do universo TOTVS. IGV/SOXX: cinza e teal, fora da paleta das marcas.
 const ENTITIES = [
   { key: 'totvs',      label: 'TOTVS',      kind: 'subject', color: '#8A4FFF' },
-  { key: 'sap',        label: 'SAP',        kind: 'company', color: '#011449' },
+  { key: 'sap',        label: 'SAP',        kind: 'company', color: '#0057D1' },
   { key: 'sage',       label: 'SAGE',       kind: 'company', color: '#00D639' },
   { key: 'oracle',     label: 'Oracle',     kind: 'company', color: '#C74634' },
   { key: 'salesforce', label: 'Salesforce', kind: 'company', color: '#00A1E0' },

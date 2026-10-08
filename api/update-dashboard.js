@@ -65,6 +65,13 @@ const DATASETS = {
     metaKey: 'agro',
     opts: { parseBR: false, parseUS: false, parsePoultryUS: false, parseSelic: false, parseAgro: true },
   },
+  software: {
+    fileName: 'TOTVS - Setorial.xlsm',
+    fileIdEnv: 'GOOGLE_DRIVE_SOFTWARE_FILE_ID',
+    folderIdEnv: 'GOOGLE_DRIVE_DATABASE_FOLDER_ID',
+    metaKey: 'software',
+    opts: { parseBR: false, parseUS: false, parsePoultryUS: false, parseSelic: false, parseSoftware: true },
+  },
 };
 
 function json(res, status, body) {

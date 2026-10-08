@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Beef, Car, Factory, Train, Landmark, Search, ChevronRight, Sun, Moon, Sprout, Utensils } from 'lucide-react'
+import { Beef, Car, Factory, Train, Landmark, Search, ChevronRight, Sun, Moon, Sprout, CodeXml } from 'lucide-react'
 import { dashboardPathForDataset, searchDestinations } from './search-catalog.js'
 import { runRouteTransition } from './route-transition.js'
 
@@ -160,7 +160,7 @@ const SECTORS = [
   { label: 'Capital Goods',   sub: 'Acompanhamento setorial de empresas como: WEG, Marcopolo, Embraer, etc.', icon: Factory, route: '/capitalgoods', active: true },
   { label: 'Transportes',     sub: 'Acompanhamento de fretes, exportações e preços de grãos.', icon: Train, route: '/transportes', active: true },
   { label: 'Agro',            sub: 'Acompanhamento de commodities agrícolas, produção, preços e empresas do agronegócio.', icon: Sprout, route: '/agro', active: true },
-  { label: 'Food & Beverage', sub: 'Acompanhamento setorial de alimentos, bebidas, consumo e principais empresas.', icon: Utensils },
+  { label: 'Software',        sub: 'Acompanhamento de empresas de software e ERP, como TOTVS, SAP e SAGE, frente a peers globais e índices.', icon: CodeXml, route: '/software', active: true },
 ]
 const MACRO = [
   { label: 'Macro', sub: 'Estimativas da taxa de juros.', icon: Landmark, route: '/macro', active: true },

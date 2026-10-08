@@ -37,6 +37,7 @@ const ARQUIVOS = [
   { dir: DB_DIR, nome: 'CarRental.xlsm' },
   { dir: DB_DIR, nome: 'Transportes.xlsm' },
   { dir: DB_DIR, nome: 'Agro.xlsm' },
+  { dir: DB_DIR, nome: 'TOTVS - Setorial.xlsm' },
 ];
 const SB_URL   = process.env.SUPABASE_URL || 'https://wmxjdveucxbousoquwmc.supabase.co';
 const SB_KEY   = process.env.SUPABASE_SERVICE_ROLE;
@@ -53,18 +54,20 @@ function flagsFor(nome) {
   const forceRental    = lc.includes('carrental');
   const forceTransportes = lc.includes('transportes');
   const forceAgro      = lc.includes('agro');
-  const metaKey = forceAgro ? 'agro' : forceTransportes ? 'transportes' : forceRental ? 'rental' : forceWeg ? 'weg' : forceSelic ? 'selic' : forceUS ? 'us' : forcePoultryUS ? 'poultry_us' : forcePoultryBR ? 'poultry_br' : 'br';
+  const forceSoftware  = lc.includes('totvs');
+  const metaKey = forceSoftware ? 'software' : forceAgro ? 'agro' : forceTransportes ? 'transportes' : forceRental ? 'rental' : forceWeg ? 'weg' : forceSelic ? 'selic' : forceUS ? 'us' : forcePoultryUS ? 'poultry_us' : forcePoultryBR ? 'poultry_br' : 'br';
   // Nome do dataset = nome do arquivo no Storage (data-<dataset>.json)
-  const dataset = { agro: 'agro', transportes: 'transportes', rental: 'rental', weg: 'weg', selic: 'macro', us: 'beef_us', poultry_us: 'poultry_us', poultry_br: 'poultry_br', br: 'beef_br' }[metaKey];
+  const dataset = { software: 'software', agro: 'agro', transportes: 'transportes', rental: 'rental', weg: 'weg', selic: 'macro', us: 'beef_us', poultry_us: 'poultry_us', poultry_br: 'poultry_br', br: 'beef_br' }[metaKey];
   return {
     opts: {
-      parseBR: !forceUS && !forcePoultry && !forceSelic && !forceWeg && !forceRental && !forceTransportes && !forceAgro,
+      parseBR: !forceUS && !forcePoultry && !forceSelic && !forceWeg && !forceRental && !forceTransportes && !forceAgro && !forceSoftware,
       parseUS: forceUS,
       parsePoultryUS: forcePoultryUS,
       parseSelic: forceSelic,
       parseRental: forceRental,
       parseTransportes: forceTransportes,
       parseAgro: forceAgro,
+      parseSoftware: forceSoftware,
     },
     metaKey,
     dataset,

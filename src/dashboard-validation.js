@@ -77,6 +77,10 @@ const CHECKS = {
     { label: 'Cotton Barreiras diario', min: 20, count: data => countAny(data, 'agro_cotton_daily', ['barreiras_usd', 'barreiras_brl']) },
     { label: 'Soja diario', min: 20, count: data => countAny(data, 'agro_soy_daily', ['cbot_usd_bu', 'paranagua_usd_bu', 'sorriso_usd_bu']) },
   ],
+  software: [
+    { label: 'Peers Software preco', min: 20, count: data => countAny(data, 'software_peers', ['totvs', 'sap', 'oracle', 'microsoft']) },
+    { label: 'Peers Software P/E', min: 20, count: data => countAny(data, 'software_peers', ['totvs_pe', 'sap_pe', 'oracle_pe', 'microsoft_pe']) },
+  ],
 };
 
 export function validateDashboardPayload(dataset, parsed) {

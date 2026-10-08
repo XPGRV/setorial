@@ -69,7 +69,7 @@ function trimSifLag(arr, field, lagMonths = 2) {
 
 // Recebe um workbook JÁ LIDO pelo SheetJS (com cellDates:true, cellStyles:true)
 // e a instância XLSX, e devolve o objeto de dados.
-export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, parsePoultryUS = false, parseSelic = false, parseRental = false, parseTransportes = false, parseAgro = false } = {}) {
+export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, parsePoultryUS = false, parseSelic = false, parseRental = false, parseTransportes = false, parseAgro = false, parseSoftware = false } = {}) {
   _XLSX = XLSX;
   const sheets = wb.SheetNames;
   // Case-insensitive sheet lookup
@@ -303,6 +303,40 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
       if (Object.entries(row).some(([k, v]) => !['year','month','day'].includes(k) && v != null)) rental_peers.push(row);
     }
     if (rental_peers.length) result.rental_peers = rental_peers;
+  }
+
+  // Software · Peers (TOTVS - Setorial.xlsm · aba Peers)
+  // A=data (linha 5 em diante). Preços em moeda local: B=TOTVS, C=SAP, D=SAGE,
+  // E=Oracle, F=Salesforce, G=Adobe, H=Microsoft, I=IGV, J=SOXX (índices).
+  // P/E Forward 12M: L..R = mesmas 7 empresas (índices não têm P/E).
+  // Células sem dado vêm como o texto "Sem dados" — parseNum devolve null.
+  if (parseSoftware && findSheet('Peers')) {
+    const raw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('Peers')], { header: 1, raw: true });
+    const SOFTWARE_PEER_COLS = {
+      totvs: 1, sap: 2, sage: 3, oracle: 4, salesforce: 5, adobe: 6, microsoft: 7, igv: 8, soxx: 9,
+      totvs_pe: 11, sap_pe: 12, sage_pe: 13, oracle_pe: 14, salesforce_pe: 15, adobe_pe: 16, microsoft_pe: 17,
+    };
+    const software_peers = [];
+    for (let i = 4; i < raw.length; i++) {
+      const r = raw[i];
+      if (!r) continue;
+      const pd = r[0] instanceof Date
+        ? { year: r[0].getUTCFullYear(), month: r[0].getUTCMonth() + 1, day: r[0].getUTCDate() }
+        : parseDate(r[0]);
+      if (!pd) continue;
+      const row = { year: pd.year, month: pd.month, day: pd.day };
+      let hasAny = false;
+      for (const [key, col] of Object.entries(SOFTWARE_PEER_COLS)) {
+        const v = parseNum(r[col]);
+        if (v != null) { row[key] = v; hasAny = true; }
+      }
+      if (hasAny) software_peers.push(row);
+    }
+    if (software_peers.length) {
+      software_peers.sort((a, b) =>
+        a.year !== b.year ? a.year - b.year : a.month !== b.month ? a.month - b.month : a.day - b.day);
+      result.software_peers = software_peers;
+    }
   }
 
   // ── BeefBR (abas: BeefBR, SECEX, Abates) ────────────────────────────────────
@@ -1337,7 +1371,7 @@ export function parseWorkbookData(wb, XLSX, { parseBR = true, parseUS = true, pa
     if (weg_eie_exports.length) result.weg_eie_exports = weg_eie_exports;
   }
 
-  if (!parseRental && findSheet('Peers')) {
+  if (!parseRental && !parseSoftware && findSheet('Peers')) {
     const pRaw = XLSX.utils.sheet_to_json(wb.Sheets[findSheet('Peers')], { header: 1, raw: true });
     // Preço: F..O (5..14). P/E: Q..Z (16..25). Mesma ordem de empresas.
     const PEER_COLS = {

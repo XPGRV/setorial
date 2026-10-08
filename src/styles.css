@@ -2328,6 +2328,7 @@ html.route-is-entering #root { animation: route-fade-in 280ms cubic-bezier(0.22,
 .weg-dd-check:hover { background: var(--bg-inset); }
 .weg-dd-check input { cursor: pointer; accent-color: var(--accent); margin: 0; }
 .weg-dd-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.weg-dd-sep { height: 1px; margin: 4px 6px; background: var(--border); flex-shrink: 0; }
 
 /* Botão de reset do zoom (brush) nos gráficos de peers */
 .weg-zoom-reset {

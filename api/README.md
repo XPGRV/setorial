@@ -13,6 +13,7 @@ Datasets aceitos:
 - `weg` -> `WEG - Setorial.xlsm`
 - `rental` -> `CarRental.xlsm`
 - `transportes` -> `Transportes.xlsm`
+- `software` -> `TOTVS - Setorial.xlsm`
 
 ## Autorização
 

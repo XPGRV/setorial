@@ -9,7 +9,7 @@ const DATASET_LABELS = {
   beef_br: 'Beef BR', beef_us: 'Beef US',
   poultry_br: 'Poultry BR', poultry_us: 'Poultry US',
   macro: 'Macro', weg: 'WEG', rental: 'Rental', transportes: 'Transportes',
-  agro: 'Agro',
+  agro: 'Agro', software: 'Software',
 }
 
 const TAB_LABELS = {
@@ -30,6 +30,7 @@ const DATASET_KEYWORDS = {
   rental: 'rental locadoras carros automoveis veiculos pesados peers mobilidade',
   transportes: 'transportes logistica frete fretes graos soja milho exportacao secex',
   agro: 'agro agricultura agronegocio commodities agricolas soja milho algodao cotton soybean corn',
+  software: 'software erp tecnologia ti totvs sap sage oracle salesforce adobe microsoft igv soxx peers',
 }
 
 const RAW_ITEMS = [
@@ -49,6 +50,9 @@ const RAW_ITEMS = [
   ['rental','precos','card-rental-car-prices','Preços e Spreads · Carros','automovel novo usado spread preco indice'],
   ['rental','peers','card-rental-peers','Peers · Comparação de Preço','localiza movida vamos rent3 movi3 vamo3 cotacao preco base 100'],
   ['rental','peers','card-rental-peers-pe','Peers · Comparação de P/E','localiza movida vamos rent3 movi3 vamo3 pe price earnings multiplo'],
+  ['software','peers',null,'Software · Peers','software erp non-erp totvs sap sage oracle salesforce adobe microsoft igv soxx tots3'],
+  ['software','peers','card-software-peers','Peers · Comparação de Preço','totvs tots3 sap sage sge oracle salesforce adobe microsoft igv soxx indice software semicondutores cotacao preco base 100 erp non-erp'],
+  ['software','peers','card-software-peers-pe','Peers · Comparação de P/E','totvs tots3 sap sage oracle salesforce adobe microsoft pe price earnings multiplo forward erp non-erp'],
   ['transportes','fretes',null,'Transportes · Fretes','frete fretes logistica imea mato grosso santos sorriso rondonopolis'],
   ['transportes','fretes','card-transport-freights','Preços de Frete','frete fretes rota rotas sorriso santos rondonopolis rs ton'],
   ['transportes','graos',null,'Transportes · Grãos','soja milho exportacao secex volume'],
@@ -150,5 +154,6 @@ export function dashboardPathForDataset(dataset) {
   if (dataset === 'rental') return '/rental'
   if (dataset === 'transportes') return '/transportes'
   if (dataset === 'agro') return '/agro'
+  if (dataset === 'software') return '/software'
   return '/proteinas'
 }

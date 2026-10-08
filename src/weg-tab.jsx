@@ -57,7 +57,7 @@ const ChevronDown = () => (
   </svg>
 );
 
-function Dropdown({ label, children, width = 200 }) {
+export function Dropdown({ label, children, width = 200 }) {
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef(null);
   React.useEffect(() => {

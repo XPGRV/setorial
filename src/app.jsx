@@ -15,6 +15,7 @@ import { WegTab } from './weg-tab.jsx'
 import { RentalTab } from './rental-tab.jsx'
 import { TransportesTab } from './transportes-tab.jsx'
 import { AgroTab, SOJA_ACCENT, COTTON_ACCENT, CORN_ACCENT } from './agro-tab.jsx'
+import { SoftwareTab } from './software-tab.jsx'
 import { CicloDoBoi } from './ciclo-boi.jsx'
 import { EVENTS, MONTHS_PT, availableYears, fmt, latestNonNull } from './data-utils.jsx'
 import { PriceCard, DailySeasonalCard } from './price-card.jsx'
@@ -68,6 +69,7 @@ const darkenAccent = (str, maxL = 0.55) => {
 // Accents das empresas de Capital Goods (além da WEG)
 const MARCOPOLO_ACCENT = 'oklch(0.706 0.169 52)';  // laranja Marcopolo (RGB 244,129,32)
 const EMBRAER_ACCENT   = 'oklch(0.274 0.110 279.8)';   // azul-marinho Embraer (RGB 32,27,91)
+const SOFTWARE_ACCENT  = 'oklch(0.68 0.16 295)';        // violeta — setor Software
 
 
 function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_us', dashboardSection = 'proteinas' }) {
@@ -79,7 +81,7 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
   const [meta, setMeta] = useState(initialMeta || null);
   const [tweaks, setTweaks] = useState(TWEAK_DEFAULTS);
   const [editMode, setEditMode] = useState(false);
-  const [tab, setTab] = useState(() => dashboardSection === 'transportes' ? 'fretes' : dashboardSection === 'agro' ? 'soja' : 'precos');
+  const [tab, setTab] = useState(() => dashboardSection === 'transportes' ? 'fretes' : dashboardSection === 'agro' ? 'soja' : dashboardSection === 'software' ? 'peers' : 'precos');
   const rentalAccent = tab === 'peers' ? 'rgb(255 80 0)' : 'rgb(120 222 31)';
   const transportAccent = tab === 'fretes' ? 'rgb(108 173 223)' : 'rgb(255 203 112)';
   const agroAccent = tab === 'soja' ? SOJA_ACCENT : tab === 'milho' ? CORN_ACCENT : COTTON_ACCENT;
@@ -87,7 +89,7 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
   const [activeDataset, setActiveDataset] = useState(() => {
     try {
       const d = new URLSearchParams(window.location.search).get('dataset');
-      if (['beef_us', 'beef_br', 'poultry_br', 'poultry_us', 'macro', 'weg', 'rental', 'transportes', 'agro'].includes(d)) return d;
+      if (['beef_us', 'beef_br', 'poultry_br', 'poultry_us', 'macro', 'weg', 'rental', 'transportes', 'agro', 'software'].includes(d)) return d;
     } catch {}
     return initialDataset;
   });
@@ -191,6 +193,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
     ? transportAccent
     : activeDataset === 'agro'
     ? agroAccent
+    : activeDataset === 'software'
+    ? SOFTWARE_ACCENT
     : activeDataset === 'weg'
     ? 'oklch(0.491 0.131 247.6)'
     : activeDataset === 'embraer'
@@ -214,6 +218,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
     ? transportAccent
     : activeDataset === 'agro'
     ? agroAccent
+    : activeDataset === 'software'
+    ? SOFTWARE_ACCENT
     : activeDataset === 'weg'
     ? 'oklch(0.491 0.131 247.6)'
     : activeDataset === 'embraer'
@@ -242,6 +248,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
       ? transportAccent
       : activeDataset === 'agro'
       ? agroAccent
+      : activeDataset === 'software'
+      ? SOFTWARE_ACCENT
       : activeDataset === 'weg'
       ? 'oklch(0.491 0.131 247.6)'
       : activeDataset === 'embraer'
@@ -270,6 +278,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
       ? 'transportes'
       : dest.dataset === 'agro'
       ? 'agro'
+      : dest.dataset === 'software'
+      ? 'software'
       : (dest.dataset === 'weg' || dest.dataset === 'embraer' || dest.dataset === 'marcopolo')
       ? 'capitalgoods'
       : 'proteinas';
@@ -311,6 +321,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
       ? 'transportes'
       : pending.dataset === 'agro'
       ? 'agro'
+      : pending.dataset === 'software'
+      ? 'software'
       : (pending.dataset === 'weg' || pending.dataset === 'embraer' || pending.dataset === 'marcopolo')
       ? 'capitalgoods'
       : 'proteinas';
@@ -376,6 +388,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
           <TransportesTab data={data} accent={accent} tab={tab}/>
         ) : activeDataset === 'agro' ? (
           <AgroTab data={data} accent={accent} tab={tab}/>
+        ) : activeDataset === 'software' ? (
+          <SoftwareTab data={data} accent={accent} tab={tab}/>
         ) : activeDataset === 'embraer' ? (
           <ComingSoon name="Embraer" icon={SIcon.embraer}/>
         ) : activeDataset === 'marcopolo' ? (
@@ -458,6 +472,8 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
       ? '/transportes'
       : ds === 'agro'
       ? '/agro'
+      : ds === 'software'
+      ? '/software'
       : (ds === 'weg' || ds === 'embraer' || ds === 'marcopolo')
       ? '/capitalgoods'
       : `/proteinas${ds === 'beef_us' ? '' : `?dataset=${ds}`}`;
@@ -494,6 +510,7 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
   const isRental    = activeDataset === 'rental';
   const isTransportes = activeDataset === 'transportes';
   const isAgro      = activeDataset === 'agro';
+  const isSoftware  = activeDataset === 'software';
   const rentalTab   = tab === 'peers' ? 'peers' : 'precos';
   const transportTab = tab === 'fretes' ? 'fretes' : 'graos';
   const agroTab     = tab === 'soja' ? 'soja' : tab === 'milho' ? 'milho' : 'algodao';
@@ -513,6 +530,8 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
     ? 'Transportes'
     : dashboardSection === 'agro'
     ? 'Agro'
+    : dashboardSection === 'software'
+    ? 'Software'
     : 'Proteínas';
 
   const Chevron = ({ open }) => (
@@ -701,6 +720,12 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
             <span className="sidebar-item-label">Milho</span>
           </button>
         </>}
+        {dashboardSection === 'software' && <>
+          <button className={`sidebar-item ${isSoftware ? 'is-on' : ''}`} onClick={() => onPick('software', 'peers')}>
+            <span className={`sidebar-item-icon${isSoftware ? ' is-icon-breathing' : ''}`}>{SIcon.peers}</span>
+            <span className="sidebar-item-label">Peers</span>
+          </button>
+        </>}
       </div>}
 
       <div className="sidebar-spacer"/>
@@ -807,8 +832,8 @@ const MODE_ICON = {
 const MODE_LABEL = { light: 'Tema: Claro · clique p/ Escuro', dark: 'Tema: Escuro · clique p/ Claro' };
 
 function TopBar({ meta, onUpload, activeDataset, colorMode = 'dark', onCycleMode, onNavigate, dashboardSection }) {
-  const title  = activeDataset === 'agro' ? 'AGRO' : activeDataset === 'transportes' ? 'TRANSPORTES' : activeDataset === 'rental' ? 'RENTAL' : activeDataset === 'macro' ? 'MACRO' : activeDataset === 'weg' ? 'WEG' : activeDataset === 'embraer' ? 'EMBRAER' : activeDataset === 'marcopolo' ? 'MARCOPOLO' : (activeDataset === 'poultry_br' || activeDataset === 'poultry_us') ? 'POULTRY' : 'BEEF';
-  const suffix = (activeDataset === 'agro' || activeDataset === 'transportes' || activeDataset === 'rental' || activeDataset === 'macro' || activeDataset === 'weg' || activeDataset === 'embraer' || activeDataset === 'marcopolo') ? '' : (activeDataset === 'beef_us' || activeDataset === 'poultry_us') ? 'US' : 'BR';
+  const title  = activeDataset === 'software' ? 'SOFTWARE' : activeDataset === 'agro' ? 'AGRO' : activeDataset === 'transportes' ? 'TRANSPORTES' : activeDataset === 'rental' ? 'RENTAL' : activeDataset === 'macro' ? 'MACRO' : activeDataset === 'weg' ? 'WEG' : activeDataset === 'embraer' ? 'EMBRAER' : activeDataset === 'marcopolo' ? 'MARCOPOLO' : (activeDataset === 'poultry_br' || activeDataset === 'poultry_us') ? 'POULTRY' : 'BEEF';
+  const suffix = (activeDataset === 'software' || activeDataset === 'agro' || activeDataset === 'transportes' || activeDataset === 'rental' || activeDataset === 'macro' || activeDataset === 'weg' || activeDataset === 'embraer' || activeDataset === 'marcopolo') ? '' : (activeDataset === 'beef_us' || activeDataset === 'poultry_us') ? 'US' : 'BR';
   const currentMeta = activeDataset === 'beef_us'
     ? (meta?.us ?? null)
     : activeDataset === 'poultry_br'
@@ -825,6 +850,8 @@ function TopBar({ meta, onUpload, activeDataset, colorMode = 'dark', onCycleMode
     ? (meta?.transportes ?? null)
     : activeDataset === 'agro'
     ? (meta?.agro ?? null)
+    : activeDataset === 'software'
+    ? (meta?.software ?? null)
     : (activeDataset === 'embraer' || activeDataset === 'marcopolo')
     ? null
     : (meta?.br ?? (meta?.updated ? meta : null));
@@ -1015,7 +1042,7 @@ function TickerBar({ data, activeDataset }) {
   const requestRef = useRef();
 
   const items = useMemo(() => {
-    if (activeDataset === 'macro' || activeDataset === 'rental' || activeDataset === 'transportes' || activeDataset === 'agro' || activeDataset === 'embraer' || activeDataset === 'marcopolo') return [];
+    if (activeDataset === 'macro' || activeDataset === 'rental' || activeDataset === 'transportes' || activeDataset === 'agro' || activeDataset === 'software' || activeDataset === 'embraer' || activeDataset === 'marcopolo') return [];
     const ds = activeDataset === 'beef_us'    ? 'beef_us'
              : activeDataset === 'poultry_br'  ? 'frango'
              : activeDataset === 'poultry_us'  ? 'frango_us_daily'

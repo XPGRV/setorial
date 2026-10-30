@@ -79,7 +79,11 @@ async function uploadObject(objectName, payload) {
   const res = await fetch(`${SB_URL}/storage/v1/object/dashboard/${objectName}`, {
     method: 'POST',
     headers: {
+      // O apikey nao e redundante: a chave nova do Supabase (sb_secret_...)
+      // nao e um JWT, e sem este cabecalho o Storage tenta decodificar o
+      // Bearer como JWT e responde "Invalid Compact JWS".
       Authorization: `Bearer ${SB_KEY}`,
+      apikey: SB_KEY,
       'Content-Type': 'application/json',
       'x-upsert': 'true',
     },

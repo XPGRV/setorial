@@ -778,7 +778,21 @@ html.route-is-entering #root { animation: route-fade-in 280ms cubic-bezier(0.22,
   animation: spin 0.8s linear infinite;
 }
 .upload-status.is-ok { color: var(--accent); }
-.upload-status.is-err { color: oklch(0.72 0.18 25); text-transform: none; letter-spacing: 0; }
+/* O erro agora traz o motivo vindo da API, que e uma frase e nao um rotulo.
+   Precisa quebrar linha: inline-flex numa caixa de 200px espremeria tudo numa
+   linha so. Limita em 4 linhas; o texto inteiro fica no title. */
+.upload-status.is-err {
+  color: oklch(0.72 0.18 25);
+  text-transform: none;
+  letter-spacing: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  overflow: hidden;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 
 @keyframes spin { to { transform: rotate(360deg); } }
 

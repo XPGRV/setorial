@@ -77,8 +77,12 @@ const RefreshWidget = ({ onLoad, dataset, lastUpdate, currentSource }) => {
       setStatus({ kind: 'ok', msg: 'Planilha atualizada' });
       setTimeout(() => setStatus(null), 3500);
     } catch (e) {
-      setStatus({ kind: 'err', msg: 'Erro ao buscar planilha' });
-      setTimeout(() => setStatus(null), 5000);
+      // Mostra o motivo real. O texto generico de antes escondia coisas como
+      // "series criticas vazias; upload anterior preservado" -- que nao e
+      // falha de busca, e sim a validacao recusando dado incompleto -- e
+      // mandava procurar o problema no lugar errado.
+      setStatus({ kind: 'err', msg: e?.message || 'Erro ao buscar planilha' });
+      setTimeout(() => setStatus(null), 12000);
     }
   };
 
@@ -90,7 +94,7 @@ const RefreshWidget = ({ onLoad, dataset, lastUpdate, currentSource }) => {
       </button>
       <div className="upload-meta">
         {status ? (
-          <span className={`upload-status is-${status.kind}`}>{status.msg}</span>
+          <span className={`upload-status is-${status.kind}`} title={status.msg}>{status.msg}</span>
         ) : lastUpdate ? (
           <span className="upload-last">
             <span className="upload-last-src">{currentSource || 'data.json'}</span>
@@ -129,15 +133,24 @@ const SidebarRefresh = ({ onLoad }) => {
         const result = await refreshDashboard(null, key);
         lastData = result.data;
         lastMeta = result.meta;
-      } catch {
-        failed.push(label);
+      } catch (e) {
+        failed.push({ label, reason: e?.message || 'falhou' });
       }
     }
     if (lastData && onLoad) onLoad(lastData, lastMeta);
     if (lastData) window.dispatchEvent(new CustomEvent('dashboard-refresh-success'));
     if (failed.length) {
-      setStatus({ kind: 'err', msg: `Erro: ${failed.join(', ')}` });
-      setTimeout(() => setStatus(null), 6000);
+      // Com uma so' falhando, cabe o motivo na linha; com varias, os nomes.
+      // O title leva a lista completa com os motivos nos dois casos.
+      const msg = failed.length === 1
+        ? `${failed[0].label}: ${failed[0].reason}`
+        : `Erro: ${failed.map(f => f.label).join(', ')}`;
+      setStatus({
+        kind: 'err',
+        msg,
+        detail: failed.map(f => `${f.label}: ${f.reason}`).join('\n'),
+      });
+      setTimeout(() => setStatus(null), 12000);
     } else {
       setStatus({ kind: 'ok', msg: 'Todas as planilhas atualizadas' });
       setTimeout(() => setStatus(null), 3500);
@@ -152,7 +165,7 @@ const SidebarRefresh = ({ onLoad }) => {
       </button>
       {status && (
         <div className="sidebar-upload-hint">
-          <span className={`upload-status is-${status.kind}`}>{status.msg}</span>
+          <span className={`upload-status is-${status.kind}`} title={status.detail || status.msg}>{status.msg}</span>
         </div>
       )}
     </div>

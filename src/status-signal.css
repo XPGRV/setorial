@@ -162,6 +162,14 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--fg-dim);
+  /* Texto todo em maiúsculas ocupa só a parte de cima da caixa da linha (o
+     espaço de descendente fica vazio), então centralizar a caixa deixa as
+     letras visualmente acima da bolinha. Recorta a caixa na altura das
+     maiúsculas para o centro do texto coincidir com o da bolinha. */
+  text-box: trim-both cap alphabetic;
+}
+@supports not (text-box: trim-both cap alphabetic) {
+  .ds-card-label { transform: translateY(1px); }
 }
 .ds-card-dot:hover .ds-card-label { color: var(--fg); }
 .ds-card-dot:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }

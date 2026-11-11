@@ -78,7 +78,8 @@ function fmtAgo(iso) {
 
 const COLOR_LABEL = { green: 'Em dia', yellow: 'Atenção', red: 'Problema', neutral: 'Manual', unknown: 'Sem informação' }
 const OVERALL_LABEL = { green: 'Dados em dia', yellow: 'Dados com atenção', red: 'Dados com problema', unknown: 'Status indisponível' }
-const KIND_LABEL = { bloomberg: 'Bloomberg', coleta: 'Coleta', publicacao: 'Publicação', manual: 'Manual' }
+const CARD_LABEL = { green: 'Atualizado', yellow: 'Atenção', red: 'Desatualizado', neutral: 'Manual', unknown: 'Sem status' }
+const KIND_LABEL ={ bloomberg: 'Bloomberg', coleta: 'Coleta', publicacao: 'Publicação', manual: 'Manual' }
 
 function sourceLine(s) {
   if (!s) return 'Sem informação'
@@ -147,6 +148,7 @@ function CardDot({ cardId, host, status }) {
       <button ref={ref} type="button" className="ds-card-dot" aria-label={`Status dos dados: ${COLOR_LABEL[color]}`}
         onMouseEnter={show} onMouseLeave={() => setOpen(false)} onFocus={show} onBlur={() => setOpen(false)}
         onClick={e => { e.stopPropagation(); open ? setOpen(false) : show() }}>
+        <span className="ds-card-label">{CARD_LABEL[color] || CARD_LABEL.unknown}</span>
         <Dot color={color} size={9}/>
       </button>
       {open && pos && createPortal(

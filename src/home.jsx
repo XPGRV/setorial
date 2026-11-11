@@ -263,7 +263,20 @@ function Sparkline({ points, up }) {
   )
 }
 
-function SectionTitle({ title, right }) {
+function SectionTitle({ title, right, collapsed, onToggle }) {
+  if (onToggle) {
+    // Variante recolhível: o título inteiro é o botão.
+    return (
+      <button type="button" className={`home-section-title is-toggle${collapsed ? ' is-collapsed' : ''}`}
+        onClick={onToggle} aria-expanded={!collapsed}>
+        <span className="home-section-heading"><span className="home-dot" />{title}</span>
+        <span className="home-section-right">
+          {right}
+          <span className="home-section-caret" aria-hidden="true">▾</span>
+        </span>
+      </button>
+    )
+  }
   return (
     <div className="home-section-title">
       <div className="home-section-heading"><span className="home-dot" />{title}</div>
@@ -272,11 +285,24 @@ function SectionTitle({ title, right }) {
   )
 }
 
+// Seção recolhível que lembra o estado no navegador.
+function useCollapsed(key) {
+  const [collapsed, setCollapsed] = React.useState(() => {
+    try { return localStorage.getItem(key) === '1' } catch { return false }
+  })
+  const toggle = () => setCollapsed(c => {
+    try { localStorage.setItem(key, c ? '0' : '1') } catch {}
+    return !c
+  })
+  return [collapsed, toggle]
+}
+
 export default function HomePage() {
   const navigate = useNavigate()
   const [mode, setMode] = React.useState(() => document.documentElement.dataset.mode === 'light' ? 'light' : 'dark')
   const [marketTab, setMarketTab] = React.useState('Commodities')
   const clock = useClock()
+  const [statusCollapsed, toggleStatus] = useCollapsed('home-status-collapsed')
 
   const go = s => {
     if (s.active && s.route) runRouteTransition(() => navigate(s.route))
@@ -335,9 +361,14 @@ export default function HomePage() {
             <SectionTitle title="Notícias" />
           </section>
           <section className="home-column home-status">
-            <SectionTitle title="Status dos dados" right={<DataStatusSummary />} />
-            <DataStatusBoard onOpenDashboard={ds => runRouteTransition(() => navigate(
-              dashboardPathForDataset(ds) + (dashboardPathForDataset(ds) === '/proteinas' ? `?dataset=${ds}` : '')))} />
+            <SectionTitle title="Status dos dados" right={<DataStatusSummary />}
+              collapsed={statusCollapsed} onToggle={toggleStatus} />
+            <div className={`home-collapse${statusCollapsed ? ' is-collapsed' : ''}`}>
+              <div className="home-collapse-inner">
+                <DataStatusBoard onOpenDashboard={ds => runRouteTransition(() => navigate(
+                  dashboardPathForDataset(ds) + (dashboardPathForDataset(ds) === '/proteinas' ? `?dataset=${ds}` : '')))} />
+              </div>
+            </div>
           </section>
         </div>
 

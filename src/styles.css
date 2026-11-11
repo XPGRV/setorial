@@ -2506,3 +2506,28 @@ input:focus-visible,
 .home-center { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
 .home-status { padding: 0; }
 .home-status .home-section-title { padding: 0 14px; background: var(--home-strip); }
+
+/* Título de seção recolhível (Home) */
+button.home-section-title.is-toggle {
+  width: 100%; border: 0; border-bottom: 1px solid var(--border);
+  font: inherit; color: inherit; text-align: left; cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.22s ease;
+}
+button.home-section-title.is-toggle:hover { background: color-mix(in oklch, var(--accent) 7%, var(--home-strip)); }
+button.home-section-title.is-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+button.home-section-title.is-toggle.is-collapsed { border-bottom-color: transparent; }
+.home-section-right { display: inline-flex; align-items: center; gap: 10px; color: var(--fg-mute); font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; }
+.home-section-caret { font-size: 10px; transition: transform 0.22s ease; }
+.is-collapsed .home-section-caret { transform: rotate(-90deg); }
+
+/* Conteúdo que recolhe deslizando (grid 1fr -> 0fr) */
+.home-collapse { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 0.26s ease; }
+.home-collapse.is-collapsed { grid-template-rows: 0fr; }
+.home-collapse-inner { min-height: 0; overflow: hidden; transition: opacity 0.2s ease; }
+.home-collapse.is-collapsed .home-collapse-inner { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .home-collapse, .home-collapse-inner, .home-section-caret { transition: none; }
+}
+/* No botão, o título é <span>: devolve o estilo do heading (a regra
+   .home-section-title > span acima é para o texto da direita). */
+button.home-section-title.is-toggle > .home-section-heading { color: var(--fg); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }

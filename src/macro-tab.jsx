@@ -392,7 +392,7 @@ function SelicSnapshotCard({ selicSnapshots, accent }) {
     : `Projeções ▾`;
 
   return (
-    <section className="card card-full">
+    <section className="card card-full" data-card-id="card-macro-cdi">
       <div className="card-head">
         <div>
           <div className="card-eyebrow">BCB · Revisões de Mercado · Bloomberg</div>

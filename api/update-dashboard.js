@@ -2,6 +2,7 @@ import { google } from 'googleapis';
 import * as XLSX from 'xlsx';
 import { parseWorkbookData } from '../src/parse-workbook.js';
 import { validateDashboardPayload } from '../src/dashboard-validation.js';
+import { summarizeLastDates } from '../src/data-status.js';
 
 const SB_URL = process.env.SUPABASE_URL || 'https://wmxjdveucxbousoquwmc.supabase.co';
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE;
@@ -203,6 +204,19 @@ export default async function handler(req, res) {
     };
 
     await uploadDataJson(`data-${dataset}.json`, { data: parsed, meta });
+
+    // Resumo leve (data do último ponto de cada série) para o /api/status não
+    // precisar baixar o arquivo de dados inteiro. Falhar aqui não derruba a
+    // publicação: o /api/status sabe calcular a partir do data-*.json.
+    try {
+      await uploadDataJson(`status-${dataset}.json`, {
+        dataset,
+        publishedAt: meta[cfg.metaKey].updated,
+        lastDates: summarizeLastDates(parsed),
+      });
+    } catch (e) {
+      console.error(`status-${dataset}.json:`, e);
+    }
 
     return json(res, 200, {
       ok: true,

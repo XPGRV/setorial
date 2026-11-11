@@ -7,6 +7,7 @@ import { searchDestinations as searchCatalog } from './search-catalog.js'
 import { runRouteTransition } from './route-transition.js'
 import { THEMES, ThemePicker } from './reactive.js'
 import { RefreshWidget, SidebarRefresh } from './upload.jsx'
+import { DataStatusBadge } from './status-signal.jsx'
 import { BeefUSTab, EdgebeeefChart, EdgebeeefControls } from './beef-us-tab.jsx'
 import { PoultryBRTab } from './poultry-br-tab.jsx'
 import { PoultryUSTab } from './poultry-us-tab.jsx'
@@ -865,6 +866,7 @@ function TopBar({ meta, onUpload, activeDataset, colorMode = 'dark', onCycleMode
       <div className="topbar-spacer"/>
       <div className="topbar-actions">
         <GlobalSearch onNavigate={onNavigate}/>
+        <DataStatusBadge/>
         <button className="topbar-mode-btn" onClick={onCycleMode}
           title={MODE_LABEL[colorMode]} aria-label={MODE_LABEL[colorMode]}>
           {MODE_ICON[colorMode]}

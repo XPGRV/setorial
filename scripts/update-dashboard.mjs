@@ -22,6 +22,7 @@ import path from 'node:path';
 import * as XLSX from 'xlsx';
 import { parseWorkbookData } from '../src/parse-workbook.js';
 import { validateDashboardPayload } from '../src/dashboard-validation.js';
+import { summarizeLastDates } from '../src/data-status.js';
 
 const PASTA    = process.env.SETORIAL_DIR || 'G:\\Meu Drive\\Arquivos\\Setorial - Proteínas';
 const DB_DIR   = process.env.DATABASE_DIR || 'G:\\.shortcut-targets-by-id\\11q1ngdqbySnDMCQSP4fiwPztT6ju2F4Z\\Arquivos\\Setorial - Database';
@@ -116,6 +117,10 @@ async function main() {
       if (!validation.ok) throw new Error(validation.message);
       const meta = { [metaKey]: { source: nome, updated: new Date().toISOString() } };
       const bytes = await uploadObject(`data-${dataset}.json`, { data: parsed, meta });
+      // Resumo de datas usado pelo /api/status (ver src/data-status.js).
+      await uploadObject(`status-${dataset}.json`, {
+        dataset, publishedAt: meta[metaKey].updated, lastDates: summarizeLastDates(parsed),
+      }).catch(e => console.warn(`! status-${dataset}.json não gravado: ${e.message}`));
       okCount++;
       console.log(`✓ ${nome} → data-${dataset}.json (${(bytes / 1024).toFixed(0)} KB · ${Object.keys(parsed).join(', ')})`);
     } catch (e) {

@@ -97,6 +97,40 @@
 .ds-sec > summary::after { content: '▸'; margin-left: auto; transition: transform 0.15s; }
 .ds-sec[open] > summary::after { transform: rotate(90deg); }
 
+/* Seções do painel abrem/fecham deslizando (onde o navegador suporta
+   ::details-content; nos outros, abre direto como antes). */
+.ds-panel { interpolate-size: allow-keywords; }
+.ds-sec::details-content {
+  block-size: 0; overflow: hidden; opacity: 0;
+  transition: block-size 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+              opacity 0.18s ease,
+              content-visibility 0.22s allow-discrete;
+}
+.ds-sec[open]::details-content { block-size: auto; opacity: 1; }
+
+/* ── Entrada e saída (painel e detalhe do card) ──
+   Sobe um pouco e aparece; ao sair, desce e some mais rápido. A origem da
+   escala fica no canto mais perto de quem abriu (botão ou bolinha). */
+@keyframes ds-in {
+  from { opacity: 0; transform: translateY(var(--ds-shift, 6px)) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes ds-out {
+  from { opacity: 1; transform: none; }
+  to   { opacity: 0; transform: translateY(var(--ds-shift, 6px)) scale(0.98); }
+}
+.ds-panel-layer { --ds-shift: -6px; transform-origin: top right; }
+.ds-pop { transform-origin: bottom right; }
+.ds-panel-layer.is-in, .ds-pop.is-in  { animation: ds-in 0.18s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.ds-panel-layer.is-out, .ds-pop.is-out { animation: ds-out 0.14s ease-in both; }
+@media (prefers-reduced-motion: reduce) {
+  .ds-panel-layer.is-in, .ds-pop.is-in { animation-name: ds-fade-in; }
+  .ds-panel-layer.is-out, .ds-pop.is-out { animation-name: ds-fade-out; }
+  .ds-sec::details-content { transition: none; }
+}
+@keyframes ds-fade-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ds-fade-out { from { opacity: 1; } to { opacity: 0; } }
+
 .ds-group { margin: 6px 0 10px; }
 .ds-group-title {
   display: flex; align-items: baseline; gap: 8px;

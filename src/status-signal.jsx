@@ -127,6 +127,19 @@ function SourceRow({ id, s }) {
   )
 }
 
+// Mantém o elemento montado durante a animação de saída: open=false troca a
+// classe para "is-out" e só desmonta depois de `ms`. Reabrir no meio da saída
+// cancela a desmontagem e volta para "is-in".
+function usePresence(open, ms = 140) {
+  const [mounted, setMounted] = React.useState(open)
+  React.useEffect(() => {
+    if (open) { setMounted(true); return }
+    const t = setTimeout(() => setMounted(false), ms)
+    return () => clearTimeout(t)
+  }, [open, ms])
+  return { mounted: open || mounted, phase: open ? 'is-in' : 'is-out' }
+}
+
 // ── Bolinha por card ────────────────────────────────────────────────────────
 function CardDot({ cardId, host, status }) {
   const [open, setOpen] = React.useState(false)
@@ -134,6 +147,7 @@ function CardDot({ cardId, host, status }) {
   const ref = React.useRef(null)
   const ids = CARD_SOURCES[cardId] || []
   const color = cardColor(cardId, status.sources)
+  const { mounted, phase } = usePresence(open)
 
   const show = () => {
     // A bolinha fica no canto inferior direito do card: o detalhe abre acima
@@ -151,8 +165,8 @@ function CardDot({ cardId, host, status }) {
         <span className="ds-card-label">{CARD_LABEL[color] || CARD_LABEL.unknown}</span>
         <Dot color={color} size={9}/>
       </button>
-      {open && pos && createPortal(
-        <div className="ds-pop" style={{ bottom: pos.bottom, left: pos.left }} role="tooltip">
+      {mounted && pos && createPortal(
+        <div className={`ds-pop ${phase}`} style={{ bottom: pos.bottom, left: pos.left }} role="tooltip">
           <div className="ds-pop-head">
             <Dot color={color}/> <strong>{COLOR_LABEL[color]}</strong>
             <span className="ds-pop-kind">{[...new Set(ids.map(id => KIND_LABEL[SOURCES[id]?.kind]))].join(' + ')}</span>
@@ -214,7 +228,12 @@ function groupBy(arr, fn) {
   return m
 }
 
-function Panel(props) {
+function Panel({ open, ...props }) {
+  const { mounted, phase } = usePresence(open, 160)
+  return mounted ? <PanelLayer {...props} phase={phase}/> : null
+}
+
+function PanelLayer({ phase, ...props }) {
   // Vai direto no <body>: o cabeçalho cria contextos de empilhamento que
   // deixariam o painel atrás dos cards.
   const [pos, setPos] = React.useState(null)
@@ -229,7 +248,7 @@ function Panel(props) {
     return () => { window.removeEventListener('resize', place); window.removeEventListener('scroll', place, true) }
   }, [props.anchor])
   if (!pos) return null
-  return createPortal(<div className="ds-panel-layer" style={pos}><PanelBody {...props}/></div>, document.body)
+  return createPortal(<div className={`ds-panel-layer ${phase}`} style={pos}><PanelBody {...props}/></div>, document.body)
 }
 
 function PanelBody({ status, error, onClose }) {
@@ -353,7 +372,7 @@ export function DataStatusBadge() {
         <Dot color={color} size={9} pulse={color === 'red'}/>
         <span className="ds-badge-label">{label}</span>
       </button>
-      {open && <Panel status={status} error={error} onClose={close} anchor={anchor}/>}
+      <Panel open={open} status={status} error={error} onClose={close} anchor={anchor}/>
       <CardDots status={status}/>
     </div>
   )

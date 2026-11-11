@@ -6,7 +6,10 @@
 // Os dados vêm de GET /api/status, buscado ao abrir e a cada 5 minutos.
 import React from 'react'
 import { createPortal } from 'react-dom'
-import { CARD_SOURCES, SOURCES, cardColor, worstColor } from './data-status.js'
+import {
+  CARD_SOURCES, SOURCES, DATASET_LABELS, DATASET_FILES, DATASET_JOB, STATUS_ORDER,
+  cardColor, worstColor,
+} from './data-status.js'
 import './status-signal.css'
 
 const POLL_MS = 5 * 60 * 1000
@@ -379,6 +382,120 @@ export function DataStatusBadge() {
         <span className="ds-badge-label">{label}</span>
       </button>
       <Panel open={open} status={status} error={error} onClose={close} anchor={anchor}/>
+    </div>
+  )
+}
+
+// ── Quadro por planilha (Home) ──────────────────────────────────────────────
+function datasetSummary(ds, status) {
+  const rows = Object.entries(status.sources).filter(([, s]) => s.dataset === ds)
+  const bbg = rows.filter(([, s]) => s.kind === 'bloomberg' || s.kind === 'publicacao')
+  const col = rows.filter(([, s]) => s.kind === 'coleta')
+  const man = rows.filter(([, s]) => s.kind === 'manual')
+  const bbgDates = bbg.map(([, s]) => s.dataDate).filter(d => d && d.length === 10).sort()
+  const colBad = col.filter(([, s]) => s.color !== 'green')
+  const job = DATASET_JOB[ds]
+  return {
+    rows, bbg, col, man, job,
+    color: worstColor(rows.map(([, s]) => s.color)),
+    bbgColor: bbg.length ? worstColor(bbg.map(([, s]) => s.color)) : null,
+    colColor: col.length ? worstColor(col.map(([, s]) => s.color)) : null,
+    bbgDate: bbgDates[bbgDates.length - 1] || null,
+    colBad,
+    jobRun: job ? status.coleta?.latest?.jobs?.[job] : null,
+    publishedAt: status.datasets?.[ds]?.publishedAt,
+  }
+}
+
+function Chip({ color, children, title }) {
+  return <span className="ds-chip" title={title}><Dot color={color} size={6}/>{children}</span>
+}
+
+function DatasetRow({ ds, status, onOpenDashboard }) {
+  const [open, setOpen] = React.useState(false)
+  const s = datasetSummary(ds, status)
+  const label = DATASET_LABELS[ds] || ds
+  const problems = s.rows.filter(([, x]) => x.color === 'red' || x.color === 'yellow')
+  const shown = open ? (problems.length ? problems : s.rows) : []
+
+  return (
+    <div className={`ds-board-row${open ? ' is-open' : ''}`}>
+      <button type="button" className="ds-board-main" onClick={() => setOpen(o => !o)} aria-expanded={open}>
+        <Dot color={s.color} size={8}/>
+        <span className="ds-board-name">
+          <strong>{label}</strong>
+          <small>{DATASET_FILES[ds]}</small>
+        </span>
+        <span className="ds-board-chips">
+          {s.bbgColor && (
+            <Chip color={s.bbgColor} title="Data do último ponto das séries do Bloomberg">
+              Bloomberg {s.bbgDate ? fmtDataDate(s.bbgDate).slice(0, 5) : (s.bbg.some(([, x]) => x.kind === 'publicacao') ? fmtWhen(s.publishedAt).split(',')[0] : '—')}
+            </Chip>
+          )}
+          {s.colColor
+            ? <Chip color={s.colColor} title="Coletas de API (pythonsetorial)">
+                {s.colBad.length ? `Coleta: ${s.colBad.length} de ${s.col.length} com falha` : 'Coleta OK'}
+              </Chip>
+            : s.jobRun
+              // Tem job na coleta, mas nenhuma fonte de API mapeada (ex.: Agro, que
+              // só arrasta fórmulas): mostra o resultado do job.
+              ? <Chip color={s.jobRun.conclusion === 'success' ? 'green' : 'yellow'} title={`Job ${s.job} no último run da coleta`}>
+                  {s.jobRun.conclusion === 'success' ? 'Coleta OK' : `Coleta: ${s.jobRun.conclusion}`}
+                </Chip>
+              : <Chip color="neutral" title="Esta planilha não tem coleta de API">Sem coleta</Chip>}
+          {s.man.length > 0 && <Chip color="neutral" title="Séries preenchidas à mão">{s.man.length} manual</Chip>}
+        </span>
+        <span className={`ds-board-state ds-text-${s.color}`}>{CARD_LABEL[s.color] || CARD_LABEL.unknown}</span>
+        <span className="ds-board-caret" aria-hidden="true">▸</span>
+      </button>
+      {open && (
+        <div className="ds-board-detail">
+          {problems.length > 0 && problems.length < s.rows.length && (
+            <div className="ds-board-note">{problems.length} fonte{problems.length > 1 ? 's' : ''} com atenção · {s.rows.length - problems.length} em dia</div>
+          )}
+          {shown.map(([id, x]) => <SourceRow key={id} id={id} s={x}/>)}
+          <div className="ds-board-foot">
+            <span>Publicado {fmtWhen(s.publishedAt)}</span>
+            {s.jobRun && <a href={s.jobRun.url} target="_blank" rel="noreferrer">último run de {s.job}: {s.jobRun.conclusion === 'success' ? 'OK' : s.jobRun.conclusion}</a>}
+            {onOpenDashboard && <button type="button" className="ds-board-link" onClick={() => onOpenDashboard(ds)}>Abrir dashboard →</button>}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Resumo para o título da seção: "2 com problema · 1 atenção" ou "tudo em dia".
+export function DataStatusSummary() {
+  const { status } = useDataStatus()
+  if (!status) return null
+  const cols = Object.keys(DATASET_LABELS).map(ds => datasetSummary(ds, status).color)
+  const red = cols.filter(c => c === 'red').length
+  const yellow = cols.filter(c => c === 'yellow').length
+  const parts = []
+  if (red) parts.push(`${red} desatualizada${red > 1 ? 's' : ''}`)
+  if (yellow) parts.push(`${yellow} atenção`)
+  return <span>{parts.length ? parts.join(' · ') : 'tudo em dia'}</span>
+}
+
+export function DataStatusBoard({ onOpenDashboard }) {
+  const { status, error, loading } = useDataStatus()
+  if (!status) {
+    return <div className="ds-board-empty">{loading ? 'Consultando status…' : `Status indisponível${error ? `: ${error}` : ''}`}</div>
+  }
+  // Problemas primeiro; dentro do mesmo nível, a ordem do catálogo.
+  const order = Object.keys(DATASET_LABELS)
+  const sorted = [...order].sort((a, b) =>
+    (STATUS_ORDER[datasetSummary(b, status).color] - STATUS_ORDER[datasetSummary(a, status).color]) || (order.indexOf(a) - order.indexOf(b)))
+  const latest = status.coleta?.latest
+  return (
+    <div className="ds-board">
+      {sorted.map(ds => <DatasetRow key={ds} ds={ds} status={status} onOpenDashboard={onOpenDashboard}/>)}
+      <div className="ds-board-meta">
+        {latest && <a href={latest.url} target="_blank" rel="noreferrer">Coleta #{latest.number} · {fmtWhen(latest.at)}</a>}
+        {status.publicacao?.last && <a href={status.publicacao.last.url} target="_blank" rel="noreferrer">Publicação {fmtWhen(status.publicacao.last.at)}</a>}
+        <span>Consultado {fmtWhen(status.generatedAt)}</span>
+      </div>
     </div>
   )
 }

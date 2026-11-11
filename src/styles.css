@@ -2501,3 +2501,8 @@ input:focus-visible,
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* Centro da Home: Notícias + Status dos dados empilhados */
+.home-center { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+.home-status { padding: 0; }
+.home-status .home-section-title { padding: 0 14px; background: var(--home-strip); }

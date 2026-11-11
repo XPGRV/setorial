@@ -57,6 +57,16 @@ export const DATASET_LABELS = {
   agro: 'Agro', software: 'Software',
 }
 
+export const DATASET_FILES = {
+  beef_br: 'BeefBR.xlsm', beef_us: 'BeefUS.xlsm', poultry_br: 'FrangoBR.xlsm', poultry_us: 'FrangoUS.xlsm',
+  macro: 'Planilha - Selic.xlsm', weg: 'WEG - Setorial.xlsm', rental: 'CarRental.xlsm',
+  transportes: 'Transportes.xlsm', agro: 'Agro.xlsm', software: 'TOTVS - Setorial.xlsm',
+}
+
+// dataset -> job do coleta-tudo.yml (Macro e Software não têm coleta de API)
+export const DATASET_JOB = Object.fromEntries(
+  Object.entries(PLANILHAS).map(([job, p]) => [p.dataset, job]))
+
 // ── Fontes ──────────────────────────────────────────────────────────────────
 // data: { dataset, key, cols? } aponta para a série no data-<dataset>.json —
 // é de onde sai a "data do dado". lagDias: séries que por construção fecham

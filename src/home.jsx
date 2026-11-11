@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Beef, Car, Factory, Train, Landmark, Search, ChevronRight, Sun, Moon, Sprout, CodeXml } from 'lucide-react'
 import { dashboardPathForDataset, searchDestinations } from './search-catalog.js'
 import { runRouteTransition } from './route-transition.js'
-import { DataStatusBadge } from './status-signal.jsx'
+import { DataStatusBadge, DataStatusBoard, DataStatusSummary } from './status-signal.jsx'
 
 // ── Mesh reativo da topbar (canvas) ───────────────────────────────────────────
 // Malha de pontos que reage ao cursor: fundo navy + accent, constelação e glow.
@@ -329,10 +329,17 @@ export default function HomePage() {
           <div className="home-sector-list">{[...SECTORS, ...MACRO].map(renderSector)}</div>
         </aside>
 
-        {/* Centro — Notícias */}
-        <section className="home-column home-news">
-          <SectionTitle title="Notícias" />
-        </section>
+        {/* Centro — Notícias + Status dos dados */}
+        <div className="home-center">
+          <section className="home-column home-news">
+            <SectionTitle title="Notícias" />
+          </section>
+          <section className="home-column home-status">
+            <SectionTitle title="Status dos dados" right={<DataStatusSummary />} />
+            <DataStatusBoard onOpenDashboard={ds => runRouteTransition(() => navigate(
+              dashboardPathForDataset(ds) + (dashboardPathForDataset(ds) === '/proteinas' ? `?dataset=${ds}` : '')))} />
+          </section>
+        </div>
 
         {/* Direita — Market Overview */}
         <aside className="home-column home-market">

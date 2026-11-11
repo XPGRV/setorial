@@ -299,6 +299,9 @@ function SelicSnapshotChart({ series, height = 320 }) {
             <svg width="16" height="3"><line x1="0" y1="1.5" x2="16" y2="1.5" stroke="var(--fg-dim)" strokeWidth="2" strokeDasharray="4 3" strokeOpacity="0.8"/></svg>
             Projetado
           </span>
+          {/* Lugar do status dos dados (status-signal.jsx) dentro da legenda,
+              para não sobrepor o "Realizado / Projetado". */}
+          <span data-ds-slot="" style={{display:'flex', alignItems:'center'}}/>
         </span>
       </div>
 

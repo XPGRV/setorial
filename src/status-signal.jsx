@@ -196,13 +196,19 @@ function useCardHosts() {
       document.querySelectorAll('section.card[data-card-id]').forEach(sec => {
         const id = sec.getAttribute('data-card-id')
         if (!CARD_SOURCES[id]) return
-        let host = sec.querySelector(':scope > .ds-card-host')
+        // Um card pode reservar um lugar para o status dentro do próprio
+        // layout (ex.: na linha de legenda) com um elemento [data-ds-slot].
+        // Sem isso, o status fica no canto inferior direito do card.
+        const slot = sec.querySelector('[data-ds-slot]')
+        const container = slot || sec
+        let host = sec.querySelector('.ds-card-host')
         if (!host) {
           host = document.createElement('span')
           host.className = 'ds-card-host'
           host.dataset.dsKey = String(++hostSeq)
-          sec.appendChild(host)
         }
+        if (host.parentElement !== container) container.appendChild(host)
+        host.classList.toggle('is-inline', !!slot)
         found.push({ id, host })
       })
       setHosts(prev => (prev.length === found.length && prev.every((h, i) => h.host === found[i].host && h.id === found[i].id)) ? prev : found)
@@ -373,9 +379,15 @@ export function DataStatusBadge() {
         <span className="ds-badge-label">{label}</span>
       </button>
       <Panel open={open} status={status} error={error} onClose={close} anchor={anchor}/>
-      <CardDots status={status}/>
     </div>
   )
+}
+
+// Só as bolinhas dos cards (páginas de dashboard). O semáforo geral fica na
+// Home; os dois compartilham o mesmo fetch de /api/status.
+export function DataStatusCards() {
+  const { status } = useDataStatus()
+  return <CardDots status={status}/>
 }
 
 export default DataStatusBadge

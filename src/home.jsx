@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Beef, Car, Factory, Train, Landmark, Search, ChevronRight, Sun, Moon, Sprout, CodeXml } from 'lucide-react'
 import { dashboardPathForDataset, searchDestinations } from './search-catalog.js'
 import { runRouteTransition } from './route-transition.js'
+import { DataStatusBadge } from './status-signal.jsx'
 
 // ── Mesh reativo da topbar (canvas) ───────────────────────────────────────────
 // Malha de pontos que reage ao cursor: fundo navy + accent, constelação e glow.
@@ -312,6 +313,7 @@ export default function HomePage() {
         </div>
         <div className="home-topbar-actions">
           <HomeGlobalSearch navigate={navigate} />
+          <DataStatusBadge />
           <button className="topbar-mode-btn" onClick={toggleMode}
             title={mode === 'dark' ? 'Tema: Escuro · clique p/ Claro' : 'Tema: Claro · clique p/ Escuro'}
             aria-label="Alternar tema claro/escuro">

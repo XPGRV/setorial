@@ -146,6 +146,8 @@
   position: absolute; right: var(--pad-card); bottom: calc(var(--pad-card) - 1px); z-index: 2;
   line-height: 0;
 }
+/* Dentro de um [data-ds-slot] do card: entra no fluxo da legenda. */
+.ds-card-host.is-inline { position: static; display: inline-flex; align-items: center; }
 
 /* Movimento discreto: um halo da própria cor que se expande e some, como uma
    respiração. Mais lento no verde, um pouco mais rápido no amarelo/vermelho. */

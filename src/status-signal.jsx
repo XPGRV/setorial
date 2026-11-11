@@ -135,8 +135,10 @@ function CardDot({ cardId, host, status }) {
   const color = cardColor(cardId, status.sources)
 
   const show = () => {
+    // A bolinha fica no canto inferior direito do card: o detalhe abre acima
+    // dela, alinhado pela direita.
     const r = ref.current?.getBoundingClientRect()
-    if (r) setPos({ top: r.bottom + 8, left: Math.max(8, Math.min(r.left - 8, window.innerWidth - 348)) })
+    if (r) setPos({ bottom: window.innerHeight - r.top + 8, left: Math.max(8, Math.min(r.right - 340, window.innerWidth - 348)) })
     setOpen(true)
   }
 
@@ -145,10 +147,10 @@ function CardDot({ cardId, host, status }) {
       <button ref={ref} type="button" className="ds-card-dot" aria-label={`Status dos dados: ${COLOR_LABEL[color]}`}
         onMouseEnter={show} onMouseLeave={() => setOpen(false)} onFocus={show} onBlur={() => setOpen(false)}
         onClick={e => { e.stopPropagation(); open ? setOpen(false) : show() }}>
-        <Dot color={color} size={9} pulse={color === 'red'}/>
+        <Dot color={color} size={9}/>
       </button>
       {open && pos && createPortal(
-        <div className="ds-pop" style={{ top: pos.top, left: pos.left }} role="tooltip">
+        <div className="ds-pop" style={{ bottom: pos.bottom, left: pos.left }} role="tooltip">
           <div className="ds-pop-head">
             <Dot color={color}/> <strong>{COLOR_LABEL[color]}</strong>
             <span className="ds-pop-kind">{[...new Set(ids.map(id => KIND_LABEL[SOURCES[id]?.kind]))].join(' + ')}</span>

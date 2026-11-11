@@ -119,9 +119,34 @@
 .ds-foot { margin-top: 12px; font-size: 11px; color: var(--fg-mute); }
 
 /* ── Bolinha no card ── */
+/* Canto inferior direito, na altura da linha de legenda. */
 .ds-card-host {
-  position: absolute; top: 9px; left: 9px; z-index: 2;
+  position: absolute; right: 16px; bottom: 21px; z-index: 2;
   line-height: 0;
+}
+
+/* Movimento discreto: um halo da própria cor que se expande e some, como uma
+   respiração. Mais lento no verde, um pouco mais rápido no amarelo/vermelho. */
+.ds-card-dot .ds-dot { position: relative; }
+.ds-card-dot .ds-dot::after {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  opacity: 0;
+  animation: ds-breathe 3.2s ease-out infinite;
+}
+.ds-card-dot .ds-yellow::after { animation-duration: 2.4s; }
+.ds-card-dot .ds-red::after    { animation-duration: 1.6s; }
+.ds-card-dot .ds-neutral::after,
+.ds-card-dot .ds-unknown::after { display: none; }
+@keyframes ds-breathe {
+  0%   { transform: scale(1);   opacity: 0.5; }
+  70%  { transform: scale(2.4); opacity: 0; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds-card-dot .ds-dot::after { animation: none; }
 }
 .ds-card-dot {
   display: inline-flex; align-items: center; justify-content: center;

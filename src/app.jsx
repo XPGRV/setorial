@@ -70,6 +70,7 @@ const darkenAccent = (str, maxL = 0.55) => {
 // Accents das empresas de Capital Goods (além da WEG)
 const MARCOPOLO_ACCENT = 'oklch(0.706 0.169 52)';  // laranja Marcopolo (RGB 244,129,32)
 const EMBRAER_ACCENT   = 'oklch(0.274 0.110 279.8)';   // azul-marinho Embraer (RGB 32,27,91)
+const TUPY_ACCENT      = 'oklch(0.304 0.091 265.4)';   // azul Tupy (#182B5C)
 const SOFTWARE_ACCENT  = 'oklch(0.68 0.16 295)';        // violeta — setor Software
 
 
@@ -202,6 +203,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
     ? EMBRAER_ACCENT
     : activeDataset === 'marcopolo'
     ? MARCOPOLO_ACCENT
+    : activeDataset === 'tupy'
+    ? TUPY_ACCENT
     : tweaks.accent || PALETTES[tweaks.palette].accent;
 
   // uiAccent — CSS var, sidebar highlights, logo box
@@ -227,6 +230,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
     ? EMBRAER_ACCENT
     : activeDataset === 'marcopolo'
     ? MARCOPOLO_ACCENT
+    : activeDataset === 'tupy'
+    ? TUPY_ACCENT
     : accent;
 
   const typeStack = TYPE_STACKS[tweaks.typography];
@@ -257,6 +262,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
       ? EMBRAER_ACCENT
       : activeDataset === 'marcopolo'
       ? MARCOPOLO_ACCENT
+      : activeDataset === 'tupy'
+      ? TUPY_ACCENT
       : themeAccent;
     // No modo claro, escurece o accent de UI p/ contraste (gráficos não são afetados)
     if (colorMode === 'light') finalAccent = darkenAccent(finalAccent);
@@ -281,7 +288,7 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
       ? 'agro'
       : dest.dataset === 'software'
       ? 'software'
-      : (dest.dataset === 'weg' || dest.dataset === 'embraer' || dest.dataset === 'marcopolo')
+      : (dest.dataset === 'weg' || dest.dataset === 'embraer' || dest.dataset === 'marcopolo' || dest.dataset === 'tupy')
       ? 'capitalgoods'
       : 'proteinas';
     if (targetSection !== dashboardSection) {
@@ -324,7 +331,7 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
       ? 'agro'
       : pending.dataset === 'software'
       ? 'software'
-      : (pending.dataset === 'weg' || pending.dataset === 'embraer' || pending.dataset === 'marcopolo')
+      : (pending.dataset === 'weg' || pending.dataset === 'embraer' || pending.dataset === 'marcopolo' || pending.dataset === 'tupy')
       ? 'capitalgoods'
       : 'proteinas';
     if (pendingSection !== dashboardSection) return;
@@ -395,6 +402,8 @@ function App({ data: propData, initialData, initialMeta, initialDataset = 'beef_
           <ComingSoon name="Embraer" icon={SIcon.embraer}/>
         ) : activeDataset === 'marcopolo' ? (
           <ComingSoon name="Marcopolo" icon={SIcon.marcopolo}/>
+        ) : activeDataset === 'tupy' ? (
+          <ComingSoon name="Tupy" icon={SIcon.tupy}/>
         ) : tab === 'precos' ? (
           <PrecosTab data={data} accent={accent}/>
         ) : (
@@ -426,6 +435,7 @@ const SIcon = {
   weg: <svg width="16" height="16" viewBox="0 0 5991 4192" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><polygon points="461,466 461,2795 922,2795 922,932 1383,932 1383,2795 1844,2795 1844,932 2304,932 2304,3261 0,3261 0,0 5991,0 5991,466 "/><path d="M4148 2329l0 -1397 -1383 0 0 2329 1383 0 0 -466 -922 0 0 -466 922 0zm-461 -466l-461 0 0 -466 461 0 0 466z"/><path d="M5991 932l-1382 0 0 2329 922 0 0 466 -5531 0 0 465 5991 0 0 -3260zm-461 1863l-461 0 0 -1398 461 0 0 1398z"/></svg>,
   embraer: <svg width="16" height="16" viewBox="0 0 1550 1550" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="m1239.6 0.6l-929.2 712.5h-186.1l-123.7 123.8h309.8l929.2 712.5h309.8l-619.7-712.5h616.6v-123.8h-616.6l619.7-712.5z"/></svg>,
   marcopolo: <svg width="16" height="16" viewBox="0 0 1495 1492" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="m745.6 1084.8c-187 0-338.1-151-338.1-337.8 0-186.8 151.1-337.8 338.1-337.8 187 0 338.1 151 338.1 337.8 0 186.8-151.1 337.8-338.1 337.8z"/><path d="m128.7 1164c77.9-100.7 256.6-143.7 396.6-71.2 148.8 77.1 214.2 250.3 168.5 391.3-134.2 17.9-426-93.6-565.1-320.1z"/><path d="m700.7 0.8c44.3 132.6-10 307-158.6 388.8-144.8 79.6-320.2 37.1-409.4-69.6 140-192.6 327.3-299.9 568-319.2z"/><path d="m810.2 8.1c200.9-3.7 457.7 149.5 557.3 328.6-63.6 86.6-245.9 151.2-405.2 59.8-137.2-78.7-206.2-254.2-152.1-388.4z"/><path d="m77.9 1069.9c-102-166.4-104.9-472.3-0.2-647.7 145.1 24.9 260.8 172.3 258 328.6-2.5 155.6-121.1 302.3-257.8 319.1z"/><path d="m1362.9 1168.8c-139.8 193.3-325.6 301.7-561.6 323-54.1-131.2 12.2-303.5 144-383.5 157.4-95.5 341.1-36.4 417.6 60.5z"/><path d="m1415.6 1076.4c-154.5-39.2-258.3-177.4-253.9-335.6 4-150.3 114.7-286.2 255.1-313.5 100.9 163.9 107 461.5-1.2 649.1z"/></svg>,
+  tupy: <svg width="16" height="16" viewBox="0 -93 500 500" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="m52.457 1.3e-5c-53.921 0.73237-60.909 50.03-39.899 73.085l186.39 216.86c29.127 31.965 74.489 31.965 103.65 0l186.37-216.86c21.01-23.055 14.007-72.353-39.899-73.085zm216.1 232.3v-144.12h86.374v-28.822h-208.33v28.822h86.374v144.12zm-50.427 42.585-187.15-214.57c-12.832-14.647-7.2475-36.848 15.914-36.771v-0.16822h407.75v0.16822c23.146-0.0801 28.73 22.124 15.914 36.771l-187.15 214.57c-21.666 20.049-43.607 20.049-65.273 0"/></svg>,
   chicken: <svg width="16" height="16" viewBox="0 0 512 512" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M78.131,72.577c1.653,0,3.267,0.03,4.836,0.05c1.415,0.03,2.785,0.04,4.126,0.04c12.733,0,24.693,3.783,35.341,9.959c10.332-12.382,15.5-23.72,15.5-32.199c0-10.524-8.534-19.063-19.068-19.063c-5.74,0-10.892,2.552-14.388,6.583c0.06-0.606,0.1-1.202,0.1-1.817c0-10.535-8.548-19.063-19.068-19.063c-10.534,0-19.068,8.528-19.068,19.063c0,0.288,0.03,0.576,0.045,0.854c-3.028-2.512-6.925-4.031-11.159-4.031c-9.652,0-17.485,7.834-17.485,17.474c0,6.513,3.654,15.102,11.875,26.372C59.605,73.46,69.037,72.577,78.131,72.577z"/><path d="M34.455,166.909c0,0-11.602,12.571-27.076,42.545c-17.539,33.996,30.759,56.088,41.393,23.203C55.936,210.537,39.295,166.423,34.455,166.909z"/><path d="M33.601,150.477c-4.413-14.824-7.893-27.889-11.234-40.171c-6.578,7.038-13.504,15.895-20.797,27.105c-8.191,12.609,17.926,11.209,26.123,11.596C29.748,149.108,31.715,149.634,33.601,150.477z"/><path d="M499.146,138.862c-34.87-36.906-104.446-43.518-149.423,2.898c-48.238,49.812-36.448,108.8-95.738,108.8c-59.289,0-94.283-49.326-100.097-94.284c0-7.069-1.112-13.86-3.198-20.224c-8.504-26.163-34.536-52.304-63.524-52.304c-14.6,0-33.644-2.333-57.691,19.539c4.925,17.921,9.834,36.976,17.355,60.556c16.556,27.86,22.905,89.368,17.971,135.776c-7.839,67.892,10.986,123.286,70.236,167.091c66.721,49.326,229.2,52.225,248.055-143.62c30.074,7.853,55.407-40.858,35.7-59.056c39.873,18.398,80.751-33.997,44.088-58.441C513.647,214.29,523.809,164.963,499.146,138.862z M75.56,137.779c-6.608,0-11.974-5.361-11.974-11.974c0-6.612,5.366-11.964,11.974-11.964c6.608,0,11.964,5.352,11.964,11.964C87.524,132.418,82.168,137.779,75.56,137.779z M256.437,403.781c-32.497,0-60.417-10.306-82.424-25.17c-22.037-14.874-38.266-34.195-47.911-52.781c-6.394-12.411-9.964-24.484-9.993-35.247c0-0.933,0.03-1.856,0.084-2.76l14.476,0.904c-0.045,0.596-0.06,1.211-0.06,1.856c-0.014,5.56,1.5,12.758,4.682,20.582c3.157,7.804,7.938,16.274,14.203,24.574c12.53,16.631,30.987,32.626,54.221,42.694c15.484,6.722,33.112,10.833,52.722,10.833c24.092,0,51.267-6.206,81.228-21.834l6.706,12.867C312.629,396.87,283.056,403.781,256.437,403.781z"/></svg>,
 };
 
@@ -475,7 +485,7 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
       ? '/agro'
       : ds === 'software'
       ? '/software'
-      : (ds === 'weg' || ds === 'embraer' || ds === 'marcopolo')
+      : (ds === 'weg' || ds === 'embraer' || ds === 'marcopolo' || ds === 'tupy')
       ? '/capitalgoods'
       : `/proteinas${ds === 'beef_us' ? '' : `?dataset=${ds}`}`;
     const applyDestination = () => {
@@ -508,6 +518,7 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
   const isWeg       = activeDataset === 'weg';
   const isEmbraer   = activeDataset === 'embraer';
   const isMarcopolo = activeDataset === 'marcopolo';
+  const isTupy      = activeDataset === 'tupy';
   const isRental    = activeDataset === 'rental';
   const isTransportes = activeDataset === 'transportes';
   const isAgro      = activeDataset === 'agro';
@@ -681,6 +692,11 @@ function Sidebar({ tab, setTab, activeDataset, setActiveDataset, onUpload, dashb
             <span className="sidebar-item-label" style={{textTransform:'uppercase', letterSpacing:'0.1em', fontSize:11}}>Marcopolo</span>
             <span className="sidebar-soon">em breve</span>
           </button>
+          <button className={`sidebar-item ${isTupy ? 'is-on' : ''}`} onClick={() => onPick('tupy')}>
+            <span className={`sidebar-item-icon${isTupy ? ' is-icon-breathing' : ''}`}>{SIcon.tupy}</span>
+            <span className="sidebar-item-label" style={{textTransform:'uppercase', letterSpacing:'0.1em', fontSize:11}}>Tupy</span>
+            <span className="sidebar-soon">em breve</span>
+          </button>
         </>}
         {dashboardSection === 'rental' && <>
           <div className="sidebar-group">
@@ -833,8 +849,8 @@ const MODE_ICON = {
 const MODE_LABEL = { light: 'Tema: Claro · clique p/ Escuro', dark: 'Tema: Escuro · clique p/ Claro' };
 
 function TopBar({ meta, onUpload, activeDataset, colorMode = 'dark', onCycleMode, onNavigate, dashboardSection }) {
-  const title  = activeDataset === 'software' ? 'SOFTWARE' : activeDataset === 'agro' ? 'AGRO' : activeDataset === 'transportes' ? 'TRANSPORTES' : activeDataset === 'rental' ? 'RENTAL' : activeDataset === 'macro' ? 'MACRO' : activeDataset === 'weg' ? 'WEG' : activeDataset === 'embraer' ? 'EMBRAER' : activeDataset === 'marcopolo' ? 'MARCOPOLO' : (activeDataset === 'poultry_br' || activeDataset === 'poultry_us') ? 'POULTRY' : 'BEEF';
-  const suffix = (activeDataset === 'software' || activeDataset === 'agro' || activeDataset === 'transportes' || activeDataset === 'rental' || activeDataset === 'macro' || activeDataset === 'weg' || activeDataset === 'embraer' || activeDataset === 'marcopolo') ? '' : (activeDataset === 'beef_us' || activeDataset === 'poultry_us') ? 'US' : 'BR';
+  const title  = activeDataset === 'software' ? 'SOFTWARE' : activeDataset === 'agro' ? 'AGRO' : activeDataset === 'transportes' ? 'TRANSPORTES' : activeDataset === 'rental' ? 'RENTAL' : activeDataset === 'macro' ? 'MACRO' : activeDataset === 'weg' ? 'WEG' : activeDataset === 'embraer' ? 'EMBRAER' : activeDataset === 'marcopolo' ? 'MARCOPOLO' : activeDataset === 'tupy' ? 'TUPY' : (activeDataset === 'poultry_br' || activeDataset === 'poultry_us') ? 'POULTRY' : 'BEEF';
+  const suffix = (activeDataset === 'software' || activeDataset === 'agro' || activeDataset === 'transportes' || activeDataset === 'rental' || activeDataset === 'macro' || activeDataset === 'weg' || activeDataset === 'embraer' || activeDataset === 'marcopolo' || activeDataset === 'tupy') ? '' : (activeDataset === 'beef_us' || activeDataset === 'poultry_us') ? 'US' : 'BR';
   const currentMeta = activeDataset === 'beef_us'
     ? (meta?.us ?? null)
     : activeDataset === 'poultry_br'
@@ -853,7 +869,7 @@ function TopBar({ meta, onUpload, activeDataset, colorMode = 'dark', onCycleMode
     ? (meta?.agro ?? null)
     : activeDataset === 'software'
     ? (meta?.software ?? null)
-    : (activeDataset === 'embraer' || activeDataset === 'marcopolo')
+    : (activeDataset === 'embraer' || activeDataset === 'marcopolo' || activeDataset === 'tupy')
     ? null
     : (meta?.br ?? (meta?.updated ? meta : null));
   return (
@@ -1044,7 +1060,7 @@ function TickerBar({ data, activeDataset }) {
   const requestRef = useRef();
 
   const items = useMemo(() => {
-    if (activeDataset === 'macro' || activeDataset === 'rental' || activeDataset === 'transportes' || activeDataset === 'agro' || activeDataset === 'software' || activeDataset === 'embraer' || activeDataset === 'marcopolo') return [];
+    if (activeDataset === 'macro' || activeDataset === 'rental' || activeDataset === 'transportes' || activeDataset === 'agro' || activeDataset === 'software' || activeDataset === 'embraer' || activeDataset === 'marcopolo' || activeDataset === 'tupy') return [];
     const ds = activeDataset === 'beef_us'    ? 'beef_us'
              : activeDataset === 'poultry_br'  ? 'frango'
              : activeDataset === 'poultry_us'  ? 'frango_us_daily'

@@ -6,7 +6,7 @@ import React from 'react'
 // and a Theme switcher React component.
 // =========================================================================
 
-(function () {
+;(function () {
   // --- Ripple coords for buttons (CSS reads --rx-x / --rx-y) -------------
   const rippleSelectors = '.tab, .seg-btn, .year-seg-btn, .ctrl-btn, .preset-btn, .cur-btn, .year-chip, .swatch, .type-btn, .upload-btn, .rx-theme-card';
   document.addEventListener('mousedown', (e) => {
